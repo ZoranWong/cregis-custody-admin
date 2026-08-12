@@ -170,7 +170,7 @@ export const useUserStore = defineStore(
       const currentRoute = router.currentRoute.value
       const redirect = currentRoute.path !== '/login' ? currentRoute.fullPath : undefined
       router.push({
-        name: 'Login',
+        name: 'login',
         query: redirect ? { redirect } : undefined
       })
     }
@@ -227,32 +227,37 @@ export const useUserStore = defineStore(
       checkAndClearWorktabs,
       // ─── Cregis session ───
       session: computed(() => {
-        if (!accessToken.value) return null;
+        if (!accessToken.value) return null
         return {
           token: accessToken.value,
           refreshToken: refreshToken.value,
           tokenTimeout: null,
           refreshTokenTimeout: null,
-          user: { id: info.value.userId, username: info.value.userName || '', email: info.value.email || '', roles: info.value.roles || [] },
-          mfa: { totp: true, passkey: false, verified: true },
-        } as any;
+          user: {
+            id: info.value.userId,
+            username: info.value.userName || '',
+            email: info.value.email || '',
+            roles: info.value.roles || []
+          },
+          mfa: { totp: true, passkey: false, verified: true }
+        } as any
       }),
       isAuthenticated: computed(() => !!accessToken.value),
       setSession(value: any) {
-        accessToken.value = value.token || '';
-        refreshToken.value = value.refreshToken || '';
-        isLogin.value = true;
-        if (value.user) setUserInfo(value.user);
+        accessToken.value = value.token || ''
+        refreshToken.value = value.refreshToken || ''
+        isLogin.value = true
+        if (value.user) setUserInfo(value.user)
       },
       clearSession() {
-        accessToken.value = '';
-        refreshToken.value = '';
-        isLogin.value = false;
-        info.value = {};
+        accessToken.value = ''
+        refreshToken.value = ''
+        isLogin.value = false
+        info.value = {}
       },
       rehydrate() {
         // Pinia persist 插件自动从 localStorage 恢复，无需手动处理
-      },
+      }
     }
   },
   {

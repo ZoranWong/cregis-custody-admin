@@ -44,7 +44,7 @@
 
     if (!userStore.isLogin) {
       router.push({
-        name: 'Login',
+        name: 'login',
         query: { redirect: targetHomePath }
       })
       return

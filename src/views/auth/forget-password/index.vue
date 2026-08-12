@@ -53,7 +53,7 @@
   const register = async () => {}
 
   const toLogin = () => {
-    router.push({ name: 'Login' })
+    router.push({ name: 'login' })
   }
 </script>
 

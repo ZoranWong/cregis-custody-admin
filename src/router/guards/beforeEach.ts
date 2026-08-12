@@ -48,7 +48,6 @@ import { staticRoutes } from '../routes/staticRoutes'
 import { loadingService } from '@/utils/ui'
 import { useCommon } from '@/hooks/core/useCommon'
 import { useWorktabStore } from '@/store/modules/worktab'
-import { fetchGetUserInfo } from '@/api/auth'
 import { ApiStatus } from '@/utils/http/status'
 import { isHttpError } from '@/utils/http/error'
 import { RouteRegistry, MenuProcessor, IframeRouteManager, RoutePermissionValidator } from '../core'
@@ -214,7 +213,7 @@ function handleLoginStatus(
   // 未登录且访问需要权限的页面，跳转到登录页并携带 redirect 参数
   userStore.logOut()
   next({
-    name: 'Login',
+    name: 'login',
     query: { redirect: to.fullPath }
   })
   return false
