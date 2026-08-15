@@ -21,7 +21,9 @@
           <p v-if="width >= 1400" class="my-0 mx-2 ml-2 text-lg">{{ AppConfig.systemInfo.name }}</p>
         </div>
 
-        <img src="/logo.svg" alt="Cregis"
+        <img
+          src="/logo.svg"
+          alt="Cregis"
           class="!hidden w-8 h-8 rounded-lg ml-3.5 overflow-hidden align-[-0.15em]"
           @click="toHome"
         />

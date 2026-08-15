@@ -48,20 +48,11 @@
   "setting": {
     "menuType": {
       "title": "菜单布局",
-      "list": [
-        "垂直",
-        "水平",
-        "混合",
-        "双列"
-      ]
+      "list": ["垂直", "水平", "混合", "双列"]
     },
     "theme": {
       "title": "主题风格",
-      "list": [
-        "浅色",
-        "深色",
-        "系统"
-      ]
+      "list": ["浅色", "深色", "系统"]
     },
     "menu": {
       "title": "菜单风格"
@@ -71,17 +62,11 @@
     },
     "box": {
       "title": "盒子样式",
-      "list": [
-        "边框",
-        "阴影"
-      ]
+      "list": ["边框", "阴影"]
     },
     "container": {
       "title": "容器宽度",
-      "list": [
-        "铺满",
-        "定宽"
-      ]
+      "list": ["铺满", "定宽"]
     },
     "basics": {
       "title": "基础配置",
@@ -127,14 +112,8 @@
   "notice": {
     "title": "通知",
     "btnRead": "标为已读",
-    "bar": [
-      "通知",
-      "消息",
-      "代办"
-    ],
-    "text": [
-      "暂无"
-    ],
+    "bar": ["通知", "消息", "代办"],
+    "text": ["暂无"],
     "viewAll": "查看全部"
   },
   "worktab": {
@@ -326,7 +305,8 @@
     "system": {
       "title": "系统管理",
       "employees": "员工管理",
-      "monitor": "系统监控"
+      "monitor": "系统监控",
+      "personalCenter": "个人中心"
     }
   },
   "table": {
@@ -805,6 +785,7 @@
     "resetPassword": "重置密码",
     "enable": "启用",
     "disable": "禁用",
+    "reviewAccess": "访问审查",
     "statusAll": "全部状态",
     "statusPending": "待激活",
     "statusActive": "活跃",

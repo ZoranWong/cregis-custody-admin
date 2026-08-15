@@ -1,13 +1,16 @@
 import type { App } from 'vue'
-import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { staticRoutes } from './routes/staticRoutes'
 import { configureNProgress } from '@/utils/router'
 import { setupBeforeEachGuard } from './guards/beforeEach'
 import { setupAfterEachGuard } from './guards/afterEach'
 
+// 从 Vite 环境变量获取 base 路径，确保与 vite.config.ts 的 base 配置一致
+const BASE_URL = import.meta.env.BASE_URL
+
 // 创建路由实例
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(BASE_URL),
   routes: staticRoutes // 静态路由
 })
 

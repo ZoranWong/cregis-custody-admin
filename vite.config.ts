@@ -25,7 +25,11 @@ export default ({ mode }: { mode: string }) => {
     define: {
       __APP_VERSION__: JSON.stringify(VITE_VERSION)
     },
-    base: env.VITE_BASE ? `/${env.VITE_BASE.replace(/^\/+|\/+$/g, '')}/` : VITE_BASE_URL || '/',
+    base: (() => {
+      const raw = env.VITE_BASE || VITE_BASE_URL || '/'
+      const trimmed = raw.replace(/^\/+|\/+$/g, '')
+      return trimmed ? `/${trimmed}/` : '/'
+    })(),
     root: __dirname,
     server: {
       host: '127.0.0.1',
@@ -55,7 +59,7 @@ export default ({ mode }: { mode: string }) => {
         '@icons': resolvePath('src/assets/icons'),
         '@utils': resolvePath('src/utils'),
         '@stores': resolvePath('src/store'),
-        '@styles': resolvePath('src/assets/styles'),
+        '@styles': resolvePath('src/assets/styles')
       }
     },
     build: {
@@ -68,7 +72,7 @@ export default ({ mode }: { mode: string }) => {
           drop_console: true,
           drop_debugger: true
         }
-      },
+      }
     },
     plugins: [
       vue(),
@@ -100,8 +104,15 @@ export default ({ mode }: { mode: string }) => {
     ],
     optimizeDeps: {
       include: [
-        'echarts/core', 'echarts/charts', 'echarts/components', 'echarts/renderers',
-        'xlsx', 'xgplayer', 'crypto-js', 'file-saver', 'vue-img-cutter',
+        'echarts/core',
+        'echarts/charts',
+        'echarts/components',
+        'echarts/renderers',
+        'xlsx',
+        'xgplayer',
+        'crypto-js',
+        'file-saver',
+        'vue-img-cutter',
         'element-plus/es',
         'element-plus/es/components/*/style/css',
         'element-plus/es/components/*/style/index'
@@ -115,7 +126,7 @@ export default ({ mode }: { mode: string }) => {
             @use "@styles/core/mixin.scss" as *;
           `
         }
-      },
+      }
     }
   })
 }

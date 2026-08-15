@@ -12,19 +12,22 @@
     popper-style="padding: 5px 16px;"
   >
     <template #reference>
-      <img
-        class="size-8.5 mr-5 c-p rounded-full max-sm:w-6.5 max-sm:h-6.5 max-sm:mr-[16px]"
-        src="@imgs/user/avatar.webp"
-        alt="avatar"
-      />
+      <div
+        class="avatar-circle size-8.5 mr-5 c-p rounded-full max-sm:w-6.5 max-sm:h-6.5 max-sm:mr-[16px]"
+        :style="{ backgroundColor: avatarColor }"
+      >
+        <span class="avatar-initials">{{ avatarInitials }}</span>
+      </div>
     </template>
     <template #default>
       <div class="pt-3">
         <div class="flex-c pb-1 px-0">
-          <img
-            class="w-10 h-10 mr-3 ml-0 overflow-hidden rounded-full float-left"
-            src="@imgs/user/avatar.webp"
-          />
+          <div
+            class="avatar-circle w-10 h-10 mr-3 ml-0 overflow-hidden rounded-full flex-shrink-0"
+            :style="{ backgroundColor: avatarColor }"
+          >
+            <span class="avatar-initials text-base">{{ avatarInitials }}</span>
+          </div>
           <div class="w-[calc(100%-60px)] h-full">
             <span class="block text-sm font-medium text-g-800 truncate">{{
               userInfo.userName
@@ -33,7 +36,7 @@
           </div>
         </div>
         <ul class="py-4 mt-3 border-t border-g-300/80">
-          <li class="btn-item" @click="goPage('/system/user-center')">
+          <li class="btn-item" @click="goPage('/system/personal-center')">
             <ArtSvgIcon icon="ri:user-3-line" />
             <span>{{ $t('topBar.user.userCenter') }}</span>
           </li>
@@ -63,6 +66,7 @@
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import { ElMessageBox } from 'element-plus'
+  import { computed } from 'vue'
   import { useUserStore } from '@/store/modules/user'
   import { WEB_LINKS } from '@/utils/constants'
   import { mittBus } from '@/utils/sys'
@@ -75,6 +79,33 @@
 
   const { getUserInfo: userInfo } = storeToRefs(userStore)
   const userMenuPopover = ref()
+
+  const AVATAR_COLORS = [
+    '#4f46e5',
+    '#0891b2',
+    '#059669',
+    '#d97706',
+    '#dc2626',
+    '#7c3aed',
+    '#db2777',
+    '#2563eb'
+  ]
+
+  const avatarColor = computed(() => {
+    const name = userInfo.value?.userName || userInfo.value?.email || 'U'
+    const index = name.charCodeAt(0) % AVATAR_COLORS.length
+    return AVATAR_COLORS[index]
+  })
+
+  const avatarInitials = computed(() => {
+    const name = userInfo.value?.userName || userInfo.value?.email || ''
+    if (!name) return 'U'
+    const parts = name.trim().split(/\s+/)
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    }
+    return name.slice(0, 2).toUpperCase()
+  })
 
   /**
    * 页面跳转
@@ -133,6 +164,14 @@
 
 <style scoped>
   @reference '@styles/core/tailwind.css';
+
+  .avatar-circle {
+    @apply flex items-center justify-center flex-shrink-0 select-none;
+  }
+
+  .avatar-initials {
+    @apply text-white font-semibold text-xs leading-none;
+  }
 
   @layer components {
     .btn-item {

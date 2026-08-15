@@ -16,10 +16,14 @@
       </template>
       <el-table v-else :data="records" stripe size="small">
         <el-table-column :label="$t('notifications.titleCol')" min-width="200">
-          <template #default="{ row }"><span class="text-sm font-medium text-g-900">{{ row.title }}</span></template>
+          <template #default="{ row }"
+            ><span class="text-sm font-medium text-g-900">{{ row.title }}</span></template
+          >
         </el-table-column>
         <el-table-column :label="$t('notifications.type')" width="140">
-          <template #default="{ row }"><span class="text-sm text-g-700">{{ label(row.type) }}</span></template>
+          <template #default="{ row }"
+            ><span class="text-sm text-g-700">{{ label(row.type) }}</span></template
+          >
         </el-table-column>
         <el-table-column :label="$t('notifications.sentAt')" width="180">
           <template #default="{ row }">{{ row.sentAt }}</template>
@@ -28,7 +32,9 @@
           <template #default="{ row }">{{ row.receiverCount }}</template>
         </el-table-column>
         <el-table-column :label="$t('notifications.status')" width="100">
-          <template #default="{ row }"><el-tag type="success" size="small">{{ row.status }}</el-tag></template>
+          <template #default="{ row }"
+            ><el-tag type="success" size="small">{{ row.status }}</el-tag></template
+          >
         </el-table-column>
       </el-table>
     </div>
@@ -36,12 +42,12 @@
 </template>
 
 <script setup lang="ts">
-import { useMessageNotification } from '@/features/useMessageNotification'
+  import { useMessageNotification } from '@/features/useMessageNotification'
 
-defineOptions({ name: 'MessageNotifications' })
-const { loading, errorMessage, records } = useMessageNotification()
+  defineOptions({ name: 'MessageNotifications' })
+  const { loading, errorMessage, records } = useMessageNotification()
 
-function label(value: string): string {
-  return value.replace(/_/g, ' ')
-}
+  function label(value: string): string {
+    return value.replace(/_/g, ' ')
+  }
 </script>

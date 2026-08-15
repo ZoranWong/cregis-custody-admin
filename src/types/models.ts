@@ -1006,11 +1006,7 @@ export type EmployeeActivationStatus = 'pending_activation' | 'activated' | 'exp
 export type EmployeeAccountStatus = 'enabled' | 'disabled'
 
 export type AuthorizedDomainId =
-  | 'operations'
-  | 'risk'
-  | 'compliance'
-  | 'audit'
-  | 'system_administration'
+  'operations' | 'risk' | 'compliance' | 'audit' | 'system_administration'
 
 export interface EmployeeRowView {
   accountId: number | string

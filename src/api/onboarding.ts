@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { apiRequest } from "@/utils/http/request";
+import { apiRequest } from '@/utils/http/request'
 import type {
   OnboardingApplicationItemView,
   OnboardingDetailView,
@@ -7,40 +7,44 @@ import type {
   OnboardingMerchantManagementLinkView,
   OnboardingRefreshResponse,
   OnboardingTicketLinkView
-} from "@/types/models";
+} from '@/types/models'
 
 export interface OnboardingQuery {
-  search?: string;
-  stage?: string;
-  providerNeutralState?: string;
-  responsibilityParty?: string;
-  slaState?: string;
-  assignee?: string;
-  reviewer?: string;
-  includeTerminal?: boolean;
-  includeHandedOff?: boolean;
-  blockingOnly?: boolean;
-  page?: number;
-  pageSize?: number;
+  search?: string
+  stage?: string
+  providerNeutralState?: string
+  responsibilityParty?: string
+  slaState?: string
+  assignee?: string
+  reviewer?: string
+  includeTerminal?: boolean
+  includeHandedOff?: boolean
+  blockingOnly?: boolean
+  page?: number
+  pageSize?: number
 }
 
 export interface OnboardingCommunicationRequest {
-  type: "note" | "call" | "email";
-  content: string;
+  type: 'note' | 'call' | 'email'
+  content: string
 }
 
-function toQueryString(values: Record<string, string | number | boolean | undefined | null>): string {
-  const params = new URLSearchParams();
+function toQueryString(
+  values: Record<string, string | number | boolean | undefined | null>
+): string {
+  const params = new URLSearchParams()
   Object.entries(values).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") {
-      params.set(key, String(value));
+    if (value !== undefined && value !== null && value !== '') {
+      params.set(key, String(value))
     }
-  });
-  const query = params.toString();
-  return query ? `?${query}` : "";
+  })
+  const query = params.toString()
+  return query ? `?${query}` : ''
 }
 
-export function fetchOnboardingApplications(query: OnboardingQuery): Promise<OnboardingListResponse> {
+export function fetchOnboardingApplications(
+  query: OnboardingQuery
+): Promise<OnboardingListResponse> {
   return apiRequest<OnboardingListResponse>(
     `/api/v1/ops/onboarding/cases${toQueryString({
       search: query.search,
@@ -56,50 +60,68 @@ export function fetchOnboardingApplications(query: OnboardingQuery): Promise<Onb
       page: query.page,
       page_size: query.pageSize
     })}`
-  );
+  )
 }
 
-export function fetchOnboardingApplicationDetail(applicationId: string): Promise<OnboardingDetailView> {
-  return apiRequest<OnboardingDetailView>(`/api/v1/ops/onboarding/cases/${encodeURIComponent(applicationId)}`);
+export function fetchOnboardingApplicationDetail(
+  applicationId: string
+): Promise<OnboardingDetailView> {
+  return apiRequest<OnboardingDetailView>(
+    `/api/v1/ops/onboarding/cases/${encodeURIComponent(applicationId)}`
+  )
 }
 
 export function refreshOnboardingCase(applicationId: string): Promise<OnboardingRefreshResponse> {
-  return apiRequest<OnboardingRefreshResponse>(`/api/v1/ops/onboarding/cases/${encodeURIComponent(applicationId)}/refresh`, {
-    method: "POST",
-    body: { knownUpdatedAt: null }
-  });
+  return apiRequest<OnboardingRefreshResponse>(
+    `/api/v1/ops/onboarding/cases/${encodeURIComponent(applicationId)}/refresh`,
+    {
+      method: 'POST',
+      body: { knownUpdatedAt: null }
+    }
+  )
 }
 
-export function fetchOnboardingTicketLink(applicationId: string, ticketId: string): Promise<OnboardingTicketLinkView> {
+export function fetchOnboardingTicketLink(
+  applicationId: string,
+  ticketId: string
+): Promise<OnboardingTicketLinkView> {
   return apiRequest<OnboardingTicketLinkView>(
     `/api/v1/ops/onboarding/cases/${encodeURIComponent(applicationId)}/tickets/${encodeURIComponent(ticketId)}/link`
-  );
+  )
 }
 
-export function fetchOnboardingMerchantManagementLink(applicationId: string): Promise<OnboardingMerchantManagementLinkView> {
+export function fetchOnboardingMerchantManagementLink(
+  applicationId: string
+): Promise<OnboardingMerchantManagementLinkView> {
   return apiRequest<OnboardingMerchantManagementLinkView>(
     `/api/v1/ops/onboarding/cases/${encodeURIComponent(applicationId)}/merchant-management-link`
-  );
+  )
 }
 
-export function sendOnboardingSupplementReminder(applicationId: string, message: string): Promise<OnboardingDetailView> {
+export function sendOnboardingSupplementReminder(
+  applicationId: string,
+  message: string
+): Promise<OnboardingDetailView> {
   return apiRequest<OnboardingDetailView>(
     `/api/v1/operations/onboarding/applications/${encodeURIComponent(applicationId)}/supplement-reminders`,
     {
-      method: "POST",
+      method: 'POST',
       body: { message }
     }
-  );
+  )
 }
 
-export function createOnboardingCommunication(applicationId: string, request: OnboardingCommunicationRequest): Promise<OnboardingDetailView> {
+export function createOnboardingCommunication(
+  applicationId: string,
+  request: OnboardingCommunicationRequest
+): Promise<OnboardingDetailView> {
   return apiRequest<OnboardingDetailView>(
     `/api/v1/operations/onboarding/applications/${encodeURIComponent(applicationId)}/communications`,
     {
-      method: "POST",
+      method: 'POST',
       body: request
     }
-  );
+  )
 }
 
-export type { OnboardingApplicationItemView };
+export type { OnboardingApplicationItemView }
