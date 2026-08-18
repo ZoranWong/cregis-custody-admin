@@ -28,7 +28,8 @@ export const dashboardRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.dashboard.analysis',
         icon: 'ri:align-item-bottom-line',
-        keepAlive: false
+        keepAlive: false,
+        isHide: true
       }
     }
     // {
