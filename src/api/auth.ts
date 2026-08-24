@@ -18,7 +18,9 @@ function readMfaToken(source: Record<string, unknown>): string {
   return (
     readString(source, 'mfaToken') ||
     readString(source, 'mfa_token') ||
-    (() => { throw new Error('Authentication contract error: missing mfaToken.') })()
+    (() => {
+      throw new Error('Authentication contract error: missing mfaToken.')
+    })()
   )
 }
 
@@ -60,7 +62,7 @@ function buildSessionFromResponse(
 export async function fetchAuthEntryContext(): Promise<AuthEntryContext> {
   const raw = await apiRequest<Record<string, unknown>>('/v1/auth/entry/context', {
     method: 'GET',
-    auth: false,
+    auth: false
   })
   return normalizeAuthEntryContext(raw)
 }
@@ -76,28 +78,33 @@ export async function fetchPasskeyAssertionOptions(): Promise<{
     auth: false,
     body: {
       clientCapability: {
-        platformAuthenticatorAvailable: typeof PublicKeyCredential !== 'undefined' && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable,
+        platformAuthenticatorAvailable:
+          typeof PublicKeyCredential !== 'undefined' &&
+          PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable
       },
-      mediationPreference: 'conditional',
-    },
+      mediationPreference: 'conditional'
+    }
   })
   return normalizePasskeyAssertionOptions(raw)
 }
 
 export async function completePasskeyAssertion(
   passkeyAttemptId: string,
-  credential: Record<string, unknown>,
+  credential: Record<string, unknown>
 ): Promise<{
   result: 'authenticated_session_issued'
   session: AuthenticatedSession
   postAuthRoute: PostAuthRoute
 }> {
-  const response = await apiRequest<Record<string, unknown>>('/v1/auth/passkey/assertion/complete', {
-    method: 'POST',
-    auth: false,
-    body: { passkey_attempt_id: passkeyAttemptId, credential },
-    includeMeta: true,
-  }) as { data: Record<string, unknown>; headers: Headers }
+  const response = (await apiRequest<Record<string, unknown>>(
+    '/v1/auth/passkey/assertion/complete',
+    {
+      method: 'POST',
+      auth: false,
+      body: { passkey_attempt_id: passkeyAttemptId, credential },
+      includeMeta: true
+    }
+  )) as { data: Record<string, unknown>; headers: Headers }
   const data = response.data || {}
   const sip = (data.session_issue_payload as Record<string, unknown>) || {}
   const postAuthRoute = normalizePostAuthRoute(data.post_auth_route)
@@ -105,7 +112,7 @@ export async function completePasskeyAssertion(
   return {
     result: 'authenticated_session_issued',
     session: buildSessionFromIssuePayload(sip, response.headers),
-    postAuthRoute,
+    postAuthRoute
   }
 }
 
@@ -132,14 +139,11 @@ export async function firstAuthenticate(
 }
 
 export async function setupTotp(mfaToken: string): Promise<TotpSetupResponse> {
-  const raw = await apiRequest<Record<string, unknown>>(
-    '/v1/auth/mfa/settings/totp/setup',
-    {
-      method: 'POST',
-      auth: false,
-      body: { mfaToken }
-    }
-  )
+  const raw = await apiRequest<Record<string, unknown>>('/v1/auth/mfa/settings/totp/setup', {
+    method: 'POST',
+    auth: false,
+    body: { mfaToken }
+  })
   return {
     qrCodeBase64: readRequiredString(raw, 'qrCodeBase64'),
     secretKey: readRequiredString(raw, 'secretKey'),
@@ -147,19 +151,13 @@ export async function setupTotp(mfaToken: string): Promise<TotpSetupResponse> {
   }
 }
 
-export async function enableTotpCode(
-  mfaToken: string,
-  code: string
-): Promise<TotpEnableResponse> {
-  const response = (await apiRequest<Record<string, unknown>>(
-    '/v1/auth/mfa/settings/totp/enable',
-    {
-      method: 'POST',
-      auth: false,
-      body: { mfaToken, code },
-      includeMeta: true
-    }
-  )) as { data: Record<string, unknown>; headers: Headers }
+export async function enableTotpCode(mfaToken: string, code: string): Promise<TotpEnableResponse> {
+  const response = (await apiRequest<Record<string, unknown>>('/v1/auth/mfa/settings/totp/enable', {
+    method: 'POST',
+    auth: false,
+    body: { mfaToken, code },
+    includeMeta: true
+  })) as { data: Record<string, unknown>; headers: Headers }
   const data = response.data || {}
   return {
     token: readRequiredString(data, 'token'),
@@ -173,15 +171,12 @@ export async function verifyTotpChallenge(
   mfaToken: string,
   code: string
 ): Promise<AuthenticatedSession> {
-  const response = (await apiRequest<Record<string, unknown>>(
-    '/v1/auth/mfa/totp/verify',
-    {
-      method: 'POST',
-      auth: false,
-      body: { mfaToken, code, type: 'GOOGLE_CODE' },
-      includeMeta: true
-    }
-  )) as { data: Record<string, unknown>; headers: Headers }
+  const response = (await apiRequest<Record<string, unknown>>('/v1/auth/mfa/totp/verify', {
+    method: 'POST',
+    auth: false,
+    body: { mfaToken, code, type: 'GOOGLE_CODE' },
+    includeMeta: true
+  })) as { data: Record<string, unknown>; headers: Headers }
   const data = response.data || {}
   return buildSessionFromResponse(data, response.headers)
 }
@@ -190,15 +185,12 @@ export async function verifyRecoveryCode(
   mfaToken: string,
   recoveryCode: string
 ): Promise<AuthenticatedSession> {
-  const response = (await apiRequest<Record<string, unknown>>(
-    '/v1/auth/mfa/totp/verify',
-    {
-      method: 'POST',
-      auth: false,
-      body: { mfaToken, code: recoveryCode, type: 'RECOVERY_CODE' },
-      includeMeta: true
-    }
-  )) as { data: Record<string, unknown>; headers: Headers }
+  const response = (await apiRequest<Record<string, unknown>>('/v1/auth/mfa/totp/verify', {
+    method: 'POST',
+    auth: false,
+    body: { mfaToken, code: recoveryCode, type: 'RECOVERY_CODE' },
+    includeMeta: true
+  })) as { data: Record<string, unknown>; headers: Headers }
   const data = response.data || {}
   return buildSessionFromResponse(data, response.headers)
 }
@@ -214,16 +206,20 @@ function normalizeAuthEntryContext(raw: Record<string, unknown>): AuthEntryConte
   return {
     allowPasswordFallback,
     passkeyState: mapPasskeyPrimaryState(readString(raw, 'passkey_primary_state')),
-    reentryReason: re ? {
-      code: readRequiredString(re, 'code') as ReentryReasonCode[ReentryReasonCodeKey],
-      label: reentryLabelFromCode(readString(re, 'code')),
-      message: readString(re, 'message') || '',
-    } : null,
-    operatorSummary: null,
+    reentryReason: re
+      ? {
+          code: readRequiredString(re, 'code') as ReentryReasonCode[ReentryReasonCodeKey],
+          label: reentryLabelFromCode(readString(re, 'code')),
+          message: readString(re, 'message') || ''
+        }
+      : null,
+    operatorSummary: null
   }
 }
 
-function mapPasskeyPrimaryState(raw: string | undefined): 'ready' | 'retry_available' | 'unavailable' {
+function mapPasskeyPrimaryState(
+  raw: string | undefined
+): 'ready' | 'retry_available' | 'unavailable' {
   if (raw === 'ready') return 'ready'
   if (raw === 'temporarily_unavailable') return 'unavailable'
   if (raw === 'retry_available') return 'retry_available'
@@ -232,11 +228,16 @@ function mapPasskeyPrimaryState(raw: string | undefined): 'ready' | 'retry_avail
 
 function reentryLabelFromCode(code: string | undefined): string {
   switch (code) {
-    case 'session_expired': return 'Session expired'
-    case 'security_reauth_required': return 'Re-auth required'
-    case 'signed_out_elsewhere': return 'Signed out elsewhere'
-    case 'admin_forced_reauth': return 'Admin forced re-auth'
-    default: return 'Re-entry required'
+    case 'session_expired':
+      return 'Session expired'
+    case 'security_reauth_required':
+      return 'Re-auth required'
+    case 'signed_out_elsewhere':
+      return 'Signed out elsewhere'
+    case 'admin_forced_reauth':
+      return 'Admin forced re-auth'
+    default:
+      return 'Re-entry required'
   }
 }
 
@@ -248,7 +249,9 @@ function normalizePasskeyAssertionOptions(raw: Record<string, unknown>): {
 } {
   const passkeyPrimaryState = readRequiredString(raw, 'passkey_primary_state')
   if (passkeyPrimaryState !== 'ready' && passkeyPrimaryState !== 'retry_available') {
-    throw new Error(`Authentication contract error: unexpected passkey_primary_state ${passkeyPrimaryState}.`)
+    throw new Error(
+      `Authentication contract error: unexpected passkey_primary_state ${passkeyPrimaryState}.`
+    )
   }
   const passwordFallbackAllowed = raw.password_fallback_allowed
   if (typeof passwordFallbackAllowed !== 'boolean') {
@@ -258,7 +261,7 @@ function normalizePasskeyAssertionOptions(raw: Record<string, unknown>): {
     passkeyAttemptId: readRequiredString(raw, 'passkey_attempt_id'),
     assertionOptions: asRecord(raw.assertion_options),
     passkeyPrimaryState,
-    passwordFallbackAllowed,
+    passwordFallbackAllowed
   }
 }
 
@@ -274,11 +277,14 @@ function normalizePostAuthRoute(raw: unknown): PostAuthRoute {
     routeTarget,
     authorizedEntryIds: readRequiredStringArray(par, 'authorized_entry_ids'),
     currentEntryId: readNullableString(par, 'current_entry_id'),
-    handoffReasonSummary: readNullableString(par, 'handoff_reason_summary'),
+    handoffReasonSummary: readNullableString(par, 'handoff_reason_summary')
   }
 }
 
-function buildSessionFromIssuePayload(sip: Record<string, unknown>, headers: Headers): AuthenticatedSession {
+function buildSessionFromIssuePayload(
+  sip: Record<string, unknown>,
+  headers: Headers
+): AuthenticatedSession {
   const headerToken = headers.get('Authorization') || headers.get('authorization')
   const token = (sip.token as string) || normalizeBearer(headerToken)
   const user = (sip.user as Record<string, unknown>) || {}
@@ -295,7 +301,7 @@ function buildSessionFromIssuePayload(sip: Record<string, unknown>, headers: Hea
       id: user.id as string | number,
       username: (user.username as string) || (user.email as string) || 'operator',
       email: (user.email as string) || '',
-      roles: Array.isArray(user.roles) ? user.roles as string[] : []
+      roles: Array.isArray(user.roles) ? (user.roles as string[]) : []
     },
     mfa: {
       totp: (mfa.totp as boolean) ?? true,
@@ -324,7 +330,7 @@ function persistPendingAuthDestination(postAuthRoute: PostAuthRoute): void {
   }
   const snapshot: PendingAuthDestination = {
     postAuthRoute,
-    returnTarget: null,
+    returnTarget: null
   }
   storage.setItem(PENDING_AUTH_DESTINATION_KEY, JSON.stringify(snapshot))
 }
@@ -345,7 +351,7 @@ function readPendingAuthDestination(): PendingAuthDestination | null {
     }
     return {
       postAuthRoute: value.postAuthRoute,
-      returnTarget: value.returnTarget ?? null,
+      returnTarget: value.returnTarget ?? null
     }
   } catch {
     return null
@@ -370,7 +376,7 @@ export function clearPendingAuthDestination(): void {
 // --- Utility functions ---
 
 function asRecord(raw: unknown): Record<string, unknown> {
-  return raw && typeof raw === 'object' ? raw as Record<string, unknown> : {}
+  return raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {}
 }
 
 function readString(source: Record<string, unknown>, key: string): string | undefined {
@@ -392,6 +398,14 @@ function readRequiredString(source: Record<string, unknown>, key: string): strin
     throw new Error(`Authentication contract error: missing ${key}.`)
   }
   return value
+}
+
+function readRequiredTrue(source: Record<string, unknown>, key: string): true {
+  const value = source[key]
+  if (value !== true) {
+    throw new Error(`Authentication contract error: missing ${key}.`)
+  }
+  return true
 }
 
 function readRequiredStringArray(source: Record<string, unknown>, key: string): string[] {
