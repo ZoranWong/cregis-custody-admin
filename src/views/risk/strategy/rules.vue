@@ -11,13 +11,7 @@
           >{{ $t('strategy.reviewTickets') }} ({{ reviews.length }})</el-radio-button
         >
       </el-radio-group>
-      <ElButton
-        @click="
-          rulesLoad()
-          loadReviews()
-        "
-        >{{ $t('console.refresh') }}</ElButton
-      >
+      <ElButton @click="refreshAll()">{{ $t('console.refresh') }}</ElButton>
     </div>
 
     <!-- Rule Library -->
@@ -247,6 +241,10 @@
     updateReviewFilter
   } = useRiskStrategyReview()
   const reviewFilterForm = reactive({ reviewStatus: '', priority: '' })
+  function refreshAll() {
+    rulesLoad()
+    loadReviews()
+  }
   function onReviewFilterChange() {
     updateReviewFilter({
       reviewStatus: reviewFilterForm.reviewStatus as any,

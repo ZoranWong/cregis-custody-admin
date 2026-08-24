@@ -1,6 +1,6 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { passwordFallbackLogin } from '@/api/auth'
+import { firstAuthenticate } from '@/api/auth'
 import { ApiError } from '@/utils/http/request'
 import { useAuthBootstrapStore } from '@/store/modules/authBootstrap'
 import { useUserStore } from '@/store/modules/user'
@@ -22,25 +22,21 @@ export function useLoginForm() {
     error.value = ''
     busy.value = true
     try {
-      const result = await passwordFallbackLogin(form.email.trim(), form.password.trim())
+      const result = await firstAuthenticate(form.email.trim(), form.password.trim())
       sessionStore.clearSession()
       authBootstrapStore.clearStrongAuth()
       authBootstrapStore.setStrongAuth({
-        clearanceToken: result.clearanceToken,
-        clearanceState: result.clearanceState,
-        displayNameOrEmail: result.identifiedAccountSummary.displayNameOrEmail,
-        identifiedEmail: result.identifiedAccountSummary.email,
-        primaryFactorMode: result.primaryFactorMode,
-        fallbackFactorMode: result.fallbackFactorMode,
-        setupPlan: result.setupPlan,
-        challengePlan: result.challengePlan,
+        mfaToken: result.mfaToken,
+        totpEnrolled: result.totp,
+        displayNameOrEmail: form.email.trim(),
+        identifiedEmail: form.email.trim(),
         totpChallengeState: 'ready',
         recoveryModeState: 'totp_primary'
       })
       uiStore.showToast(
         'info',
         'Security verification required',
-        'Complete strong-auth verification to continue.'
+        'Complete verification to continue.'
       )
       await router.push({ name: 'strong-auth-gate' })
     } catch (caught) {

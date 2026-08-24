@@ -194,10 +194,7 @@
                     ? s.activeClass
                     : 'bg-white text-g-600 border-[var(--default-border)] hover:bg-g-50'
                 "
-                @click="
-                  topUpStatusFilter = s.value
-                  goTopUpPage(1)
-                "
+                @click="handleTopUpFilterClick(s.value)"
                 >{{ $t(s.labelKey) }}</button
               >
             </div>
@@ -586,6 +583,10 @@
     topUpTimeRange.value = r
     const { startTime, endTime } = timeRangeDates(r)
     loadTopUps({ startTime, endTime, page: 1 })
+  }
+  function handleTopUpFilterClick(value: string): void {
+    topUpStatusFilter.value = value
+    goTopUpPage(1)
   }
   function goTopUpPage(p: number): void {
     topUpPage.value = p

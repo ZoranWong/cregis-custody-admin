@@ -109,6 +109,21 @@
   --color-warning: var(--art-warning);
   --color-danger: var(--art-danger);
 
+  /* Shade variants — Tailwind v4 不能从 CSS 变量推导 shade，手动声明 */
+  --color-danger-50: oklch(0.97 0.01 25.3);
+  --color-danger-100: oklch(0.93 0.03 25.3);
+  --color-danger-700: oklch(0.42 0.17 25.3);
+
+  --color-warning-50: oklch(0.98 0.02 75.5);
+  --color-warning-100: oklch(0.95 0.05 75.5);
+  --color-warning-500: oklch(0.78 0.14 75.5);
+  --color-warning-700: oklch(0.52 0.09 75.5);
+  --color-warning-800: oklch(0.4 0.07 75.5);
+
+  --color-success-50: oklch(0.97 0.03 166.1);
+  --color-success-500: oklch(0.78 0.17 166.1);
+  --color-success-700: oklch(0.5 0.11 166.1);
+
   /* Gray Scale Colors (Auto-adapts to dark mode) */
   --color-g-100: var(--art-gray-100);
   --color-g-200: var(--art-gray-200);

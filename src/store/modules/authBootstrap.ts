@@ -22,8 +22,8 @@ export interface PostAuthRoute {
   currentEntryId?: string | null
 }
 export interface StrongAuthState {
-  clearanceToken: string
-  clearanceState?: string
+  mfaToken: string
+  totpEnrolled?: boolean
   totpSetupComplete?: boolean
   totpSetupId?: string
   qrCodeBase64?: string
@@ -35,10 +35,6 @@ export interface StrongAuthState {
   passkeyFollowUpState?: string
   displayNameOrEmail?: string
   identifiedEmail?: string
-  primaryFactorMode?: string
-  fallbackFactorMode?: string
-  setupPlan?: unknown
-  challengePlan?: unknown
   verificationReason?: { label: string; message: string }
   totpChallengeState:
     'ready' | 'pending' | 'verified' | 'recovery' | 'expired' | 'invalid_code' | 'too_many_attempts'
@@ -56,7 +52,7 @@ export const useAuthBootstrapStore = defineStore(
     const postAuthRoute = ref<PostAuthRoute | null>(null)
 
     const hasPendingMfa = computed(() => !!pending.value?.token)
-    const hasStrongAuth = computed(() => !!strongAuth.value?.clearanceToken)
+    const hasStrongAuth = computed(() => !!strongAuth.value?.mfaToken)
     const pendingRouteName = computed(() => {
       if (!pending.value) return 'login'
       if (!pending.value.totp) return 'mfa-setup'
