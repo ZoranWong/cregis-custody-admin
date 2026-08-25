@@ -41,7 +41,8 @@
           <div
             v-for="rule in step.rules"
             :key="rule.id"
-            class="border border-[var(--default-border)] rounded-lg p-4 hover:border-g-400 transition-colors"
+            class="border border-[var(--default-border)] rounded-lg p-4 hover:border-g-400 transition-colors cursor-pointer"
+            @click="goDetail(rule.id)"
           >
             <div class="flex items-start justify-between">
               <div class="min-w-0 flex-1">
@@ -65,9 +66,27 @@
                   >
                 </div>
               </div>
-              <el-button size="small" text @click="editRule(rule)">{{
-                $t('rules.edit')
-              }}</el-button>
+              <div class="flex gap-1 flex-shrink-0" @click.stop>
+                <el-button
+                  v-if="rule.status === 'Active' || rule.status === 'Pending'"
+                  size="small"
+                  text
+                  type="danger"
+                  @click="toggleRuleStatus(rule, 'Cancelled')"
+                  >{{ $t('rules.cancel') }}</el-button
+                >
+                <el-button
+                  v-if="rule.status === 'Cancelled'"
+                  size="small"
+                  text
+                  type="success"
+                  @click="toggleRuleStatus(rule, 'Active')"
+                  >{{ $t('rules.recover') }}</el-button
+                >
+                <el-button size="small" text @click="editRule(rule)">{{
+                  $t('rules.edit')
+                }}</el-button>
+              </div>
             </div>
           </div>
         </div>
@@ -116,6 +135,21 @@
             <el-option :label="$t('rules.hold')" value="Hold" />
           </el-select>
         </el-form-item>
+        <el-form-item :label="$t('rules.riskFactors')">
+          <div class="w-full">
+            <p class="text-xs text-g-400 mb-2">{{ $t('rules.riskFactorHint') }}</p>
+            <el-checkbox-group v-model="form.riskFactors" class="flex flex-wrap gap-2">
+              <el-checkbox
+                v-for="f in riskFactorCatalog"
+                :key="f"
+                :value="f"
+                :label="f"
+                border
+                size="small"
+              />
+            </el-checkbox-group>
+          </div>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showDialog = false">{{ $t('common.cancel') }}</el-button>
@@ -126,8 +160,11 @@
 </template>
 
 <script setup lang="ts">
+  import { useRouter } from 'vue-router'
+
   defineOptions({ name: 'ComplianceRules' })
 
+  const router = useRouter()
   const direction = ref('outgoing')
   const statusFilter = ref('')
   const severityFilter = ref('')
@@ -146,6 +183,21 @@
     direction: string
   }
 
+  const riskFactorCatalog = [
+    'Customer Due Diligence',
+    'Sanctions Screening',
+    'Adverse Media',
+    'VASP Domain',
+    'Counterparty VASP',
+    'On-Chain Heuristics',
+    'Mixer/Darknet',
+    'Ransomware',
+    'Theft',
+    'Structuring',
+    'Jurisdiction Risk',
+    'Transaction Pattern'
+  ]
+
   const form = reactive({
     id: 0,
     name: '',
@@ -155,7 +207,8 @@
     minAmount: '',
     severity: 'Routine',
     scope: 'Global',
-    decision: 'Submit for Review'
+    decision: 'Submit for Review',
+    riskFactors: [] as string[]
   })
 
   const rules = ref<Rule[]>([
@@ -286,15 +339,24 @@
       minAmount: '',
       severity: 'Routine',
       scope: 'Global',
-      decision: 'Submit for Review'
+      decision: 'Submit for Review',
+      riskFactors: []
     })
     showDialog.value = true
   }
 
   function editRule(rule: Rule) {
     editing.value = true
-    Object.assign(form, rule)
+    Object.assign(form, { ...rule, riskFactors: (rule as any).riskFactors || [] })
     showDialog.value = true
+  }
+
+  function toggleRuleStatus(rule: Rule, status: string) {
+    rule.status = status
+  }
+
+  function goDetail(id: number) {
+    router.push({ name: 'ComplianceRuleDetail', params: { id: String(id) } })
   }
 
   function saveRule() {

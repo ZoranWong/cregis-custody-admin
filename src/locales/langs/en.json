@@ -159,7 +159,11 @@
     "autoReject": "Auto Reject",
     "submitReview": "Submit for Review",
     "hold": "Hold",
-    "edit": "Edit"
+    "cancel": "Cancel Rule",
+    "recover": "Recover",
+    "edit": "Edit",
+    "riskFactors": "Risk Factors",
+    "riskFactorHint": "Click to include or ignore risk factors"
   },
   "opsHome": {
     "ticketQueue": "Ticket Queue",

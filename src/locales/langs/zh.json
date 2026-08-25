@@ -159,7 +159,11 @@
     "autoReject": "自动拒绝",
     "submitReview": "提交审查",
     "hold": "挂起",
-    "edit": "编辑"
+    "cancel": "取消规则",
+    "recover": "恢复",
+    "edit": "编辑",
+    "riskFactors": "风险因子",
+    "riskFactorHint": "点击选择需要纳入或忽略的风险因子"
   },
   "opsHome": {
     "ticketQueue": "工单队列",
