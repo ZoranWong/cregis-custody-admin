@@ -24,15 +24,56 @@
 
     <!-- ═══ 图表区 ═══ -->
     <ElRow :gutter="20">
-      <ElCol :sm="24" :md="12" v-for="chart in charts" :key="chart.key">
+      <ElCol :sm="24" :md="12">
         <div class="art-card mb-5">
           <div class="p-4 border-b border-[var(--default-border)]">
-            <span class="text-g-900 font-medium">{{ $t(chart.labelKey) }}</span>
+            <span class="text-g-900 font-medium">{{ $t('analytics.revenueTrend') }}</span>
           </div>
-          <div
-            class="h-64 m-4 rounded-lg bg-g-50 flex items-center justify-center text-g-400 text-sm"
-          >
-            {{ $t('analytics.chartPlaceholder') }}
+          <div class="p-4">
+            <ArtLineChart
+              :data="revenueTrendData"
+              :xAxisData="revenueTrendXAxis"
+              height="300px"
+              showAreaColor
+            />
+          </div>
+        </div>
+      </ElCol>
+      <ElCol :sm="24" :md="12">
+        <div class="art-card mb-5">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <span class="text-g-900 font-medium">{{ $t('analytics.costStructure') }}</span>
+          </div>
+          <div class="p-4">
+            <ArtRingChart :data="costStructureData" height="300px" />
+          </div>
+        </div>
+      </ElCol>
+      <ElCol :sm="24" :md="12">
+        <div class="art-card mb-5">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <span class="text-g-900 font-medium">{{ $t('analytics.merchantContribution') }}</span>
+          </div>
+          <div class="p-4">
+            <ArtBarChart
+              :data="merchantContributionData"
+              :xAxisData="merchantContributionXAxis"
+              height="300px"
+            />
+          </div>
+        </div>
+      </ElCol>
+      <ElCol :sm="24" :md="12">
+        <div class="art-card mb-5">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <span class="text-g-900 font-medium">{{ $t('analytics.trendAnalysis') }}</span>
+          </div>
+          <div class="p-4">
+            <ArtLineChart
+              :data="trendAnalysisData"
+              :xAxisData="trendAnalysisXAxis"
+              height="300px"
+            />
           </div>
         </div>
       </ElCol>
@@ -41,6 +82,10 @@
 </template>
 
 <script setup lang="ts">
+  import ArtLineChart from '@/components/core/charts/art-line-chart/index.vue'
+  import ArtBarChart from '@/components/core/charts/art-bar-chart/index.vue'
+  import ArtRingChart from '@/components/core/charts/art-ring-chart/index.vue'
+
   defineOptions({ name: 'BusinessAnalytics' })
 
   const timeRange = ref('weekly')
@@ -69,10 +114,32 @@
     }
   ]
 
-  const charts = [
-    { key: 'revenueTrend', labelKey: 'analytics.revenueTrend' },
-    { key: 'costStructure', labelKey: 'analytics.costStructure' },
-    { key: 'merchantContribution', labelKey: 'analytics.merchantContribution' },
-    { key: 'trendAnalysis', labelKey: 'analytics.trendAnalysis' }
+  // Mock data for charts
+  const revenueTrendData = [45000, 52000, 48000, 61000, 58000, 67000, 72000]
+  const revenueTrendXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+  const costStructureData = [
+    { value: 15000, name: 'Operations' },
+    { value: 8000, name: 'Infrastructure' },
+    { value: 5000, name: 'Support' },
+    { value: 4180, name: 'Other' }
   ]
+
+  const merchantContributionData = [
+    { value: 35000, name: 'CryptoVault' },
+    { value: 28000, name: 'PayFlow' },
+    { value: 22000, name: 'ChainBridge' },
+    { value: 18000, name: 'TokenGuard' },
+    { value: 12000, name: 'BlockSafe' }
+  ]
+  const merchantContributionXAxis = [
+    'CryptoVault',
+    'PayFlow',
+    'ChainBridge',
+    'TokenGuard',
+    'BlockSafe'
+  ]
+
+  const trendAnalysisData = [8.5, 9.2, 10.1, 11.5, 12.0, 12.4, 13.2]
+  const trendAnalysisXAxis = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug']
 </script>
