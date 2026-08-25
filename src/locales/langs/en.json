@@ -112,6 +112,27 @@
     "action": "Action",
     "inspect": "Inspect"
   },
+  "alerts": {
+    "tabAllAlerts": "All Alerts",
+    "tabNeedsAttention": "Needs My Attention",
+    "direction": "Direction",
+    "outgoing": "Outgoing",
+    "incoming": "Incoming",
+    "status": "Status",
+    "statusPending": "Pending Review",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected",
+    "severity": "Severity",
+    "sevCritical": "Critical",
+    "sevMedium": "Medium",
+    "sevRoutine": "Routine",
+    "rule": "Rule",
+    "originator": "Originator",
+    "beneficiary": "Beneficiary",
+    "flagReason": "Flag Reason",
+    "fullReview": "Full Review",
+    "noResults": "No alerts found"
+  },
   "rules": {
     "outgoing": "Outgoing",
     "incoming": "Incoming",
