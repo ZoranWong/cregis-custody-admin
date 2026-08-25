@@ -1,11 +1,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  enableTotpCode,
-  setupTotp,
-  verifyRecoveryCode,
-  verifyTotpChallenge
-} from '@/api/auth'
+import { enableTotpCode, setupTotp, verifyRecoveryCode, verifyTotpChallenge } from '@/api/auth'
 import { ApiError } from '@/utils/http/request'
 import { useAuthBootstrapStore } from '@/store/modules/authBootstrap'
 import { useUserStore } from '@/store/modules/user'
@@ -93,9 +88,7 @@ export function useStrongAuthGate() {
         user: result.user
       } as any
       sessionStore.setSession(session)
-      authBootstrapStore.setPostAuthRoute(
-        mergeWorkbenchPostAuthRoute(null, session.user.roles)
-      )
+      authBootstrapStore.setPostAuthRoute(mergeWorkbenchPostAuthRoute(null, session.user.roles))
       authBootstrapStore.clearStrongAuth()
       uiStore.showToast('success', 'TOTP enabled', 'Authentication completed.')
       code.value = ''
