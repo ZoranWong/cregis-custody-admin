@@ -36,7 +36,19 @@
     "tips": "提示",
     "cancel": "取消",
     "confirm": "确定",
+    "view": "查看",
+    "process": "处理",
     "logOutTips": "您是否要退出登录?"
+  },
+  "opsHome": {
+    "ticketQueue": "工单队列",
+    "expiryAlerts": "到期提醒",
+    "criticalAlerts": "紧急告警",
+    "todoList": "待办事项",
+    "itemsPending": "{n} 项待处理",
+    "dataSourceStatus": "数据源状态",
+    "ok": "正常",
+    "notConnected": "未连接"
   },
   "search": {
     "placeholder": "搜索页面",

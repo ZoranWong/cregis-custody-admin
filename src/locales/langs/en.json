@@ -36,7 +36,19 @@
     "tips": "Prompt",
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "view": "View",
+    "process": "Process",
     "logOutTips": "Do you want to log out?"
+  },
+  "opsHome": {
+    "ticketQueue": "Ticket Queue",
+    "expiryAlerts": "Expiry Alerts",
+    "criticalAlerts": "Critical Alerts",
+    "todoList": "Todo List",
+    "itemsPending": "{n} items pending",
+    "dataSourceStatus": "Data Source Status",
+    "ok": "OK",
+    "notConnected": "Not Connected"
   },
   "search": {
     "placeholder": "Search page",
