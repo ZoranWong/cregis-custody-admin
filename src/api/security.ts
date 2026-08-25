@@ -26,6 +26,8 @@ import type {
 
 const REVOKE_ALL_OTHERS_SENTINEL = '__all_others__'
 
+// TODO(FND): /v1/auth/security/summary 与 /sessions、/sessions/{id}/revoke 在
+// docs/custody-admin.openapi.yaml 中暂无对应端点，待后端补充后对齐。
 export async function fetchPersonalCenterSummary(): Promise<PersonalCenterSummary> {
   const raw = (await apiRequest('/v1/auth/security/summary')) as Record<string, unknown>
   return normalizePersonalCenterSummary(raw)
@@ -37,7 +39,7 @@ export async function fetchPersonalCenterSessions(): Promise<PersonalCenterSessi
 }
 
 export async function fetchPasskeyRegistrationOptions(): Promise<PersonalCenterPasskeyRegistrationOptions> {
-  const raw = (await apiRequest('/v1/auth/security/passkey/registration/options', {
+  const raw = (await apiRequest('/v1/auth/passkey/registration/options', {
     method: 'POST',
     body: {}
   })) as Record<string, unknown>
@@ -51,7 +53,7 @@ export async function completePasskeyRegistration(
   passkeyRegistrationAttemptId: string,
   credential: Record<string, unknown>
 ): Promise<PasskeyStatus> {
-  const raw = (await apiRequest('/v1/auth/security/passkey/registration/complete', {
+  const raw = (await apiRequest('/v1/auth/passkey/registration/complete', {
     method: 'POST',
     body: {
       passkey_registration_attempt_id: passkeyRegistrationAttemptId,
@@ -62,7 +64,7 @@ export async function completePasskeyRegistration(
 }
 
 export async function bootstrapPersonalCenterTotp(): Promise<PersonalCenterTotpSetupMaterial> {
-  const raw = (await apiRequest('/v1/auth/security/totp/setup/bootstrap', {
+  const raw = (await apiRequest('/v1/auth/mfa/settings/totp/setup', {
     method: 'POST',
     body: {}
   })) as Record<string, unknown>
@@ -78,7 +80,7 @@ export async function completePersonalCenterTotp(
   totpSetupId: string,
   code: string
 ): Promise<PersonalCenterTotpSetupResult> {
-  const raw = (await apiRequest('/v1/auth/security/totp/setup/complete', {
+  const raw = (await apiRequest('/v1/auth/mfa/settings/totp/enable', {
     method: 'POST',
     body: {
       totp_setup_id: totpSetupId,
@@ -95,7 +97,7 @@ export async function completePersonalCenterTotp(
 }
 
 export async function refreshRecoveryCodes(): Promise<RecoveryCodesRefreshResult> {
-  const raw = (await apiRequest('/v1/auth/security/recovery-codes/refresh', {
+  const raw = (await apiRequest('/v1/auth/mfa/settings/totp/recoveryCodes/refresh', {
     method: 'POST',
     body: {}
   })) as Record<string, unknown>
@@ -111,7 +113,7 @@ export async function changePersonalCenterPassword(
   currentPassword: string,
   nextPassword: string
 ): Promise<PersonalCenterPasswordChangeResult> {
-  const raw = (await apiRequest('/v1/auth/security/password/change', {
+  const raw = (await apiRequest('/system/staff/update/password', {
     method: 'POST',
     body: {
       current_password: currentPassword,

@@ -285,3 +285,80 @@ export async function fetchGetRoleList(params: Record<string, unknown>) {
 export async function fetchGetMenuList() {
   return (await apiRequest('/system/menus')) as import('@/types/router').AppRouteRecord[]
 }
+
+// ═══ Staff 管理 API（补充 /system/staff/* 端点）═══
+
+// 按邮箱覆盖更新员工角色
+export async function grantStaffRole(email: string, roleCode: string): Promise<void> {
+  await apiRequest(`/system/staff/role/grant/${encodeURIComponent(email)}`, {
+    method: 'POST',
+    body: { roleCode }
+  })
+}
+
+// 重发激活链接
+export async function reissueStaffActivation(userId: string): Promise<void> {
+  await apiRequest(`/system/staff/${encodeURIComponent(userId)}/activation/reissue`, {
+    method: 'POST',
+    body: {}
+  })
+}
+
+// 禁用员工
+export async function disableStaff(userId: string): Promise<void> {
+  await apiRequest(`/system/staff/${encodeURIComponent(userId)}/disable`, {
+    method: 'POST',
+    body: {}
+  })
+}
+
+// 启用员工
+export async function enableStaff(userId: string): Promise<void> {
+  await apiRequest(`/system/staff/${encodeURIComponent(userId)}/enable`, {
+    method: 'POST',
+    body: {}
+  })
+}
+
+// 删除员工
+export async function deleteStaff(userId: string): Promise<void> {
+  await apiRequest(`/system/staff/delete/${encodeURIComponent(userId)}`, {
+    method: 'POST',
+    body: {}
+  })
+}
+
+// 启用 2FA
+export async function enableStaff2FA(id: string): Promise<void> {
+  await apiRequest(`/system/staff/${encodeURIComponent(id)}/2fa/enable`, {
+    method: 'POST',
+    body: {}
+  })
+}
+
+// 禁用 2FA
+export async function disableStaff2FA(id: string): Promise<void> {
+  await apiRequest(`/system/staff/${encodeURIComponent(id)}/2fa/disable`, {
+    method: 'POST',
+    body: {}
+  })
+}
+
+// 强制登出
+export async function forceLogoutStaff(id: string): Promise<void> {
+  await apiRequest(`/system/staff/${encodeURIComponent(id)}/force-logout`, {
+    method: 'POST',
+    body: {}
+  })
+}
+
+// Dev-only: 创建待激活测试账号
+export async function createTestActivationAccount(payload: {
+  email: string
+  displayName?: string
+}): Promise<{ userId: string }> {
+  return (await apiRequest('/system/staff/test/activation', {
+    method: 'POST',
+    body: payload
+  })) as { userId: string }
+}
