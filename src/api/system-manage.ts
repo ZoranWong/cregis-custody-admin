@@ -97,17 +97,7 @@ function normalizeAccountStatus(value?: string | null): EmployeeRowView['account
 }
 
 function normalizeDomainId(value?: string | null): AuthorizedDomainId | null {
-<<<<<<< HEAD
-  const valid: AuthorizedDomainId[] = [
-    'operations',
-    'risk',
-    'compliance',
-    'audit',
-    'system_administration'
-  ]
-=======
   const valid: AuthorizedDomainId[] = ['operations', 'risk', 'compliance', 'system_administration']
->>>>>>> worktree-menu-restructure
   return valid.includes(value as AuthorizedDomainId) ? (value as AuthorizedDomainId) : null
 }
 
@@ -295,8 +285,6 @@ export async function fetchGetRoleList(params: Record<string, unknown>) {
 export async function fetchGetMenuList() {
   return (await apiRequest('/system/menus')) as import('@/types/router').AppRouteRecord[]
 }
-<<<<<<< HEAD
-=======
 
 // ═══ Staff 管理 API（补充 /system/staff/* 端点）═══
 
@@ -374,4 +362,3 @@ export async function createTestActivationAccount(payload: {
     body: payload
   })) as { userId: string }
 }
->>>>>>> worktree-menu-restructure

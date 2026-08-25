@@ -11,8 +11,6 @@ export const operationsRoutes: AppRouteRecord = {
   },
   children: [
     {
-<<<<<<< HEAD
-=======
       path: 'home',
       name: 'OperationsHome',
       component: '/operations/home',
@@ -23,7 +21,6 @@ export const operationsRoutes: AppRouteRecord = {
       }
     },
     {
->>>>>>> worktree-menu-restructure
       path: 'merchants',
       name: 'MerchantList',
       component: '/operations/merchants',
@@ -42,36 +39,11 @@ export const operationsRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.operations.merchantOnboarding',
         icon: 'ri:user-add-line',
-<<<<<<< HEAD
-        keepAlive: true
-      }
-    },
-    {
-      path: 'tickets',
-      name: 'TicketQueue',
-      component: '/operations/tickets',
-      meta: { title: 'menus.operations.ticketQueue', icon: 'ri:file-list-3-line', keepAlive: true }
-    },
-    {
-      path: 'gas',
-      name: 'GasOperations',
-      component: '/operations/gas',
-      meta: { title: 'menus.operations.gasOperations', icon: 'ri:flashlight-line', keepAlive: true }
-    },
-    {
-      path: 'gas/:cusAccountId',
-      name: 'gas-detail',
-      component: '/operations/gas/detail',
-      meta: { title: 'menus.operations.gasDetail', icon: 'ri:flashlight-line', isHide: true }
-    },
-    {
-=======
         keepAlive: true,
         isHide: true
       }
     },
     {
->>>>>>> worktree-menu-restructure
       path: 'fee',
       name: 'FeeMonitor',
       component: '/operations/fee',
@@ -92,8 +64,6 @@ export const operationsRoutes: AppRouteRecord = {
       }
     },
     {
-<<<<<<< HEAD
-=======
       path: 'analytics',
       name: 'BusinessAnalytics',
       component: '/operations/analytics',
@@ -132,7 +102,6 @@ export const operationsRoutes: AppRouteRecord = {
       meta: { title: 'menus.operations.gasDetail', icon: 'ri:flashlight-line', isHide: true }
     },
     {
->>>>>>> worktree-menu-restructure
       path: 'notifications',
       name: 'MessageNotifications',
       component: '/operations/notifications',

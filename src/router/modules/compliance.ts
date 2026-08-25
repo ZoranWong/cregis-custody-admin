@@ -11,12 +11,6 @@ export const complianceRoutes: AppRouteRecord = {
   },
   children: [
     {
-<<<<<<< HEAD
-      path: 'queue',
-      name: 'ComplianceQueue',
-      component: '/compliance/queue',
-      meta: { title: 'menus.compliance.queue', icon: 'ri:file-check-line', keepAlive: true }
-=======
       path: 'tx-lens',
       name: 'TransactionLens',
       component: '/compliance/tx-lens',
@@ -39,30 +33,16 @@ export const complianceRoutes: AppRouteRecord = {
       name: 'TravelRuleEvents',
       component: '/compliance/travel-rule/workbench',
       meta: { title: 'menus.compliance.travelRuleEvents', icon: 'ri:global-line', keepAlive: true }
->>>>>>> worktree-menu-restructure
     },
     {
       path: 'outbox',
       name: 'ComplianceOutbox',
       component: '/compliance/outbox',
-<<<<<<< HEAD
-      meta: { title: 'menus.compliance.outbox', icon: 'ri:mail-send-line', keepAlive: true }
-    },
-    {
-      path: 'travel-rule/workbench',
-      name: 'TravelRuleWorkbench',
-      component: '/compliance/travel-rule/workbench',
-      meta: {
-        title: 'menus.compliance.travelRuleWorkbench',
-        icon: 'ri:global-line',
-        keepAlive: true
-=======
       meta: {
         title: 'menus.compliance.outbox',
         icon: 'ri:mail-send-line',
         keepAlive: true,
         isHide: true
->>>>>>> worktree-menu-restructure
       }
     },
     {
@@ -72,12 +52,8 @@ export const complianceRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.compliance.exchangeEvidence',
         icon: 'ri:exchange-line',
-<<<<<<< HEAD
-        keepAlive: true
-=======
         keepAlive: true,
         isHide: true
->>>>>>> worktree-menu-restructure
       }
     },
     {
@@ -87,12 +63,8 @@ export const complianceRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.compliance.travelRuleConfig',
         icon: 'ri:settings-3-line',
-<<<<<<< HEAD
-        keepAlive: true
-=======
         keepAlive: true,
         isHide: true
->>>>>>> worktree-menu-restructure
       }
     }
   ]

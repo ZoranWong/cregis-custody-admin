@@ -1,11 +1,6 @@
 import type { PostAuthRoute } from '@/types/models'
 
-<<<<<<< HEAD
-export type WorkbenchEntryId =
-  'operations' | 'risk' | 'compliance' | 'audit' | 'system_administration'
-=======
 export type WorkbenchEntryId = 'operations' | 'risk' | 'compliance' | 'system_administration'
->>>>>>> worktree-menu-restructure
 export type WorkbenchSignalTone = 'neutral' | 'success' | 'warning'
 
 export interface WorkbenchStatusSignal {
@@ -43,42 +38,24 @@ const ENTRY_TITLES: Record<WorkbenchEntryId, string> = {
   operations: 'Operations',
   risk: 'Risk',
   compliance: 'Compliance',
-<<<<<<< HEAD
-  audit: 'Audit',
-=======
->>>>>>> worktree-menu-restructure
   system_administration: 'System Administration'
 }
 
 const DEFAULT_ALLOWED_ENTRIES: WorkbenchEntryId[] = ['operations', 'risk', 'compliance']
 const ROLE_ENTRY_MAP: Record<string, WorkbenchEntryId[]> = {
-<<<<<<< HEAD
-  SYSTEM_OWNER: ['operations', 'risk', 'compliance', 'audit', 'system_administration'],
-  ADMIN: ['operations', 'risk', 'compliance', 'audit', 'system_administration'],
-=======
   SYSTEM_OWNER: ['operations', 'risk', 'compliance', 'system_administration'],
   ADMIN: ['operations', 'risk', 'compliance', 'system_administration'],
->>>>>>> worktree-menu-restructure
   SYSTEM_ADMIN: ['system_administration'],
   OPERATIONS: ['operations'],
   SYSTEM_STAFF: [],
   RISK: ['risk'],
-<<<<<<< HEAD
-  COMPLIANCE: ['compliance'],
-  AUDIT: ['audit']
-=======
   COMPLIANCE: ['compliance']
->>>>>>> worktree-menu-restructure
 }
 
 const ENTRY_ORDER: WorkbenchEntryId[] = [
   'operations',
   'risk',
   'compliance',
-<<<<<<< HEAD
-  'audit',
-=======
->>>>>>> worktree-menu-restructure
   'system_administration'
 ]
 

@@ -11,12 +11,6 @@ export const systemRoutes: AppRouteRecord = {
   },
   children: [
     {
-<<<<<<< HEAD
-      path: 'employees',
-      name: 'EmployeeManagement',
-      component: '/system/employees',
-      meta: { title: 'menus.system.employees', icon: 'ri:team-line', keepAlive: true }
-=======
       path: 'team',
       name: 'TeamManagement',
       component: '/system/employees',
@@ -27,22 +21,17 @@ export const systemRoutes: AppRouteRecord = {
       name: 'EmployeeManagement',
       component: '/system/employees',
       meta: { title: 'menus.system.employees', icon: 'ri:team-line', keepAlive: true, isHide: true }
->>>>>>> worktree-menu-restructure
     },
     {
       path: 'monitor',
       name: 'SystemMonitor',
       component: '/system/monitor',
-<<<<<<< HEAD
-      meta: { title: 'menus.system.monitor', icon: 'ri:heart-pulse-line', keepAlive: true }
-=======
       meta: {
         title: 'menus.system.monitor',
         icon: 'ri:heart-pulse-line',
         keepAlive: true,
         isHide: true
       }
->>>>>>> worktree-menu-restructure
     },
     {
       path: 'personal-center',
@@ -51,12 +40,8 @@ export const systemRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.system.personalCenter',
         icon: 'ri:user-settings-line',
-<<<<<<< HEAD
-        keepAlive: false
-=======
         keepAlive: false,
         isHide: true
->>>>>>> worktree-menu-restructure
       }
     }
   ]
