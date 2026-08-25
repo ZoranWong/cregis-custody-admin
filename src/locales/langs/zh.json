@@ -412,7 +412,8 @@
       "serviceQuality": "服务质量",
       "merchantDetail": "商户详情",
       "gasDetail": "Gas 账户详情",
-      "merchantFeeDetail": "商户费用详情"
+      "merchantFeeDetail": "商户费用详情",
+      "ticketDetail": "工单详情"
     },
     "risk": {
       "title": "风控中心",
@@ -420,14 +421,19 @@
       "outbox": "发件箱",
       "ruleGovernance": "规则管理",
       "effectivenessAnalysis": "效能分析",
-      "profileAppetite": "风险画像与偏好"
+      "profileAppetite": "风险画像与偏好",
+      "assessment": "风险评估"
     },
     "compliance": {
       "title": "合规管理",
+      "dashboard": "合规仪表盘",
       "txLens": "Transaction Lens",
+      "txLensDetail": "交易详情",
       "rules": "规则管理",
+      "ruleDetail": "规则详情",
       "alerts": "合规告警",
       "travelRuleEvents": "Travel Rule 事件",
+      "travelRuleShare": "Travel Rule 审批",
       "queue": "合规队列",
       "outbox": "发件箱",
       "travelRuleWorkbench": "Travel Rule 工作台",

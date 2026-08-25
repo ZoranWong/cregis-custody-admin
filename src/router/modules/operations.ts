@@ -90,6 +90,12 @@ export const operationsRoutes: AppRouteRecord = {
       meta: { title: 'menus.operations.ticketQueue', icon: 'ri:file-list-3-line', keepAlive: true }
     },
     {
+      path: 'tickets/:ticketId',
+      name: 'ticket-detail',
+      component: '/operations/tickets/detail',
+      meta: { title: 'menus.operations.ticketDetail', icon: 'ri:file-list-3-line', isHide: true }
+    },
+    {
       path: 'gas',
       name: 'GasOperations',
       component: '/operations/gas',

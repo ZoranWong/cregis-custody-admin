@@ -44,6 +44,17 @@ export const riskRoutes: AppRouteRecord = {
       name: 'RiskProfileAppetite',
       component: '/risk/strategy/appetite',
       meta: { title: 'menus.risk.profileAppetite', icon: 'ri:pie-chart-line', keepAlive: true }
+    },
+    {
+      path: 'assessment/:id',
+      name: 'RiskAssessment',
+      component: '/risk/assessment',
+      meta: {
+        title: 'menus.risk.assessment',
+        icon: 'ri:alert-line',
+        keepAlive: false,
+        isHide: true
+      }
     }
   ]
 }

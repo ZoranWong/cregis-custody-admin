@@ -410,7 +410,8 @@
       "serviceQuality": "Service Quality",
       "merchantDetail": "Merchant Detail",
       "gasDetail": "Gas Account Detail",
-      "merchantFeeDetail": "Merchant Fee Detail"
+      "merchantFeeDetail": "Merchant Fee Detail",
+      "ticketDetail": "Ticket Detail"
     },
     "risk": {
       "title": "Risk",
@@ -418,14 +419,19 @@
       "outbox": "Outbox",
       "ruleGovernance": "Rule Governance",
       "effectivenessAnalysis": "Effectiveness Analysis",
-      "profileAppetite": "Risk Profile & Appetite"
+      "profileAppetite": "Risk Profile & Appetite",
+      "assessment": "Risk Assessment"
     },
     "compliance": {
       "title": "Compliance",
+      "dashboard": "Compliance Dashboard",
       "txLens": "Transaction Lens",
+      "txLensDetail": "Transaction Detail",
       "rules": "Rules",
+      "ruleDetail": "Rule Detail",
       "alerts": "Compliance Alerts",
       "travelRuleEvents": "Travel Rule Events",
+      "travelRuleShare": "Travel Rule Approval",
       "queue": "Compliance Queue",
       "outbox": "Outbox",
       "travelRuleWorkbench": "Travel Rule Workbench",

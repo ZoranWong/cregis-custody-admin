@@ -11,16 +11,44 @@ export const complianceRoutes: AppRouteRecord = {
   },
   children: [
     {
+      path: 'dashboard',
+      name: 'ComplianceDashboard',
+      component: '/compliance/dashboard',
+      meta: { title: 'menus.compliance.dashboard', icon: 'ri:dashboard-line', keepAlive: false }
+    },
+    {
       path: 'tx-lens',
       name: 'TransactionLens',
       component: '/compliance/tx-lens',
       meta: { title: 'menus.compliance.txLens', icon: 'ri:search-eye-line', keepAlive: false }
     },
     {
+      path: 'tx-lens/:id',
+      name: 'TransactionLensDetail',
+      component: '/compliance/tx-lens/detail',
+      meta: {
+        title: 'menus.compliance.txLensDetail',
+        icon: 'ri:search-eye-line',
+        keepAlive: false,
+        isHide: true
+      }
+    },
+    {
       path: 'rules',
       name: 'ComplianceRules',
       component: '/compliance/rules',
       meta: { title: 'menus.compliance.rules', icon: 'ri:file-list-3-line', keepAlive: false }
+    },
+    {
+      path: 'rules/:id',
+      name: 'ComplianceRuleDetail',
+      component: '/compliance/rules/detail',
+      meta: {
+        title: 'menus.compliance.ruleDetail',
+        icon: 'ri:file-list-3-line',
+        keepAlive: false,
+        isHide: true
+      }
     },
     {
       path: 'alerts',
@@ -33,6 +61,17 @@ export const complianceRoutes: AppRouteRecord = {
       name: 'TravelRuleEvents',
       component: '/compliance/travel-rule/workbench',
       meta: { title: 'menus.compliance.travelRuleEvents', icon: 'ri:global-line', keepAlive: true }
+    },
+    {
+      path: 'travel-rule/:id/share',
+      name: 'TravelRuleShare',
+      component: '/compliance/travel-rule/share',
+      meta: {
+        title: 'menus.compliance.travelRuleShare',
+        icon: 'ri:global-line',
+        keepAlive: false,
+        isHide: true
+      }
     },
     {
       path: 'outbox',
