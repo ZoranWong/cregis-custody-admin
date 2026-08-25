@@ -74,7 +74,7 @@
 
             <div class="mt-5 text-sm text-g-600">
               <span>{{ $t('register.hasAccount') }}</span>
-              <RouterLink class="text-theme" :to="{ name: 'Login' }">{{
+              <RouterLink class="text-theme" :to="{ name: 'login' }">{{
                 $t('register.toLogin')
               }}</RouterLink>
             </div>
@@ -230,7 +230,7 @@
    */
   const toLogin = () => {
     setTimeout(() => {
-      router.push({ name: 'Login' })
+      router.push({ name: 'login' })
     }, REDIRECT_DELAY)
   }
 </script>

@@ -14,5 +14,5 @@ export const routeModules: AppRouteRecord[] = [
   riskRoutes,
   complianceRoutes,
   auditRoutes,
-  systemRoutes,
+  systemRoutes
 ]

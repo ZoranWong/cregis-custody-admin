@@ -11,7 +11,13 @@
       class="dual-menu-left"
       :style="{ width: dualMenuShowText ? '80px' : '64px', background: getMenuTheme.background }"
     >
-      <img src="/logo.svg" alt="Cregis" class="logo" style="width:32px;height:32px;border-radius:6px;cursor:pointer" @click="navigateToHome" />
+      <img
+        src="/logo.svg"
+        alt="Cregis"
+        class="logo"
+        style="width: 32px; height: 32px; border-radius: 6px; cursor: pointer"
+        @click="navigateToHome"
+      />
 
       <ElScrollbar style="height: calc(100% - 135px)">
         <ul>
@@ -77,7 +83,13 @@
           background: getMenuTheme.background
         }"
       >
-        <img v-if="!isDualMenu" src="/logo.svg" alt="Cregis" class="logo" style="width:32px;height:32px;border-radius:6px;cursor:pointer" />
+        <img
+          v-if="!isDualMenu"
+          src="/logo.svg"
+          alt="Cregis"
+          class="logo"
+          style="width: 32px; height: 32px; border-radius: 6px; cursor: pointer"
+        />
 
         <p
           :class="{ 'is-dual-menu-name': isDualMenu }"
