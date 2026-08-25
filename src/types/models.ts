@@ -766,64 +766,16 @@ export interface ReentryReason {
   message: string
 }
 
-export type PasskeyPrimaryState = 'ready' | 'retry_available' | 'unavailable'
 export type PasswordRevealState = 'collapsed' | 'expanded'
 
 export interface AuthEntryContext {
   allowPasswordFallback: boolean
-  passkeyState: PasskeyPrimaryState
+  passkeyState: 'ready' | 'retry_available' | 'unavailable'
   reentryReason: ReentryReason | null
   operatorSummary: {
     displayNameOrEmail: string
     identifiedEmail: string
   } | null
-}
-
-export type ClearanceState = 'strong_auth_setup_required' | 'strong_auth_challenge_required'
-export type PrimaryFactorMode = 'passkey_preferred'
-export type FallbackFactorMode = 'password_then_totp_or_recovery'
-
-export interface StrongAuthSetupPlan {
-  recommendedFirstStep: 'passkey' | 'totp'
-  totpRequiredBeforeClear: true
-  recoveryCodesIssuedAfterTotpEnable: true
-}
-
-export interface StrongAuthChallengePlan {
-  primaryChallenge: 'totp'
-  recoveryAllowed: true
-}
-
-export interface PasswordFallbackResponse {
-  clearanceToken: string
-  clearanceState: ClearanceState
-  identifiedAccountSummary: {
-    email: string
-    displayNameOrEmail: string
-  }
-  primaryFactorMode: PrimaryFactorMode
-  fallbackFactorMode: FallbackFactorMode
-  setupPlan?: StrongAuthSetupPlan
-  challengePlan?: StrongAuthChallengePlan
-}
-
-export type TotpChallengeState = 'ready' | 'invalid_code' | 'expired_code' | 'too_many_attempts'
-export type RecoveryModeState = 'totp_primary' | 'recovery_substep'
-export type VerificationReasonCode =
-  | 'initial_setup'
-  | 'device_change'
-  | 'credential_reset'
-  | 'policy_enforcement'
-  | 'reentry_after_recovery'
-  | 'session_restore_reauth'
-  | 'high_risk_action'
-  | 'security_step_up'
-  | 'other_legal_regate'
-
-export interface VerificationReason {
-  code: VerificationReasonCode
-  label: string
-  message: string
 }
 
 export interface PostAuthRoute {
@@ -833,62 +785,11 @@ export interface PostAuthRoute {
   handoffReasonSummary: string | null
 }
 
-export interface TotpBootstrapResponse {
-  totpSetupId: string
-  qrCodeBase64: string
-  secretKeyMasked: string
-  accountName: string
-  recoveryDeliveryMode: 'bundle_after_enable'
-}
-
 export interface RecoveryCodesDeliveryBundle {
   deliveryMode: 'display_once'
   recoveryCodes: string[]
   mustAcknowledgeSaved: true
   bundleVersion: string
-}
-
-export interface TotpSetupCompleteResponse {
-  totpState: 'active'
-  recoveryCodesDeliveryBundle: RecoveryCodesDeliveryBundle | null
-  result?: 'authenticated_session_issued'
-  sessionIssued: boolean
-  session?: AuthenticatedSession
-  postAuthRoute: PostAuthRoute
-  passkeyFollowUpState?: 'active' | 'not_configured_can_manage_later'
-}
-
-export interface StrongAuthChallengeResponse {
-  result: 'authenticated_session_issued' | 'challenge_failed'
-  session: AuthenticatedSession
-  postAuthRoute: PostAuthRoute
-  verificationReason?: VerificationReason
-}
-
-export interface StrongAuthState {
-  clearanceToken: string
-  clearanceState: ClearanceState
-  displayNameOrEmail: string
-  identifiedEmail: string
-  primaryFactorMode: PrimaryFactorMode
-  fallbackFactorMode: FallbackFactorMode
-  setupPlan?: StrongAuthSetupPlan
-  challengePlan?: StrongAuthChallengePlan
-  verificationReason?: VerificationReason
-  inlineErrorMessage?: string
-  totpSetupId?: string
-  qrCodeBase64?: string
-  secretKeyMasked?: string
-  accountName?: string
-  recoveryCodes?: string[]
-  recoveryAcknowledged?: boolean
-  recoveryDeliveryMode?: 'bundle_after_enable'
-  totpSetupComplete?: boolean
-  totpChallengeState?: TotpChallengeState
-  recoveryModeState?: RecoveryModeState
-  issuedSession?: AuthenticatedSession
-  postAuthRoute?: PostAuthRoute
-  passkeyFollowUpState?: 'active' | 'not_configured_can_manage_later'
 }
 
 export type PasskeyStatusState = 'active' | 'not_configured' | 'requires_attention'
