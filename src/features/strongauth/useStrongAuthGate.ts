@@ -1,8 +1,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  completeTotpSetup,
-  fetchTotpBootstrap,
+  enableTotpCode,
+  setupTotp,
   verifyRecoveryCode,
   verifyTotpChallenge
 } from '@/api/auth'
@@ -22,16 +22,9 @@ export function useStrongAuthGate() {
   const busy = ref(false)
 
   const strongAuth = computed(() => authBootstrapStore.strongAuth)
-  const clearanceState = computed(() => strongAuth.value?.clearanceState ?? null)
-  const isSetupMode = computed(
-    () =>
-      clearanceState.value === 'strong_auth_setup_required' && !strongAuth.value?.totpSetupComplete
-  )
-  const isChallengeMode = computed(
-    () =>
-      clearanceState.value === 'strong_auth_challenge_required' ||
-      strongAuth.value?.totpSetupComplete
-  )
+  const totpEnrolled = computed(() => strongAuth.value?.totpEnrolled ?? false)
+  const isSetupMode = computed(() => !totpEnrolled.value)
+  const isChallengeMode = computed(() => totpEnrolled.value)
 
   const displayName = computed(() => strongAuth.value?.displayNameOrEmail ?? '')
   const email = computed(() => strongAuth.value?.identifiedEmail ?? '')
@@ -43,7 +36,6 @@ export function useStrongAuthGate() {
     return name.slice(0, 2).toUpperCase()
   })
 
-  const verificationReason = computed(() => strongAuth.value?.verificationReason)
   const inlineError = computed(() => strongAuth.value?.inlineErrorMessage)
 
   const totpChallengeState = computed(() => strongAuth.value?.totpChallengeState ?? 'ready')
@@ -51,7 +43,6 @@ export function useStrongAuthGate() {
   const recoveryModeState = computed(() => strongAuth.value?.recoveryModeState ?? 'totp_primary')
   const isRecoveryMode = computed(() => recoveryModeState.value === 'recovery_substep')
 
-  const totpSetupId = computed(() => strongAuth.value?.totpSetupId ?? '')
   const qrCodeBase64 = computed(() => strongAuth.value?.qrCodeBase64 ?? '')
   const secretKey = computed(() => strongAuth.value?.secretKeyMasked ?? '')
   const accountName = computed(() => strongAuth.value?.accountName ?? '')
@@ -60,21 +51,17 @@ export function useStrongAuthGate() {
   const isRecoveryDisplay = computed(() => recoveryCodes.value.length > 0)
 
   async function loadTotpBootstrap(): Promise<void> {
-    if (!strongAuth.value?.clearanceToken) return
+    if (!strongAuth.value?.mfaToken) return
     busy.value = true
     try {
-      const result = await fetchTotpBootstrap(strongAuth.value.clearanceToken)
+      const result = await setupTotp(strongAuth.value.mfaToken)
       authBootstrapStore.updateStrongAuthSetup({
-        totpSetupId: result.totpSetupId,
         qrCodeBase64: result.qrCodeBase64,
-        secretKeyMasked: result.secretKeyMasked,
-        accountName: result.accountName,
-        recoveryDeliveryMode: result.recoveryDeliveryMode
+        secretKeyMasked: result.secretKey,
+        accountName: result.accountName
       })
     } catch (caught) {
-      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) {
-        return
-      }
+      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
       uiStore.showToast(
         'error',
         'Setup unavailable',
@@ -87,47 +74,34 @@ export function useStrongAuthGate() {
 
   async function submitTotpSetup(): Promise<void> {
     const sa = strongAuth.value
-    if (!sa?.clearanceToken || !totpSetupId.value || !code.value.trim() || isChallengeLocked.value)
-      return
+    if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return
     busy.value = true
     try {
-      const result = await completeTotpSetup(
-        sa.clearanceToken,
-        totpSetupId.value,
-        code.value.trim()
-      )
-      const bundle = result.recoveryCodesDeliveryBundle
+      const result = await enableTotpCode(sa.mfaToken, code.value.trim())
+      const recoveryCode = result.recoveryCode
       authBootstrapStore.updateStrongAuthSetup({
-        recoveryCodes: bundle?.recoveryCodes ?? [],
+        totpSetupComplete: true,
+        recoveryCodes: recoveryCode ? [recoveryCode] : [],
         recoveryAcknowledged: false,
-        issuedSession: result.session as any,
-        postAuthRoute: result.postAuthRoute as any,
-        passkeyFollowUpState: result.passkeyFollowUpState,
         inlineErrorMessage: '',
         totpChallengeState: 'ready',
         recoveryModeState: 'totp_primary'
       })
-      uiStore.showToast('success', 'TOTP enabled', 'Save the recovery codes before continuing.')
+      const session = {
+        token: result.token,
+        refreshToken: result.refreshToken,
+        user: result.user
+      } as any
+      sessionStore.setSession(session)
+      authBootstrapStore.setPostAuthRoute(
+        mergeWorkbenchPostAuthRoute(null, session.user.roles)
+      )
+      authBootstrapStore.clearStrongAuth()
+      uiStore.showToast('success', 'TOTP enabled', 'Authentication completed.')
       code.value = ''
-      if (bundle?.mustAcknowledgeSaved) {
-        return
-      }
-      if (result.sessionIssued && result.session) {
-        sessionStore.setSession(result.session as any)
-        authBootstrapStore.setPostAuthRoute(
-          mergeWorkbenchPostAuthRoute(
-            result.postAuthRoute as any,
-            (result.session as any).user.roles
-          )
-        )
-        authBootstrapStore.clearStrongAuth()
-        uiStore.showToast('success', 'Admin session ready', 'Authentication completed.')
-        await router.push({ name: 'home' })
-      }
+      await router.push({ name: 'home' })
     } catch (caught) {
-      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) {
-        return
-      }
+      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
       const mapped = mapTotpError(caught, 'Unable to activate TOTP.')
       authBootstrapStore.setStrongAuthTotpChallengeState(mapped.state)
       authBootstrapStore.setStrongAuthInlineError(mapped.message)
@@ -139,21 +113,17 @@ export function useStrongAuthGate() {
 
   async function submitTotpChallenge(): Promise<void> {
     const sa = strongAuth.value
-    if (!sa?.clearanceToken || !code.value.trim() || isChallengeLocked.value) return
+    if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return
     busy.value = true
     try {
-      const result = await verifyTotpChallenge(sa.clearanceToken, code.value.trim())
-      sessionStore.setSession(result.session as any)
-      authBootstrapStore.setPostAuthRoute(
-        mergeWorkbenchPostAuthRoute(result.postAuthRoute as any, (result.session as any).user.roles)
-      )
+      const result = await verifyTotpChallenge(sa.mfaToken, code.value.trim())
+      sessionStore.setSession(result)
+      authBootstrapStore.setPostAuthRoute(mergeWorkbenchPostAuthRoute(null, result.user.roles))
       authBootstrapStore.clearStrongAuth()
       uiStore.showToast('success', 'Admin session ready', 'Multi-factor verification completed.')
       await router.push({ name: 'home' })
     } catch (caught) {
-      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) {
-        return
-      }
+      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
       const mapped = mapTotpError(caught, 'Unable to verify code.')
       authBootstrapStore.setStrongAuthTotpChallengeState(mapped.state)
       authBootstrapStore.setStrongAuthInlineError(mapped.message)
@@ -165,21 +135,17 @@ export function useStrongAuthGate() {
 
   async function submitRecoveryCode(): Promise<void> {
     const sa = strongAuth.value
-    if (!sa?.clearanceToken || !code.value.trim() || isChallengeLocked.value) return
+    if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return
     busy.value = true
     try {
-      const result = await verifyRecoveryCode(sa.clearanceToken, code.value.trim())
-      sessionStore.setSession(result.session)
-      authBootstrapStore.setPostAuthRoute(
-        mergeWorkbenchPostAuthRoute(result.postAuthRoute, result.session.user.roles)
-      )
+      const result = await verifyRecoveryCode(sa.mfaToken, code.value.trim())
+      sessionStore.setSession(result)
+      authBootstrapStore.setPostAuthRoute(mergeWorkbenchPostAuthRoute(null, result.user.roles))
       authBootstrapStore.clearStrongAuth()
       uiStore.showToast('success', 'Admin session ready', 'Recovery code verification completed.')
       await router.push({ name: 'home' })
     } catch (caught) {
-      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) {
-        return
-      }
+      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
       const mapped = mapRecoveryError(caught, 'Unable to verify recovery code.')
       if (mapped.state === 'too_many_attempts') {
         authBootstrapStore.setStrongAuthTotpChallengeState(mapped.state)
@@ -213,14 +179,9 @@ export function useStrongAuthGate() {
 
   async function continueToChallenge(): Promise<void> {
     const sa = strongAuth.value
-    if (!sa || !sa.recoveryAcknowledged) {
-      return
-    }
+    if (!sa || !sa.recoveryAcknowledged) return
     if (sa.issuedSession) {
       sessionStore.setSession(sa.issuedSession as any)
-      authBootstrapStore.setPostAuthRoute(
-        mergeWorkbenchPostAuthRoute(sa.postAuthRoute as any, (sa.issuedSession as any).user.roles)
-      )
       authBootstrapStore.clearStrongAuth()
       uiStore.showToast('success', 'Admin session ready', 'Authentication completed.')
       await router.push({ name: 'home' })
@@ -228,7 +189,7 @@ export function useStrongAuthGate() {
     }
     authBootstrapStore.setStrongAuth({
       ...sa,
-      clearanceState: 'strong_auth_challenge_required',
+      totpEnrolled: true,
       totpSetupComplete: true,
       inlineErrorMessage: '',
       totpChallengeState: 'ready',
@@ -267,13 +228,14 @@ export function useStrongAuthGate() {
   async function handleTerminalStrongAuthError(caught: unknown, title: string): Promise<boolean> {
     const semanticCode = readSemanticCode(caught)
     if (
+      semanticCode === 'mfa_token_invalid_or_expired' ||
       semanticCode === 'clearance_token_invalid_or_expired' ||
       semanticCode === 'state_conflict'
     ) {
       const message =
-        semanticCode === 'clearance_token_invalid_or_expired'
-          ? 'Sign in again to continue.'
-          : 'The security flow changed. Sign in again to refresh context.'
+        semanticCode === 'state_conflict'
+          ? 'The security flow changed. Sign in again to refresh context.'
+          : 'Sign in again to continue.'
       sessionStore.clearSession()
       authBootstrapStore.clearStrongAuth()
       authBootstrapStore.clearPending()
@@ -295,19 +257,17 @@ export function useStrongAuthGate() {
     code,
     busy,
     strongAuth,
-    clearanceState,
+    totpEnrolled,
     isSetupMode,
     isChallengeMode,
     displayName,
     email,
     avatarInitials,
-    verificationReason,
     inlineError,
     totpChallengeState,
     isChallengeLocked,
     recoveryModeState,
     isRecoveryMode,
-    totpSetupId,
     qrCodeBase64,
     secretKey,
     accountName,
