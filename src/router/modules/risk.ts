@@ -4,7 +4,12 @@ export const riskRoutes: AppRouteRecord = {
   name: 'Risk',
   path: '/risk',
   component: '/index/index',
-  meta: { title: 'menus.risk.title', icon: 'ri:alert-line', roles: ['RISK', 'ADMIN'] },
+  meta: {
+    title: 'menus.risk.title',
+    icon: 'ri:alert-line',
+    roles: ['RISK', 'ADMIN'],
+    isHide: true
+  },
   children: [
     {
       path: 'queue',

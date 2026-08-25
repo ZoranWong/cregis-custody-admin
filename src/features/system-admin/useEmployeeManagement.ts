@@ -24,7 +24,10 @@ export const EMPLOYEE_DOMAIN_OPTIONS: DomainOption[] = [
   { id: 'operations', label: 'Operations' },
   { id: 'risk', label: 'Risk' },
   { id: 'compliance', label: 'Compliance' },
+<<<<<<< HEAD
   { id: 'audit', label: 'Audit' },
+=======
+>>>>>>> worktree-menu-restructure
   { id: 'system_administration', label: 'System Administration' }
 ]
 
@@ -33,8 +36,12 @@ export const EMPLOYEE_ROLE_OPTIONS: RoleOption[] = [
   { code: 'SYSTEM_ADMIN', label: 'System Admin' },
   { code: 'OPERATIONS', label: 'Operations' },
   { code: 'RISK', label: 'Risk' },
+<<<<<<< HEAD
   { code: 'COMPLIANCE', label: 'Compliance' },
   { code: 'AUDIT', label: 'Audit' }
+=======
+  { code: 'COMPLIANCE', label: 'Compliance' }
+>>>>>>> worktree-menu-restructure
 ]
 
 const DEFAULT_QUERY: EmployeePageQuery = {

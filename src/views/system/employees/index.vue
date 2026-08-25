@@ -251,8 +251,7 @@
     SYSTEM_ADMIN: 'System Administrator',
     OPERATIONS: 'Operations',
     RISK: 'Risk',
-    COMPLIANCE: 'Compliance',
-    AUDIT: 'Audit'
+    COMPLIANCE: 'Compliance'
   }
 
   const currentPage = computed(() => pagination.value.page || 1)

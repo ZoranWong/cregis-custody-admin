@@ -4,7 +4,12 @@ export const auditRoutes: AppRouteRecord = {
   name: 'Audit',
   path: '/audit',
   component: '/index/index',
-  meta: { title: 'menus.audit.title', icon: 'ri:search-eye-line', roles: ['AUDIT', 'ADMIN'] },
+  meta: {
+    title: 'menus.audit.title',
+    icon: 'ri:search-eye-line',
+    roles: ['AUDIT', 'ADMIN'],
+    isHide: true
+  },
   children: [
     {
       path: 'trail-query',

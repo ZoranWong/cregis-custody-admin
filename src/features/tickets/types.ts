@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 export type TicketCenter = 'operations' | 'risk' | 'compliance' | 'audit'
+=======
+export type TicketCenter = 'operations' | 'risk' | 'compliance'
+>>>>>>> worktree-menu-restructure
 export type TicketQueue = 'all' | 'triage' | 'domain_processing' | 'supervisor_escalation'
 export type TicketDisplayStatus =
   'all_open' | 'new' | 'in_progress' | 'pending_review' | 'completed' | 'closed'
@@ -230,7 +234,11 @@ export interface OpsCollaborationCreateRequest {
   urgency: 'critical' | 'high' | 'medium' | 'low'
   description: string
   merchantId: string
+<<<<<<< HEAD
   upstreamTriggerSource: 'risk' | 'compliance' | 'audit' | 'manual'
+=======
+  upstreamTriggerSource: 'risk' | 'compliance' | 'manual'
+>>>>>>> worktree-menu-restructure
   collaboratorAccountIds: string[]
 }
 

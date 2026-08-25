@@ -26,6 +26,11 @@ import type {
 
 const REVOKE_ALL_OTHERS_SENTINEL = '__all_others__'
 
+<<<<<<< HEAD
+=======
+// TODO(FND): /v1/auth/security/summary 与 /sessions、/sessions/{id}/revoke 在
+// docs/custody-admin.openapi.yaml 中暂无对应端点，待后端补充后对齐。
+>>>>>>> worktree-menu-restructure
 export async function fetchPersonalCenterSummary(): Promise<PersonalCenterSummary> {
   const raw = (await apiRequest('/v1/auth/security/summary')) as Record<string, unknown>
   return normalizePersonalCenterSummary(raw)
@@ -37,7 +42,11 @@ export async function fetchPersonalCenterSessions(): Promise<PersonalCenterSessi
 }
 
 export async function fetchPasskeyRegistrationOptions(): Promise<PersonalCenterPasskeyRegistrationOptions> {
+<<<<<<< HEAD
   const raw = (await apiRequest('/v1/auth/security/passkey/registration/options', {
+=======
+  const raw = (await apiRequest('/v1/auth/passkey/registration/options', {
+>>>>>>> worktree-menu-restructure
     method: 'POST',
     body: {}
   })) as Record<string, unknown>
@@ -51,7 +60,11 @@ export async function completePasskeyRegistration(
   passkeyRegistrationAttemptId: string,
   credential: Record<string, unknown>
 ): Promise<PasskeyStatus> {
+<<<<<<< HEAD
   const raw = (await apiRequest('/v1/auth/security/passkey/registration/complete', {
+=======
+  const raw = (await apiRequest('/v1/auth/passkey/registration/complete', {
+>>>>>>> worktree-menu-restructure
     method: 'POST',
     body: {
       passkey_registration_attempt_id: passkeyRegistrationAttemptId,
@@ -62,7 +75,11 @@ export async function completePasskeyRegistration(
 }
 
 export async function bootstrapPersonalCenterTotp(): Promise<PersonalCenterTotpSetupMaterial> {
+<<<<<<< HEAD
   const raw = (await apiRequest('/v1/auth/security/totp/setup/bootstrap', {
+=======
+  const raw = (await apiRequest('/v1/auth/mfa/settings/totp/setup', {
+>>>>>>> worktree-menu-restructure
     method: 'POST',
     body: {}
   })) as Record<string, unknown>
@@ -78,7 +95,11 @@ export async function completePersonalCenterTotp(
   totpSetupId: string,
   code: string
 ): Promise<PersonalCenterTotpSetupResult> {
+<<<<<<< HEAD
   const raw = (await apiRequest('/v1/auth/security/totp/setup/complete', {
+=======
+  const raw = (await apiRequest('/v1/auth/mfa/settings/totp/enable', {
+>>>>>>> worktree-menu-restructure
     method: 'POST',
     body: {
       totp_setup_id: totpSetupId,
@@ -95,7 +116,11 @@ export async function completePersonalCenterTotp(
 }
 
 export async function refreshRecoveryCodes(): Promise<RecoveryCodesRefreshResult> {
+<<<<<<< HEAD
   const raw = (await apiRequest('/v1/auth/security/recovery-codes/refresh', {
+=======
+  const raw = (await apiRequest('/v1/auth/mfa/settings/totp/recoveryCodes/refresh', {
+>>>>>>> worktree-menu-restructure
     method: 'POST',
     body: {}
   })) as Record<string, unknown>
@@ -111,7 +136,11 @@ export async function changePersonalCenterPassword(
   currentPassword: string,
   nextPassword: string
 ): Promise<PersonalCenterPasswordChangeResult> {
+<<<<<<< HEAD
   const raw = (await apiRequest('/v1/auth/security/password/change', {
+=======
+  const raw = (await apiRequest('/system/staff/update/password', {
+>>>>>>> worktree-menu-restructure
     method: 'POST',
     body: {
       current_password: currentPassword,

@@ -1,6 +1,7 @@
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import {
+<<<<<<< HEAD
   setupTotp,
   enableTotpCode,
   verifyRecoveryCode,
@@ -10,16 +11,29 @@ import { ApiError } from "@/utils/http/request";
 import { useAuthBootstrapStore } from "@/store/modules/authBootstrap";
 import { useUserStore } from "@/store/modules/user";
 import { useUiStore } from "@/store/modules/ui";
+=======
+  enableTotpCode,
+  setupTotp,
+  verifyRecoveryCode,
+  verifyTotpChallenge
+} from '@/api/auth'
+import { ApiError } from '@/utils/http/request'
+import { useAuthBootstrapStore } from '@/store/modules/authBootstrap'
+import { useUserStore } from '@/store/modules/user'
+import { useUiStore } from '@/store/modules/ui'
+import { mergeWorkbenchPostAuthRoute } from '@/features/workbench/workbenchEntry'
+>>>>>>> worktree-menu-restructure
 
 export function useStrongAuthGate() {
-  const router = useRouter();
-  const authBootstrapStore = useAuthBootstrapStore();
-  const sessionStore = useUserStore();
-  const uiStore = useUiStore();
+  const router = useRouter()
+  const authBootstrapStore = useAuthBootstrapStore()
+  const sessionStore = useUserStore()
+  const uiStore = useUiStore()
 
-  const code = ref("");
-  const busy = ref(false);
+  const code = ref('')
+  const busy = ref(false)
 
+<<<<<<< HEAD
   const strongAuth = computed(() => authBootstrapStore.strongAuth);
   const totpEnrolled = computed(() => strongAuth.value?.totpEnrolled ?? false);
   const isSetupMode = computed(
@@ -28,42 +42,54 @@ export function useStrongAuthGate() {
   const isChallengeMode = computed(
     () => totpEnrolled.value
   );
+=======
+  const strongAuth = computed(() => authBootstrapStore.strongAuth)
+  const totpEnrolled = computed(() => strongAuth.value?.totpEnrolled ?? false)
+  const isSetupMode = computed(() => !totpEnrolled.value)
+  const isChallengeMode = computed(() => totpEnrolled.value)
+>>>>>>> worktree-menu-restructure
 
-  const displayName = computed(() => strongAuth.value?.displayNameOrEmail ?? "");
-  const email = computed(() => strongAuth.value?.identifiedEmail ?? "");
+  const displayName = computed(() => strongAuth.value?.displayNameOrEmail ?? '')
+  const email = computed(() => strongAuth.value?.identifiedEmail ?? '')
   const avatarInitials = computed(() => {
-    const name = displayName.value || email.value;
-    if (!name) return "?";
-    const parts = name.split(/[@\s]+/);
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return name.slice(0, 2).toUpperCase();
-  });
+    const name = displayName.value || email.value
+    if (!name) return '?'
+    const parts = name.split(/[@\s]+/)
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+    return name.slice(0, 2).toUpperCase()
+  })
 
-  const verificationReason = computed(() => strongAuth.value?.verificationReason);
-  const inlineError = computed(() => strongAuth.value?.inlineErrorMessage);
+  const inlineError = computed(() => strongAuth.value?.inlineErrorMessage)
 
-  const totpChallengeState = computed(() => strongAuth.value?.totpChallengeState ?? "ready");
-  const isChallengeLocked = computed(() => totpChallengeState.value === "too_many_attempts");
-  const recoveryModeState = computed(() => strongAuth.value?.recoveryModeState ?? "totp_primary");
-  const isRecoveryMode = computed(() => recoveryModeState.value === "recovery_substep");
+  const totpChallengeState = computed(() => strongAuth.value?.totpChallengeState ?? 'ready')
+  const isChallengeLocked = computed(() => totpChallengeState.value === 'too_many_attempts')
+  const recoveryModeState = computed(() => strongAuth.value?.recoveryModeState ?? 'totp_primary')
+  const isRecoveryMode = computed(() => recoveryModeState.value === 'recovery_substep')
 
-  const totpSetupId = computed(() => strongAuth.value?.totpSetupId ?? "");
-  const qrCodeBase64 = computed(() => strongAuth.value?.qrCodeBase64 ?? "");
-  const secretKey = computed(() => strongAuth.value?.secretKeyMasked ?? "");
-  const accountName = computed(() => strongAuth.value?.accountName ?? "");
-  const recoveryCodes = computed(() => strongAuth.value?.recoveryCodes ?? []);
-  const recoveryAcknowledged = computed(() => strongAuth.value?.recoveryAcknowledged ?? false);
-  const isRecoveryDisplay = computed(() => recoveryCodes.value.length > 0);
+  const qrCodeBase64 = computed(() => strongAuth.value?.qrCodeBase64 ?? '')
+  const secretKey = computed(() => strongAuth.value?.secretKeyMasked ?? '')
+  const accountName = computed(() => strongAuth.value?.accountName ?? '')
+  const recoveryCodes = computed(() => strongAuth.value?.recoveryCodes ?? [])
+  const recoveryAcknowledged = computed(() => strongAuth.value?.recoveryAcknowledged ?? false)
+  const isRecoveryDisplay = computed(() => recoveryCodes.value.length > 0)
 
   async function loadTotpBootstrap(): Promise<void> {
+<<<<<<< HEAD
     if (!strongAuth.value?.mfaToken) return;
     busy.value = true;
     try {
       const result = await setupTotp(strongAuth.value.mfaToken);
+=======
+    if (!strongAuth.value?.mfaToken) return
+    busy.value = true
+    try {
+      const result = await setupTotp(strongAuth.value.mfaToken)
+>>>>>>> worktree-menu-restructure
       authBootstrapStore.updateStrongAuthSetup({
         qrCodeBase64: result.qrCodeBase64,
         secretKeyMasked: result.secretKey,
         accountName: result.accountName
+<<<<<<< HEAD
       });
     } catch (caught) {
       if (await handleTerminalStrongAuthError(caught, "Security session expired")) return;
@@ -72,30 +98,57 @@ export function useStrongAuthGate() {
         "Setup unavailable",
         caught instanceof Error ? caught.message : "Unable to prepare setup."
       );
+=======
+      })
+    } catch (caught) {
+      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
+      uiStore.showToast(
+        'error',
+        'Setup unavailable',
+        caught instanceof Error ? caught.message : 'Unable to prepare the authenticator setup.'
+      )
+>>>>>>> worktree-menu-restructure
     } finally {
-      busy.value = false;
+      busy.value = false
     }
   }
 
   async function submitTotpSetup(): Promise<void> {
+<<<<<<< HEAD
     const sa = strongAuth.value;
     if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return;
     busy.value = true;
     try {
       const result = await enableTotpCode(sa.mfaToken, code.value.trim());
       const recoveryCode = result.recoveryCode;
+=======
+    const sa = strongAuth.value
+    if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return
+    busy.value = true
+    try {
+      const result = await enableTotpCode(sa.mfaToken, code.value.trim())
+      const recoveryCode = result.recoveryCode
+>>>>>>> worktree-menu-restructure
       authBootstrapStore.updateStrongAuthSetup({
         totpSetupComplete: true,
         recoveryCodes: recoveryCode ? [recoveryCode] : [],
         recoveryAcknowledged: false,
+<<<<<<< HEAD
         inlineErrorMessage: "",
         totpChallengeState: "ready",
         recoveryModeState: "totp_primary"
       });
+=======
+        inlineErrorMessage: '',
+        totpChallengeState: 'ready',
+        recoveryModeState: 'totp_primary'
+      })
+>>>>>>> worktree-menu-restructure
       const session = {
         token: result.token,
         refreshToken: result.refreshToken,
         user: result.user
+<<<<<<< HEAD
       };
       sessionStore.setSession(session as any);
       authBootstrapStore.clearStrongAuth();
@@ -108,12 +161,30 @@ export function useStrongAuthGate() {
       authBootstrapStore.setStrongAuthTotpChallengeState(mapped.state);
       authBootstrapStore.setStrongAuthInlineError(mapped.message);
       uiStore.showToast("error", "Activation failed", mapped.message);
+=======
+      } as any
+      sessionStore.setSession(session)
+      authBootstrapStore.setPostAuthRoute(
+        mergeWorkbenchPostAuthRoute(null, session.user.roles)
+      )
+      authBootstrapStore.clearStrongAuth()
+      uiStore.showToast('success', 'TOTP enabled', 'Authentication completed.')
+      code.value = ''
+      await router.push({ name: 'home' })
+    } catch (caught) {
+      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
+      const mapped = mapTotpError(caught, 'Unable to activate TOTP.')
+      authBootstrapStore.setStrongAuthTotpChallengeState(mapped.state)
+      authBootstrapStore.setStrongAuthInlineError(mapped.message)
+      uiStore.showToast('error', 'Activation failed', mapped.message)
+>>>>>>> worktree-menu-restructure
     } finally {
-      busy.value = false;
+      busy.value = false
     }
   }
 
   async function submitTotpChallenge(): Promise<void> {
+<<<<<<< HEAD
     const sa = strongAuth.value;
     if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return;
     busy.value = true;
@@ -129,12 +200,31 @@ export function useStrongAuthGate() {
       authBootstrapStore.setStrongAuthTotpChallengeState(mapped.state);
       authBootstrapStore.setStrongAuthInlineError(mapped.message);
       uiStore.showToast("error", "Verification failed", mapped.message);
+=======
+    const sa = strongAuth.value
+    if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return
+    busy.value = true
+    try {
+      const result = await verifyTotpChallenge(sa.mfaToken, code.value.trim())
+      sessionStore.setSession(result)
+      authBootstrapStore.setPostAuthRoute(mergeWorkbenchPostAuthRoute(null, result.user.roles))
+      authBootstrapStore.clearStrongAuth()
+      uiStore.showToast('success', 'Admin session ready', 'Multi-factor verification completed.')
+      await router.push({ name: 'home' })
+    } catch (caught) {
+      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
+      const mapped = mapTotpError(caught, 'Unable to verify code.')
+      authBootstrapStore.setStrongAuthTotpChallengeState(mapped.state)
+      authBootstrapStore.setStrongAuthInlineError(mapped.message)
+      uiStore.showToast('error', 'Verification failed', mapped.message)
+>>>>>>> worktree-menu-restructure
     } finally {
-      busy.value = false;
+      busy.value = false
     }
   }
 
   async function submitRecoveryCode(): Promise<void> {
+<<<<<<< HEAD
     const sa = strongAuth.value;
     if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return;
     busy.value = true;
@@ -152,32 +242,53 @@ export function useStrongAuthGate() {
       }
       authBootstrapStore.setStrongAuthInlineError(mapped.message);
       uiStore.showToast("error", "Verification failed", mapped.message);
+=======
+    const sa = strongAuth.value
+    if (!sa?.mfaToken || !code.value.trim() || isChallengeLocked.value) return
+    busy.value = true
+    try {
+      const result = await verifyRecoveryCode(sa.mfaToken, code.value.trim())
+      sessionStore.setSession(result)
+      authBootstrapStore.setPostAuthRoute(mergeWorkbenchPostAuthRoute(null, result.user.roles))
+      authBootstrapStore.clearStrongAuth()
+      uiStore.showToast('success', 'Admin session ready', 'Recovery code verification completed.')
+      await router.push({ name: 'home' })
+    } catch (caught) {
+      if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
+      const mapped = mapRecoveryError(caught, 'Unable to verify recovery code.')
+      if (mapped.state === 'too_many_attempts') {
+        authBootstrapStore.setStrongAuthTotpChallengeState(mapped.state)
+      }
+      authBootstrapStore.setStrongAuthInlineError(mapped.message)
+      uiStore.showToast('error', 'Verification failed', mapped.message)
+>>>>>>> worktree-menu-restructure
     } finally {
-      busy.value = false;
+      busy.value = false
     }
   }
 
   function acknowledgeRecovery(checked: boolean): void {
-    authBootstrapStore.acknowledgeStrongAuthRecovery(checked);
+    authBootstrapStore.acknowledgeStrongAuthRecovery(checked)
   }
 
   function switchToRecovery(): void {
-    authBootstrapStore.setStrongAuthRecoveryMode("recovery_substep");
+    authBootstrapStore.setStrongAuthRecoveryMode('recovery_substep')
     if (!isChallengeLocked.value) {
-      authBootstrapStore.setStrongAuthInlineError("");
+      authBootstrapStore.setStrongAuthInlineError('')
     }
-    code.value = "";
+    code.value = ''
   }
 
   function switchToTotp(): void {
-    authBootstrapStore.setStrongAuthRecoveryMode("totp_primary");
+    authBootstrapStore.setStrongAuthRecoveryMode('totp_primary')
     if (!isChallengeLocked.value) {
-      authBootstrapStore.setStrongAuthInlineError("");
+      authBootstrapStore.setStrongAuthInlineError('')
     }
-    code.value = "";
+    code.value = ''
   }
 
   async function continueToChallenge(): Promise<void> {
+<<<<<<< HEAD
     const sa = strongAuth.value;
     if (!sa || !sa.recoveryAcknowledged) return;
     if (sa.issuedSession) {
@@ -186,46 +297,65 @@ export function useStrongAuthGate() {
       uiStore.showToast("success", "Admin session ready", "Authentication completed.");
       await router.push({ name: "home" });
       return;
+=======
+    const sa = strongAuth.value
+    if (!sa || !sa.recoveryAcknowledged) return
+    if (sa.issuedSession) {
+      sessionStore.setSession(sa.issuedSession as any)
+      authBootstrapStore.clearStrongAuth()
+      uiStore.showToast('success', 'Admin session ready', 'Authentication completed.')
+      await router.push({ name: 'home' })
+      return
+>>>>>>> worktree-menu-restructure
     }
     authBootstrapStore.setStrongAuth({
       ...sa,
       totpEnrolled: true,
       totpSetupComplete: true,
+<<<<<<< HEAD
       inlineErrorMessage: "",
       totpChallengeState: "ready",
       recoveryModeState: "totp_primary"
     });
     code.value = "";
+=======
+      inlineErrorMessage: '',
+      totpChallengeState: 'ready',
+      recoveryModeState: 'totp_primary'
+    })
+    code.value = ''
+>>>>>>> worktree-menu-restructure
   }
 
   async function restartSignIn(): Promise<void> {
-    sessionStore.clearSession();
-    authBootstrapStore.clearStrongAuth();
-    authBootstrapStore.clearPending();
-    authBootstrapStore.clearPostAuthRoute();
-    uiStore.showToast("error", "Security session expired", "Sign in again to continue.");
-    await router.replace({ name: "login" });
+    sessionStore.clearSession()
+    authBootstrapStore.clearStrongAuth()
+    authBootstrapStore.clearPending()
+    authBootstrapStore.clearPostAuthRoute()
+    uiStore.showToast('error', 'Security session expired', 'Sign in again to continue.')
+    await router.replace({ name: 'login' })
   }
 
   async function copySecret(): Promise<void> {
     try {
-      await navigator.clipboard.writeText(secretKey.value || "");
-      uiStore.showToast("info", "Copied", "Secret key copied to clipboard.");
+      await navigator.clipboard.writeText(secretKey.value || '')
+      uiStore.showToast('info', 'Copied', 'Secret key copied to clipboard.')
     } catch {
-      uiStore.showToast("error", "Copy failed", "Unable to copy to clipboard.");
+      uiStore.showToast('error', 'Copy failed', 'Unable to copy to clipboard.')
     }
   }
 
   async function copyRecovery(): Promise<void> {
     try {
-      await navigator.clipboard.writeText(recoveryCodes.value.join("\n"));
-      uiStore.showToast("info", "Copied", "Recovery codes copied to clipboard.");
+      await navigator.clipboard.writeText(recoveryCodes.value.join('\n'))
+      uiStore.showToast('info', 'Copied', 'Recovery codes copied to clipboard.')
     } catch {
-      uiStore.showToast("error", "Copy failed", "Unable to copy to clipboard.");
+      uiStore.showToast('error', 'Copy failed', 'Unable to copy to clipboard.')
     }
   }
 
   async function handleTerminalStrongAuthError(caught: unknown, title: string): Promise<boolean> {
+<<<<<<< HEAD
     const semanticCode = readSemanticCode(caught);
     if (
       semanticCode === "mfa_token_invalid_or_expired" ||
@@ -241,15 +371,34 @@ export function useStrongAuthGate() {
       uiStore.showToast("error", title, message);
       await router.replace({ name: "login" });
       return true;
+=======
+    const semanticCode = readSemanticCode(caught)
+    if (
+      semanticCode === 'mfa_token_invalid_or_expired' ||
+      semanticCode === 'clearance_token_invalid_or_expired' ||
+      semanticCode === 'state_conflict'
+    ) {
+      const message =
+        semanticCode === 'state_conflict'
+          ? 'The security flow changed. Sign in again to refresh context.'
+          : 'Sign in again to continue.'
+      sessionStore.clearSession()
+      authBootstrapStore.clearStrongAuth()
+      authBootstrapStore.clearPending()
+      authBootstrapStore.clearPostAuthRoute()
+      uiStore.showToast('error', title, message)
+      await router.replace({ name: 'login' })
+      return true
+>>>>>>> worktree-menu-restructure
     }
-    return false;
+    return false
   }
 
   onMounted(() => {
     if (isSetupMode.value && !qrCodeBase64.value && !busy.value) {
-      void loadTotpBootstrap();
+      void loadTotpBootstrap()
     }
-  });
+  })
 
   return {
     code,
@@ -261,13 +410,11 @@ export function useStrongAuthGate() {
     displayName,
     email,
     avatarInitials,
-    verificationReason,
     inlineError,
     totpChallengeState,
     isChallengeLocked,
     recoveryModeState,
     isRecoveryMode,
-    totpSetupId,
     qrCodeBase64,
     secretKey,
     accountName,
@@ -283,70 +430,76 @@ export function useStrongAuthGate() {
     continueToChallenge,
     restartSignIn,
     copySecret,
-    copyRecovery,
-  };
+    copyRecovery
+  }
 }
 
 function readSemanticCode(caught: unknown): string {
-  if (!(caught instanceof ApiError) || !caught.payload || typeof caught.payload !== "object") {
-    return "";
+  if (!(caught instanceof ApiError) || !caught.payload || typeof caught.payload !== 'object') {
+    return ''
   }
-  const payload = caught.payload as Record<string, unknown>;
-  return typeof payload.semantic_code === "string" ? payload.semantic_code : "";
+  const payload = caught.payload as Record<string, unknown>
+  return typeof payload.semantic_code === 'string' ? payload.semantic_code : ''
 }
 
 function readErrorMessage(caught: unknown, fallback: string): string {
-  if (caught instanceof ApiError && caught.payload && typeof caught.payload === "object") {
-    const payload = caught.payload as Record<string, unknown>;
-    if (typeof payload.message === "string" && payload.message.trim()) {
-      return payload.message;
+  if (caught instanceof ApiError && caught.payload && typeof caught.payload === 'object') {
+    const payload = caught.payload as Record<string, unknown>
+    if (typeof payload.message === 'string' && payload.message.trim()) {
+      return payload.message
     }
   }
-  return caught instanceof Error ? caught.message : fallback;
+  return caught instanceof Error ? caught.message : fallback
 }
 
 function mapTotpError(
   caught: unknown,
-  fallback: string,
-): { state: "invalid_code" | "too_many_attempts"; message: string } {
-  const semanticCode = readSemanticCode(caught);
-  if (semanticCode === "totp_invalid_or_expired") {
+  fallback: string
+): { state: 'invalid_code' | 'too_many_attempts'; message: string } {
+  const semanticCode = readSemanticCode(caught)
+  if (semanticCode === 'totp_invalid_or_expired') {
     return {
-      state: "invalid_code",
-      message: "The verification code is invalid or expired. Try a fresh code.",
-    };
+      state: 'invalid_code',
+      message: 'The verification code is invalid or expired. Try a fresh code.'
+    }
   }
-  if (semanticCode === "rate_limited") {
+  if (semanticCode === 'rate_limited') {
     return {
-      state: "too_many_attempts",
-      message: "Too many attempts. Wait briefly before trying again.",
-    };
+      state: 'too_many_attempts',
+      message: 'Too many attempts. Wait briefly before trying again.'
+    }
   }
   return {
-    state: "invalid_code",
-    message: readErrorMessage(caught, fallback),
-  };
+    state: 'invalid_code',
+    message: readErrorMessage(caught, fallback)
+  }
 }
 
 function mapRecoveryError(
   caught: unknown,
-  fallback: string,
-): { state: "too_many_attempts" | null; message: string } {
-  const semanticCode = readSemanticCode(caught);
-  if (semanticCode === "recovery_code_invalid") {
+  fallback: string
+): { state: 'too_many_attempts' | null; message: string } {
+  const semanticCode = readSemanticCode(caught)
+  if (semanticCode === 'recovery_code_invalid') {
     return {
       state: null,
-      message: "The recovery code is invalid or already used.",
-    };
+      message: 'The recovery code is invalid or already used.'
+    }
   }
-  if (semanticCode === "rate_limited") {
+  if (semanticCode === 'rate_limited') {
     return {
-      state: "too_many_attempts",
-      message: "Too many attempts. Wait briefly before trying again.",
-    };
+      state: 'too_many_attempts',
+      message: 'Too many attempts. Wait briefly before trying again.'
+    }
   }
   return {
     state: null,
+<<<<<<< HEAD
     message: readErrorMessage(caught, fallback),
   };
 }
+=======
+    message: readErrorMessage(caught, fallback)
+  }
+}
+>>>>>>> worktree-menu-restructure

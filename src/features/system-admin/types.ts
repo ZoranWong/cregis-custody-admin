@@ -1,5 +1,6 @@
 // System Admin types — 系统管理类型定义
 
+<<<<<<< HEAD
 // ---- 员工管理 ----
 
 export type EmployeeStatus = 'all' | 'pending_activation' | 'active' | 'disabled' | 'expired'
@@ -10,6 +11,11 @@ export type AuthorizedDomainId =
 export type EmployeeActivationStatus = 'pending_activation' | 'activated' | 'expired_activation'
 
 export type EmployeeAccountStatus = 'enabled' | 'disabled'
+=======
+import type { TicketPagination } from '@/features/tickets/types'
+
+export type EmployeeStatus = 'all' | 'pending_activation' | 'active' | 'disabled' | 'expired'
+>>>>>>> worktree-menu-restructure
 
 export interface EmployeePageQuery {
   pageNum?: number
@@ -19,6 +25,7 @@ export interface EmployeePageQuery {
 }
 
 export interface EmployeeRowView {
+<<<<<<< HEAD
   accountId: number | string
   displayName: string
   email: string
@@ -30,14 +37,30 @@ export interface EmployeeRowView {
   defaultEntryId: AuthorizedDomainId | null
   lastSignIn: string | null
   availableActions: string[]
+=======
+  accountId: string
+  displayName: string
+  email: string
+  activationStatus: 'pending' | 'completed' | 'expired'
+  accountStatus: 'enabled' | 'disabled'
+  roleCode: string
+  lastSignInAt?: string
+  authorizedDomainIds: string[]
+  defaultEntryId: string
+>>>>>>> worktree-menu-restructure
 }
 
 export interface EmployeeCreateInput {
   displayName: string
   email: string
   initialRoleCode: string
+<<<<<<< HEAD
   authorizedDomainIds: AuthorizedDomainId[]
   defaultEntryId: AuthorizedDomainId
+=======
+  authorizedDomainIds: string[]
+  defaultEntryId: string
+>>>>>>> worktree-menu-restructure
 }
 
 export interface EmployeeCreateResult {
@@ -109,6 +132,7 @@ export interface SystemMonitorResponse {
   metrics: SystemMonitorMetric[]
   services: SystemMonitorServiceStatus[]
 }
+<<<<<<< HEAD
 
 // ---- 个人中心 ----
 
@@ -228,3 +252,5 @@ export interface PersonalCenterPendingAction {
     | 'revoke_all_others'
   sessionId?: string
 }
+=======
+>>>>>>> worktree-menu-restructure

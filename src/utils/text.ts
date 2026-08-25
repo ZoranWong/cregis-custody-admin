@@ -25,7 +25,6 @@ const UI_TEXT_MAP = Object.freeze<Record<string, string>>({
   运营: 'Operations',
   合规: 'Compliance',
   风控: 'Risk',
-  审计: 'Audit',
   系统管理员: 'System Admin'
 })
 

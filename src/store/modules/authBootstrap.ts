@@ -29,13 +29,10 @@ export interface StrongAuthState {
   qrCodeBase64?: string
   secretKeyMasked?: string
   accountName?: string
-  recoveryDeliveryMode?: string
   issuedSession?: Record<string, unknown>
   postAuthRoute?: Record<string, unknown>
-  passkeyFollowUpState?: string
   displayNameOrEmail?: string
   identifiedEmail?: string
-  verificationReason?: { label: string; message: string }
   totpChallengeState:
     'ready' | 'pending' | 'verified' | 'recovery' | 'expired' | 'invalid_code' | 'too_many_attempts'
   recoveryModeState: 'totp_primary' | 'recovery_substep'
