@@ -14,15 +14,58 @@
 
     <!-- ═══ 图表区 ═══ -->
     <ElRow :gutter="20">
-      <ElCol :sm="24" :md="12" v-for="chart in charts" :key="chart.key">
+      <ElCol :sm="24" :md="12">
         <div class="art-card mb-5">
           <div class="p-4 border-b border-[var(--default-border)]">
-            <span class="text-g-900 font-medium">{{ $t(chart.labelKey) }}</span>
+            <span class="text-g-900 font-medium">{{ $t('serviceQuality.sentimentTrend') }}</span>
           </div>
-          <div
-            class="h-64 m-4 rounded-lg bg-g-50 flex items-center justify-center text-g-400 text-sm"
-          >
-            {{ $t('analytics.chartPlaceholder') }}
+          <div class="p-4">
+            <ArtLineChart
+              :data="sentimentTrendData"
+              :xAxisData="sentimentTrendXAxis"
+              height="300px"
+              showAreaColor
+            />
+          </div>
+        </div>
+      </ElCol>
+      <ElCol :sm="24" :md="12">
+        <div class="art-card mb-5">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <span class="text-g-900 font-medium">{{
+              $t('serviceQuality.complaintStatistics')
+            }}</span>
+          </div>
+          <div class="p-4">
+            <ArtRingChart :data="complaintStatisticsData" height="300px" />
+          </div>
+        </div>
+      </ElCol>
+      <ElCol :sm="24" :md="12">
+        <div class="art-card mb-5">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <span class="text-g-900 font-medium">{{ $t('serviceQuality.feedbackSummary') }}</span>
+          </div>
+          <div class="p-4">
+            <ArtBarChart
+              :data="feedbackSummaryData"
+              :xAxisData="['Positive', 'Neutral', 'Negative']"
+              height="300px"
+            />
+          </div>
+        </div>
+      </ElCol>
+      <ElCol :sm="24" :md="12">
+        <div class="art-card mb-5">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <span class="text-g-900 font-medium">{{ $t('serviceQuality.slaCompliance') }}</span>
+          </div>
+          <div class="p-4">
+            <ArtLineChart
+              :data="slaComplianceData"
+              :xAxisData="slaComplianceXAxis"
+              height="300px"
+            />
           </div>
         </div>
       </ElCol>
@@ -31,6 +74,10 @@
 </template>
 
 <script setup lang="ts">
+  import ArtLineChart from '@/components/core/charts/art-line-chart/index.vue'
+  import ArtBarChart from '@/components/core/charts/art-bar-chart/index.vue'
+  import ArtRingChart from '@/components/core/charts/art-ring-chart/index.vue'
+
   defineOptions({ name: 'ServiceQuality' })
 
   const metricCards = [
@@ -57,10 +104,23 @@
     }
   ]
 
-  const charts = [
-    { key: 'sentimentTrend', labelKey: 'serviceQuality.sentimentTrend' },
-    { key: 'complaintStatistics', labelKey: 'serviceQuality.complaintStatistics' },
-    { key: 'feedbackSummary', labelKey: 'serviceQuality.feedbackSummary' },
-    { key: 'slaCompliance', labelKey: 'serviceQuality.slaCompliance' }
+  // Mock data for charts
+  const sentimentTrendData = [88, 90, 91, 92, 93, 94, 94.2]
+  const sentimentTrendXAxis = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug']
+
+  const complaintStatisticsData = [
+    { value: 12, name: 'Response Time' },
+    { value: 8, name: 'Quality' },
+    { value: 5, name: 'Billing' },
+    { value: 3, name: 'Other' }
   ]
+
+  const feedbackSummaryData = [
+    { value: 45, name: 'Positive' },
+    { value: 38, name: 'Neutral' },
+    { value: 17, name: 'Negative' }
+  ]
+
+  const slaComplianceData = [92, 93, 94, 95, 96, 95, 94]
+  const slaComplianceXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 </script>
