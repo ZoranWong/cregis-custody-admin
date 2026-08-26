@@ -116,9 +116,11 @@
                 >
                   <div class="flex items-center justify-between mb-1.5">
                     <span class="text-sm font-semibold text-g-900">{{ rule.name }}</span>
-                    <span class="text-xs font-medium text-primary cursor-pointer">{{
-                      $t('txLens.detail.viewRule')
-                    }}</span>
+                    <span
+                      class="text-xs font-medium text-primary cursor-pointer"
+                      @click="openRuleDetail(rule)"
+                      >{{ $t('txLens.detail.viewRule') }}</span
+                    >
                   </div>
                   <div class="flex flex-wrap gap-1">
                     <span
@@ -268,8 +270,12 @@
             <div class="art-card mb-4">
               <div class="p-4">
                 <div class="flex justify-end gap-2 mb-4">
-                  <el-button size="small">{{ $t('txLens.detail.requestInfo') }}</el-button>
-                  <el-button size="small">{{ $t('txLens.detail.requestPiiUpdate') }}</el-button>
+                  <el-button size="small" @click="requestInfoVisible = true">
+                    {{ $t('txLens.detail.requestInfo') }}
+                  </el-button>
+                  <el-button size="small" @click="requestInfoVisible = true">
+                    {{ $t('txLens.detail.requestPiiUpdate') }}
+                  </el-button>
                 </div>
                 <!-- Communication Rounds -->
                 <div
@@ -522,12 +528,12 @@
                   {{ $t('txLens.detail.offNetworkDescription') }}
                 </div>
                 <div class="flex gap-3 mb-4 flex-wrap">
-                  <el-button size="small">
+                  <el-button size="small" @click="generateShareLink">
                     <ArtSvgIcon icon="ri:link" class="mr-1" />{{
                       $t('txLens.detail.generateShareLink')
                     }}
                   </el-button>
-                  <el-button size="small">
+                  <el-button size="small" @click="uploadProofVisible = true">
                     <ArtSvgIcon icon="ri:upload-line" class="mr-1" />{{
                       $t('txLens.detail.uploadProof')
                     }}
@@ -560,9 +566,9 @@
                   {{ $t('txLens.detail.networkLifecycleDescription') }}
                 </div>
                 <div class="mb-4">
-                  <el-button type="danger" plain size="small">{{
-                    $t('txLens.detail.cancelTransfer')
-                  }}</el-button>
+                  <el-button type="danger" plain size="small" @click="cancelTransferVisible = true">
+                    {{ $t('txLens.detail.cancelTransfer') }}
+                  </el-button>
                 </div>
                 <div class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-3">{{
                   $t('txLens.detail.networkTrace')
@@ -697,6 +703,213 @@
         </div>
       </el-tab-pane>
     </el-tabs>
+
+    <!-- ═══ Rule Detail Modal ═══ -->
+    <el-dialog
+      v-model="ruleDetailVisible"
+      :title="selectedRule?.name || 'Rule Details'"
+      width="680px"
+      destroy-on-close
+    >
+      <div v-if="selectedRule" class="space-y-4">
+        <div>
+          <div class="text-xs font-semibold text-g-500 uppercase mb-1">Description</div>
+          <div
+            class="p-3 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-700"
+          >
+            This rule triggers when the transaction matches the defined risk factors.
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <div class="text-xs font-semibold text-g-500 uppercase mb-1">Direction</div>
+            <div class="p-2 bg-g-50 border border-[var(--default-border)] rounded text-sm"
+              >Outgoing</div
+            >
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-g-500 uppercase mb-1">Min Amount</div>
+            <div class="p-2 bg-g-50 border border-[var(--default-border)] rounded text-sm"
+              >10,000 AED</div
+            >
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-g-500 uppercase mb-1">Severity</div>
+            <div class="p-2 bg-g-50 border border-[var(--default-border)] rounded text-sm"
+              >Critical</div
+            >
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-g-500 uppercase mb-2">Triggered Factors</div>
+          <div class="flex flex-wrap gap-1">
+            <span
+              v-for="tag in selectedRule.tags"
+              :key="tag"
+              class="px-2 py-1 bg-primary-50 border border-primary-200 rounded text-xs text-primary font-medium"
+              >{{ tag }}</span
+            >
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="ruleDetailVisible = false">Close</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ═══ Request Information Modal ═══ -->
+    <el-dialog
+      v-model="requestInfoVisible"
+      title="Request Information"
+      width="560px"
+      destroy-on-close
+    >
+      <div class="space-y-3">
+        <div v-for="(q, idx) in questionInputs" :key="idx" class="flex items-start gap-2">
+          <el-input
+            v-model="questionInputs[idx]"
+            type="textarea"
+            :rows="2"
+            placeholder="Enter your question..."
+            class="flex-1"
+          />
+          <el-button
+            :icon="'ri:close-line'"
+            circle
+            size="small"
+            @click="removeQuestion(idx)"
+            :disabled="questionInputs.length <= 1"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <el-button text @click="addQuestion">+ Add Question</el-button>
+        <el-button type="primary" @click="submitRequestInfo">Send Request</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ═══ Share Link Modal ═══ -->
+    <el-dialog
+      v-model="shareLinkVisible"
+      title="Share Link Generated"
+      width="500px"
+      destroy-on-close
+    >
+      <div class="space-y-4">
+        <p class="text-sm text-g-600 leading-relaxed">
+          Send this secure link to the counterparty VASP. They can view transaction details and PII,
+          then approve or reject.
+        </p>
+        <div class="p-3 bg-g-50 border border-[var(--default-border)] rounded-md">
+          <div class="text-[11px] font-semibold text-g-500 uppercase mb-1">Secure Share URL</div>
+          <div class="text-sm text-primary font-mono break-all">{{ generatedShareLink }}</div>
+          <div class="text-[11px] text-g-500 mt-2">⏱ Expires in 72 hours</div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="shareLinkVisible = false">Close</el-button>
+        <el-button type="primary" @click="copyShareLink">Copy Link</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ═══ Upload Proof Modal ═══ -->
+    <el-dialog
+      v-model="uploadProofVisible"
+      title="Upload Proof Document"
+      width="500px"
+      destroy-on-close
+    >
+      <div class="space-y-4">
+        <p class="text-sm text-g-600 leading-relaxed">
+          Attach compliance documents, transaction confirmations, or other proof for audit trail.
+        </p>
+        <div
+          class="border-2 border-dashed border-g-200 rounded-lg p-8 text-center cursor-pointer hover:border-primary"
+          @click="($refs.fileInput as HTMLInputElement)?.click()"
+        >
+          <ArtSvgIcon icon="ri:upload-cloud-line" class="text-4xl text-g-400 mb-2" />
+          <div class="text-sm text-g-600 mb-1">Click to upload or drag and drop</div>
+          <div class="text-[11px] text-g-500">PDF, PNG, JPG (max 10MB)</div>
+          <input
+            ref="fileInput"
+            type="file"
+            multiple
+            accept=".pdf,.png,.jpg,.jpeg"
+            class="hidden"
+            @change="handleFileUpload"
+          />
+        </div>
+        <div v-if="uploadedFiles.length > 0" class="space-y-2">
+          <div
+            v-for="(file, idx) in uploadedFiles"
+            :key="idx"
+            class="flex items-center justify-between px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md"
+          >
+            <div class="flex items-center gap-2">
+              <ArtSvgIcon icon="ri:file-line" class="text-g-500" />
+              <div>
+                <div class="text-xs font-medium text-g-800">{{ file.name }}</div>
+                <div class="text-[11px] text-g-500">{{ (file.size / 1024).toFixed(1) }} KB</div>
+              </div>
+            </div>
+            <el-button
+              :icon="'ri:close-line'"
+              circle
+              size="small"
+              @click="removeUploadedFile(idx)"
+            />
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="uploadProofVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="submitProofUpload">Upload</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ═══ Cancel Transfer Modal ═══ -->
+    <el-dialog
+      v-model="cancelTransferVisible"
+      :title="$t('txLens.detail.cancelTransfer')"
+      width="500px"
+      destroy-on-close
+    >
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-g-600 block mb-1">{{
+            $t('txLens.detail.selectCancellationReason')
+          }}</label>
+          <el-select v-model="cancelReason" class="w-full">
+            <el-option :label="$t('txLens.detail.reasonError')" value="error" />
+            <el-option :label="$t('txLens.detail.reasonWrongRecipient')" value="wrong-recipient" />
+            <el-option
+              :label="$t('txLens.detail.reasonCustomerRequest')"
+              value="customer-request"
+            />
+            <el-option :label="$t('txLens.detail.reasonComplianceHold')" value="compliance-hold" />
+          </el-select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-g-600 block mb-1">{{
+            $t('txLens.detail.additionalNotes')
+          }}</label>
+          <el-input
+            v-model="cancelNotes"
+            type="textarea"
+            :rows="3"
+            :placeholder="$t('txLens.detail.additionalNotes')"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="cancelTransferVisible = false">{{
+          $t('txLens.detail.cancel')
+        }}</el-button>
+        <el-button type="danger" @click="confirmCancelTransfer">{{
+          $t('txLens.detail.confirmCancellation')
+        }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -718,6 +931,19 @@
   const showForfeitAddress = ref(false)
   const piiValid = ref(false)
   const piiMissingCount = ref(3)
+
+  // ─── Modal State ───
+  const ruleDetailVisible = ref(false)
+  const selectedRule = ref<null | { key: string; name: string; tags: string[] }>(null)
+  const requestInfoVisible = ref(false)
+  const questionInputs = ref([''])
+  const shareLinkVisible = ref(false)
+  const generatedShareLink = ref('')
+  const uploadProofVisible = ref(false)
+  const uploadedFiles = ref<File[]>([])
+  const cancelTransferVisible = ref(false)
+  const cancelReason = ref('')
+  const cancelNotes = ref('')
 
   // ─── Mock Transaction Data ───
   const txData = reactive({
@@ -1085,6 +1311,94 @@
       time: '2026-07-28 10:35:00 UTC'
     }
   ]
+
+  // ─── Modal Handlers ───
+  function openRuleDetail(rule: { key: string; name: string; tags: string[] }) {
+    selectedRule.value = rule
+    ruleDetailVisible.value = true
+  }
+
+  function addQuestion() {
+    questionInputs.value.push('')
+  }
+
+  function removeQuestion(index: number) {
+    if (questionInputs.value.length > 1) {
+      questionInputs.value.splice(index, 1)
+    }
+  }
+
+  function submitRequestInfo() {
+    const validQuestions = questionInputs.value.filter((q) => q.trim())
+    if (validQuestions.length === 0) {
+      ElMessage.warning('Please enter at least one question')
+      return
+    }
+    // Add new round to commRounds
+    const newRound = {
+      id: Date.now(),
+      isPii: false,
+      time: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+      by: 'By: Compliance Team',
+      description: 'Additional clarification required:',
+      questions: validQuestions.map((q, i) => ({
+        qNum: i + 1,
+        text: q,
+        file: '',
+        textAnswer: ''
+      })),
+      responseTime: '',
+      pending: 'Pending customer response'
+    }
+    commRounds.unshift(newRound)
+    requestInfoVisible.value = false
+    questionInputs.value = ['']
+    compSubTab.value = 'communication'
+    ElMessage.success('Request sent successfully')
+  }
+
+  function generateShareLink() {
+    const token = Math.random().toString(36).substring(2, 10)
+    generatedShareLink.value = `https://custody.cregis.com/tr-share/${token}`
+    shareLinkVisible.value = true
+  }
+
+  function copyShareLink() {
+    navigator.clipboard.writeText(generatedShareLink.value)
+    ElMessage.success('Link copied to clipboard')
+  }
+
+  function handleFileUpload(event: Event) {
+    const input = event.target as HTMLInputElement
+    if (input.files) {
+      uploadedFiles.value = Array.from(input.files)
+    }
+  }
+
+  function removeUploadedFile(index: number) {
+    uploadedFiles.value.splice(index, 1)
+  }
+
+  function submitProofUpload() {
+    if (uploadedFiles.value.length === 0) {
+      ElMessage.warning('Please select files to upload')
+      return
+    }
+    ElMessage.success(`${uploadedFiles.value.length} file(s) uploaded successfully`)
+    uploadedFiles.value = []
+    uploadProofVisible.value = false
+  }
+
+  function confirmCancelTransfer() {
+    if (!cancelReason.value) {
+      ElMessage.warning('Please select a cancellation reason')
+      return
+    }
+    ElMessage.success('Transfer cancelled successfully')
+    cancelTransferVisible.value = false
+    cancelReason.value = ''
+    cancelNotes.value = ''
+  }
 
   function handleDecision(decision: string) {
     if (decision === 'approved') {
