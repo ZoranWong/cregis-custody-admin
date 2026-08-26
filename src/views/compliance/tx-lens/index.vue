@@ -202,7 +202,11 @@
                     ? 'ri:arrow-right-long-line'
                     : 'ri:arrow-left-long-line'
                 "
-                :class="tx.direction === 'Outgoing' ? 'text-blue-500' : 'text-green-500'"
+                :class="
+                  tx.direction === 'Outgoing'
+                    ? 'text-[var(--el-color-primary)]'
+                    : 'text-[var(--el-color-success)]'
+                "
                 class="text-2xl"
               />
             </div>

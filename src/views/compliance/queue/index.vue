@@ -2,220 +2,230 @@
 <template>
   <div class="page-content">
     <!-- Page Header -->
-    <div class="flex items-center justify-between mb-2">
-      <div>
-        <h1 class="text-xl font-semibold text-g-900">{{ $t('alerts.pageTitle') }}</h1>
-        <p class="text-sm text-g-500 mt-1">{{ $t('alerts.pageSubtitle') }}</p>
-      </div>
-      <el-button>
+    <div class="mb-2">
+      <h1 class="text-xl font-semibold text-g-900">{{ $t('alerts.pageTitle') }}</h1>
+      <p class="text-sm text-g-500 mt-1">{{ $t('alerts.pageSubtitle') }}</p>
+    </div>
+
+    <!-- ═══ Primary filters (above cards, matching tx-lens) ═══ -->
+    <div class="flex flex-wrap items-center gap-4 mb-5">
+      <el-select
+        v-model="filters.merchant"
+        :placeholder="$t('alerts.merchant')"
+        clearable
+        class="!w-48"
+      >
+        <el-option :label="$t('alerts.allMerchants')" value="" />
+        <el-option v-for="m in merchantOptions" :key="m" :label="m" :value="m" />
+      </el-select>
+      <el-date-picker
+        v-model="filters.dateFrom"
+        type="date"
+        :placeholder="$t('alerts.from')"
+        class="!w-36"
+      />
+      <el-input
+        v-model="filters.search"
+        :placeholder="$t('alerts.searchPlaceholder')"
+        clearable
+        class="!w-64"
+      >
+        <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
+      </el-input>
+      <el-button type="primary" plain>
         <ArtSvgIcon icon="ri:download-line" class="mr-1" />{{ $t('common.export') }}
       </el-button>
     </div>
 
-    <!-- View Tabs -->
-    <el-tabs v-model="currentView" class="mb-4">
+    <!-- ═══ View Tabs ═══ -->
+    <el-tabs v-model="currentView" class="mb-5">
       <el-tab-pane :label="`${$t('alerts.tabAll')} (${mockAlerts.length})`" name="all" />
       <el-tab-pane :label="`${$t('alerts.tabMine')} (${pendingCount})`" name="mine" />
     </el-tabs>
 
-    <!-- Filter Bar -->
-    <div class="art-card mb-5 p-4">
-      <!-- Top row: Merchant + Date + Search -->
-      <div
-        class="flex flex-wrap items-center gap-4 pb-3 mb-3 border-b border-[var(--default-border)]"
-      >
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('alerts.merchant') }}:</span>
-          <el-select v-model="filters.merchant" clearable class="!w-44" size="small">
-            <el-option :label="$t('alerts.allMerchants')" value="" />
-            <el-option v-for="m in merchantOptions" :key="m" :label="m" :value="m" />
+    <!-- ═══ Secondary filters (inside card, matching tx-lens) ═══ -->
+    <div class="art-card mb-5">
+      <div class="p-4 border-b border-[var(--default-border)]">
+        <div class="flex flex-wrap items-center gap-4">
+          <el-select
+            v-model="filters.direction"
+            :placeholder="$t('alerts.direction')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('alerts.outgoing')" value="outgoing" />
+            <el-option :label="$t('alerts.incoming')" value="incoming" />
           </el-select>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('alerts.date') }}:</span>
-          <el-date-picker
-            v-model="filters.dateFrom"
-            type="date"
-            :placeholder="$t('alerts.from')"
-            size="small"
-            class="!w-32"
-          />
-          <span class="text-xs text-g-500">{{ $t('alerts.to') }}</span>
-          <el-date-picker
-            v-model="filters.dateTo"
-            type="date"
-            :placeholder="$t('alerts.to')"
-            size="small"
-            class="!w-32"
-          />
-        </div>
-        <el-input
-          v-model="filters.search"
-          :placeholder="$t('alerts.searchPlaceholder')"
-          clearable
-          size="small"
-          class="flex-1 !min-w-[200px]"
-        >
-          <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
-        </el-input>
-      </div>
-      <!-- Bottom row: Direction + Status + Severity + Rule -->
-      <div class="flex flex-wrap items-center gap-6">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('alerts.direction') }}:</span>
-          <div class="flex gap-1">
-            <button
-              v-for="opt in directionOptions"
-              :key="opt.value"
-              class="filter-btn"
-              :class="{ active: filters.direction === opt.value }"
-              @click="filters.direction = opt.value"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('alerts.status') }}:</span>
-          <div class="flex gap-1">
-            <button
-              v-for="opt in statusOptions"
-              :key="opt.value"
-              class="filter-btn"
-              :class="{ active: filters.status === opt.value }"
-              @click="filters.status = opt.value"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('alerts.severity') }}:</span>
-          <div class="flex gap-1">
-            <button
-              v-for="opt in severityOptions"
-              :key="opt.value"
-              class="filter-btn"
-              :class="{ active: filters.severity === opt.value }"
-              @click="filters.severity = opt.value"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('alerts.rule') }}:</span>
-          <el-select v-model="filters.rule" clearable class="!w-52" size="small">
+          <el-select
+            v-model="filters.status"
+            :placeholder="$t('alerts.status')"
+            clearable
+            class="!w-40"
+          >
+            <el-option :label="$t('alerts.statusPending')" value="pending" />
+            <el-option :label="$t('alerts.statusApproved')" value="approved" />
+            <el-option :label="$t('alerts.statusRejected')" value="rejected" />
+          </el-select>
+          <el-select
+            v-model="filters.severity"
+            :placeholder="$t('alerts.severity')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('alerts.sevCritical')" value="critical" />
+            <el-option :label="$t('alerts.sevMedium')" value="medium" />
+            <el-option :label="$t('alerts.sevRoutine')" value="routine" />
+          </el-select>
+          <el-select
+            v-model="filters.rule"
+            :placeholder="$t('alerts.rule')"
+            clearable
+            class="!w-52"
+          >
             <el-option :label="$t('alerts.allRules')" value="" />
             <el-option v-for="r in ruleOptions" :key="r" :label="r" :value="r" />
           </el-select>
         </div>
       </div>
-    </div>
 
-    <!-- Alert Cards -->
-    <div v-if="filteredAlerts.length === 0" class="art-card py-10 text-center text-g-400 text-sm">
-      {{ $t('alerts.noResults') }}
-    </div>
-    <div
-      v-for="alert in filteredAlerts"
-      :key="alert.orderId"
-      class="art-card mb-3 alert-card-hover p-4 cursor-pointer"
-      :data-direction="alert.direction"
-      @click="openAlert(alert)"
-    >
-      <!-- Header: Amount + Meta -->
-      <div class="flex items-start justify-between mb-3">
-        <div>
-          <div class="flex items-center gap-1.5 mb-0.5">
-            <ArtSvgIcon
-              :icon="alert.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
-              :class="
-                alert.direction === 'outgoing'
-                  ? 'text-[var(--el-color-primary)]'
-                  : 'text-[var(--el-color-success)]'
-              "
-              class="text-base"
-            />
-            <span class="text-lg font-bold text-g-900">{{ alert.amount }}</span>
-          </div>
-          <div class="text-[11px] text-g-500 font-medium">≈ {{ alert.fiatAmount }}</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[11px] font-semibold text-g-700 font-mono">{{ alert.orderId }}</div>
-          <div class="text-[10px] text-g-500 mt-0.5">{{ alert.timeAgo }}</div>
-          <div class="flex gap-1 justify-end mt-1">
-            <span
-              class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
-              :class="
-                alert.direction === 'outgoing'
-                  ? 'bg-[var(--el-color-primary-light-8)] text-[var(--el-color-primary)]'
-                  : 'bg-[var(--el-color-success-light-8)] text-[var(--el-color-success)]'
-              "
-              >{{
-                alert.direction === 'outgoing' ? $t('alerts.outgoing') : $t('alerts.incoming')
-              }}</span
-            >
-            <span
-              class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
-              :class="statusBadgeClass(alert.status)"
-              >{{ statusLabel(alert.status) }}</span
-            >
-            <span
-              class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
-              :class="severityBadgeClass(alert.severity)"
-              >{{ alert.severity }}</span
-            >
-          </div>
-        </div>
-      </div>
-
-      <!-- Parties -->
-      <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-center mb-3">
-        <div class="originator-box rounded-md p-2.5">
-          <div class="text-[8px] font-bold text-g-500 uppercase tracking-wider mb-0.5">
-            {{
-              alert.direction === 'outgoing'
-                ? $t('alerts.originatorOurCustomer')
-                : $t('alerts.originatorCounterparty')
-            }}
-          </div>
-          <div class="text-xs font-semibold text-g-900 truncate">{{ alert.originator.name }}</div>
-          <div class="text-[10px] text-g-600 truncate">{{ alert.originator.detail }}</div>
-          <div class="text-[10px] text-g-500 font-mono truncate">{{
-            alert.originator.address
-          }}</div>
-        </div>
+      <!-- ═══ Alert cards list ═══ -->
+      <div class="p-4">
         <div
-          class="text-lg font-bold"
-          :class="alert.direction === 'outgoing' ? 'text-blue-500' : 'text-green-500'"
+          v-for="alert in filteredAlerts"
+          :key="alert.orderId"
+          class="tx-card mb-4 last:mb-0 cursor-pointer"
+          @click="openAlert(alert)"
         >
-          →
-        </div>
-        <div class="beneficiary-box rounded-md p-2.5">
-          <div class="text-[8px] font-bold text-g-500 uppercase tracking-wider mb-0.5">
-            {{
-              alert.direction === 'outgoing'
-                ? $t('alerts.beneficiaryCounterparty')
-                : $t('alerts.beneficiaryOurCustomer')
-            }}
+          <!-- Header: Amount + Direction/Status/Severity -->
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <ArtSvgIcon
+                  :icon="alert.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
+                  :class="
+                    alert.direction === 'outgoing'
+                      ? 'text-[var(--el-color-primary)]'
+                      : 'text-[var(--el-color-success)]'
+                  "
+                  class="text-lg"
+                />
+                <span class="text-lg font-semibold text-g-900">{{ alert.amount }}</span>
+                <span class="text-sm text-g-400">≈ {{ alert.fiatAmount }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-g-500">{{ alert.orderId }}</span>
+                <span class="text-xs text-g-400">· {{ alert.timeAgo }}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <el-tag :type="alert.direction === 'outgoing' ? 'warning' : 'success'" size="small">
+                {{ alert.direction === 'outgoing' ? $t('alerts.outgoing') : $t('alerts.incoming') }}
+              </el-tag>
+              <el-tag :type="statusTagType(alert.status)" size="small">{{
+                statusLabel(alert.status)
+              }}</el-tag>
+              <el-tag :type="severityTagType(alert.severity)" size="small" effect="light">{{
+                alert.severity
+              }}</el-tag>
+            </div>
           </div>
-          <div class="text-xs font-semibold text-g-900 truncate">{{ alert.beneficiary.name }}</div>
-          <div class="text-[10px] text-g-600 truncate">{{ alert.beneficiary.detail }}</div>
-          <div class="text-[10px] text-g-500 font-mono truncate">{{
-            alert.beneficiary.address
-          }}</div>
-        </div>
-      </div>
 
-      <!-- Footer: Status text + Full Review -->
-      <div class="flex items-center justify-between pt-2.5 border-t border-[var(--default-border)]">
-        <div class="text-[11px] font-medium" :class="statusTextClass(alert.status)">
-          {{ alert.flagReason }}
+          <!-- Parties -->
+          <div class="flex items-stretch gap-3 mb-3 py-3">
+            <div
+              class="flex-1 min-w-0 rounded-lg p-3"
+              :class="
+                alert.direction === 'outgoing'
+                  ? 'bg-[var(--el-color-primary-light-9)]'
+                  : 'bg-[var(--el-color-success-light-9)]'
+              "
+            >
+              <div class="text-xs text-g-600 mb-1.5 font-medium">
+                {{
+                  alert.direction === 'outgoing'
+                    ? $t('alerts.originatorOurCustomer')
+                    : $t('alerts.originatorCounterparty')
+                }}
+              </div>
+              <div class="text-sm font-semibold text-g-900 truncate">{{
+                alert.originator.name
+              }}</div>
+              <div v-if="alert.originator.detail" class="text-xs text-g-700 mt-1.5">
+                {{ alert.originator.detail }}
+              </div>
+              <div class="text-xs text-g-600 font-mono truncate mt-1">
+                {{ alert.originator.address }}
+              </div>
+            </div>
+            <div class="flex items-center px-2">
+              <ArtSvgIcon
+                :icon="
+                  alert.direction === 'outgoing'
+                    ? 'ri:arrow-right-long-line'
+                    : 'ri:arrow-left-long-line'
+                "
+                :class="
+                  alert.direction === 'outgoing'
+                    ? 'text-[var(--el-color-primary)]'
+                    : 'text-[var(--el-color-success)]'
+                "
+                class="text-2xl"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0 rounded-lg p-3"
+              :class="
+                alert.direction === 'outgoing'
+                  ? 'bg-[var(--el-color-success-light-9)]'
+                  : 'bg-[var(--el-color-primary-light-9)]'
+              "
+            >
+              <div class="text-xs text-g-600 mb-1.5 font-medium">
+                {{
+                  alert.direction === 'outgoing'
+                    ? $t('alerts.beneficiaryCounterparty')
+                    : $t('alerts.beneficiaryOurCustomer')
+                }}
+              </div>
+              <div class="text-sm font-semibold text-g-900 truncate">{{
+                alert.beneficiary.name
+              }}</div>
+              <div v-if="alert.beneficiary.detail" class="text-xs text-g-700 mt-1.5">
+                {{ alert.beneficiary.detail }}
+              </div>
+              <div class="text-xs text-g-600 font-mono truncate mt-1">
+                {{ alert.beneficiary.address }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Flag reason -->
+          <div class="bg-g-50 rounded-lg p-3 mb-3">
+            <div class="text-xs text-g-400 mb-1">{{ $t('alerts.flagReason') }}</div>
+            <div
+              class="text-sm font-medium"
+              :class="
+                alert.status === 'pending'
+                  ? 'text-[var(--el-color-warning)]'
+                  : alert.status === 'rejected'
+                    ? 'text-[var(--el-color-danger)]'
+                    : 'text-[var(--el-color-success)]'
+              "
+            >
+              {{ alert.flagReason }}
+            </div>
+          </div>
+
+          <!-- Full Review -->
+          <div class="flex justify-end pt-3 border-t border-[var(--default-border)]">
+            <el-button size="small" type="primary" @click.stop="openAlert(alert)">
+              {{ $t('alerts.fullReview') }} →
+            </el-button>
+          </div>
         </div>
-        <el-button size="small" type="primary" plain @click.stop="openAlert(alert)">
-          {{ $t('alerts.fullReview') }} →
-        </el-button>
+        <div v-if="filteredAlerts.length === 0" class="py-10 text-center text-g-400 text-sm">
+          {{ $t('alerts.noResults') }}
+        </div>
       </div>
     </div>
   </div>
@@ -232,31 +242,13 @@
   const filters = reactive({
     merchant: '',
     dateFrom: '',
-    dateTo: '',
     search: '',
-    direction: 'all',
-    status: 'all',
-    severity: 'all',
+    direction: '',
+    status: '',
+    severity: '',
     rule: ''
   })
 
-  const directionOptions = [
-    { label: 'All', value: 'all' },
-    { label: 'Outgoing', value: 'outgoing' },
-    { label: 'Incoming', value: 'incoming' }
-  ]
-  const statusOptions = [
-    { label: 'All', value: 'all' },
-    { label: 'Pending Review', value: 'pending' },
-    { label: 'Approved', value: 'approved' },
-    { label: 'Rejected', value: 'rejected' }
-  ]
-  const severityOptions = [
-    { label: 'All', value: 'all' },
-    { label: 'Critical', value: 'critical' },
-    { label: 'Medium', value: 'medium' },
-    { label: 'Routine', value: 'routine' }
-  ]
   const merchantOptions = [
     'CryptoVault Ltd',
     'PayFlow Inc',
@@ -288,7 +280,6 @@
     originator: { name: string; detail: string; address: string }
     beneficiary: { name: string; detail: string; address: string }
     flagReason: string
-    date: string
   }
 
   const mockAlerts: AlertData[] = [
@@ -312,8 +303,7 @@
         detail: '',
         address: '0xb20BED6c015a8e9579eae17762aA65d78d2E0b75'
       },
-      flagReason: 'Flagged: Sanctions Hit Block — requires manual review',
-      date: '2026-07-28'
+      flagReason: 'Flagged: Sanctions Hit Block — requires manual review'
     },
     {
       orderId: 'ORDER-2026-07-28-0041',
@@ -331,8 +321,7 @@
         address: '0x1a2b...3c4d'
       },
       beneficiary: { name: 'Jane Smith', detail: '', address: '0x9a4f...3c21' },
-      flagReason: 'Flagged: Large Transaction Review — amount exceeds threshold',
-      date: '2026-07-28'
+      flagReason: 'Flagged: Large Transaction Review — amount exceeds threshold'
     },
     {
       orderId: 'ORDER-2026-07-28-0039',
@@ -350,8 +339,7 @@
         address: '0x5e6f...7a8b'
       },
       beneficiary: { name: 'Kim Jong', detail: '', address: '0x7c2d...4e89' },
-      flagReason: 'Rejected: High-Risk Jurisdiction Block — KP (North Korea)',
-      date: '2026-07-28'
+      flagReason: 'Rejected: High-Risk Jurisdiction Block — KP (North Korea)'
     },
     {
       orderId: 'ORDER-2026-07-28-0037',
@@ -369,8 +357,7 @@
         address: '0x9c0d...1e2f'
       },
       beneficiary: { name: 'Unknown', detail: '', address: '0x8d3e...2b67' },
-      flagReason: 'Flagged: Unlicensed VASP Counterparty — no Travel Rule identity found',
-      date: '2026-07-28'
+      flagReason: 'Flagged: Unlicensed VASP Counterparty — no Travel Rule identity found'
     },
     {
       orderId: 'ORDER-2026-07-28-0040',
@@ -388,8 +375,7 @@
         detail: 'Unit: Treasury · Account: Inbound',
         address: '0xab12...cd34'
       },
-      flagReason: 'Rejected: Tainted Address Block — originator address linked to darknet',
-      date: '2026-07-28'
+      flagReason: 'Rejected: Tainted Address Block — originator address linked to darknet'
     },
     {
       orderId: 'ORDER-2026-07-28-0038',
@@ -407,8 +393,7 @@
         detail: 'Unit: Operations · Account: Settlement',
         address: '0xef56...7890'
       },
-      flagReason: 'Flagged: IVMS101 Mismatch — originator PII incomplete',
-      date: '2026-07-28'
+      flagReason: 'Flagged: IVMS101 Mismatch — originator PII incomplete'
     },
     {
       orderId: 'ORDER-2026-07-28-0036',
@@ -426,8 +411,7 @@
         detail: 'Unit: Treasury · Account: Primary Pay-In',
         address: '0xCA79D8bcF574956736E5B1C0F0f73ABF458F2d26'
       },
-      flagReason: 'Flagged: Large Transaction Review — amount exceeds threshold',
-      date: '2026-07-28'
+      flagReason: 'Flagged: Large Transaction Review — amount exceeds threshold'
     },
     {
       orderId: 'ORDER-2026-07-28-0035',
@@ -445,8 +429,7 @@
         address: '0x2b3c...4d5e'
       },
       beneficiary: { name: 'Robert Chen', detail: '', address: '0x6f7g...8h9i' },
-      flagReason: 'Approved after review — sanctions screening cleared',
-      date: '2026-07-28'
+      flagReason: 'Approved after review — sanctions screening cleared'
     },
     {
       orderId: 'ORDER-2026-07-28-0034',
@@ -464,8 +447,7 @@
         detail: 'Unit: Treasury · Account: Inbound',
         address: '0x3e4f...5g6h'
       },
-      flagReason: 'Auto-approved — all compliance checks passed',
-      date: '2026-07-28'
+      flagReason: 'Auto-approved — all compliance checks passed'
     },
     {
       orderId: 'ORDER-2026-07-28-0031',
@@ -484,8 +466,7 @@
         address: '0x2o3p...4q5r'
       },
       flagReason:
-        'Rejected by Compliance: PII mismatch — beneficiary details do not match on-chain address',
-      date: '2026-07-28'
+        'Rejected by Compliance: PII mismatch — beneficiary details do not match on-chain address'
     }
   ]
 
@@ -493,18 +474,16 @@
 
   const filteredAlerts = computed(() => {
     let list = [...mockAlerts]
-    // View filter
     if (currentView.value === 'mine') {
       list = list.filter((a) => a.status === 'pending')
     }
-    // Field filters
-    if (filters.direction !== 'all') {
+    if (filters.direction) {
       list = list.filter((a) => a.direction === filters.direction)
     }
-    if (filters.status !== 'all') {
+    if (filters.status) {
       list = list.filter((a) => a.status === filters.status)
     }
-    if (filters.severity !== 'all') {
+    if (filters.severity) {
       list = list.filter((a) => a.severity.toLowerCase() === filters.severity)
     }
     if (filters.rule) {
@@ -526,21 +505,15 @@
     return list
   })
 
-  function statusBadgeClass(status: string) {
-    const map: Record<string, string> = {
-      pending: 'bg-[var(--el-color-warning-light-8)] text-[var(--el-color-warning)]',
-      approved: 'bg-[var(--el-color-success-light-8)] text-[var(--el-color-success)]',
-      rejected: 'bg-[var(--el-color-danger-light-8)] text-[var(--el-color-danger)]'
-    }
-    return map[status] || 'bg-[var(--el-fill-color)] text-[var(--el-text-color-regular)]'
+  function statusTagType(status: string) {
+    if (status === 'approved') return 'success'
+    if (status === 'rejected') return 'danger'
+    return 'warning'
   }
-  function severityBadgeClass(severity: string) {
-    const map: Record<string, string> = {
-      Critical: 'bg-[var(--el-color-danger-light-8)] text-[var(--el-color-danger)]',
-      Medium: 'bg-[var(--el-color-warning-light-8)] text-[var(--el-color-warning)]',
-      Routine: 'bg-[var(--el-color-primary-light-8)] text-[var(--el-color-primary)]'
-    }
-    return map[severity] || 'bg-[var(--el-fill-color)] text-[var(--el-text-color-regular)]'
+  function severityTagType(severity: string) {
+    if (severity === 'Critical') return 'danger'
+    if (severity === 'Medium') return 'warning'
+    return 'info'
   }
   function statusLabel(status: string) {
     const map: Record<string, string> = {
@@ -550,14 +523,6 @@
     }
     return map[status] || status
   }
-  function statusTextClass(status: string) {
-    const map: Record<string, string> = {
-      pending: 'text-warning',
-      approved: 'text-success',
-      rejected: 'text-danger'
-    }
-    return map[status] || 'text-g-500'
-  }
 
   function openAlert(alert: AlertData) {
     router.push({ name: 'TransactionLensDetail', params: { id: alert.orderId } })
@@ -565,46 +530,14 @@
 </script>
 
 <style scoped>
-  .originator-box {
-    background: var(--el-color-primary-light-9);
-    border-left: 3px solid var(--el-color-primary);
-  }
-
-  .beneficiary-box {
-    background: var(--el-color-success-light-9);
-    border-left: 3px solid var(--el-color-success);
-  }
-
-  .filter-btn {
-    padding: 4px 10px;
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--el-text-color-secondary);
-    cursor: pointer;
-    background: var(--el-bg-color);
+  .tx-card {
+    padding: 16px;
     border: 1px solid var(--default-border);
-    border-radius: 5px;
-    transition: all 0.15s;
+    border-radius: 12px;
+    transition: border-color 0.2s;
   }
 
-  .filter-btn:hover {
-    background: var(--el-fill-color-light);
-    border-color: var(--el-border-color);
-  }
-
-  .filter-btn.active {
-    color: var(--el-color-primary);
-    background: var(--el-color-primary-light-9);
+  .tx-card:hover {
     border-color: var(--el-color-primary-light-5);
-  }
-
-  .alert-card-hover {
-    transition: all 0.15s;
-  }
-
-  .alert-card-hover:hover {
-    border-color: var(--el-border-color);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 4%);
   }
 </style>
