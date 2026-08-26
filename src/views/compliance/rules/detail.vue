@@ -14,7 +14,7 @@
 
     <!-- Read-only Notice -->
     <div
-      class="flex items-center gap-2 px-4 py-3 bg-warning-50 border border-warning rounded-lg text-sm text-warning mb-5"
+      class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-warning-light-9)] border border-[var(--el-color-warning-light-5)] rounded-lg text-sm text-[var(--el-color-warning)] mb-5"
     >
       <ArtSvgIcon icon="ri:lock-line" class="text-base" />
       <span>{{ $t('rules.readonlyNotice') }}</span>
@@ -160,16 +160,16 @@
                 <div
                   v-for="factor in domain.items"
                   :key="factor.label"
-                  class="flex items-center gap-2 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg"
+                  class="flex items-center gap-2 px-3 py-2 bg-[var(--el-color-primary-light-9)] border border-[var(--el-color-primary-light-5)] rounded-lg"
                 >
                   <span
-                    class="w-4 h-4 rounded bg-primary flex items-center justify-center text-white text-[10px] flex-shrink-0"
+                    class="w-4 h-4 rounded bg-[var(--el-color-primary)] flex items-center justify-center text-white text-[10px] flex-shrink-0"
                     >✓</span
                   >
                   <span class="text-sm font-medium text-g-800 min-w-[140px]">{{
                     factor.label
                   }}</span>
-                  <span class="text-xs text-primary font-medium ml-auto">{{
+                  <span class="text-xs text-[var(--el-color-primary)] font-medium ml-auto">{{
                     factor.values.join(', ')
                   }}</span>
                 </div>

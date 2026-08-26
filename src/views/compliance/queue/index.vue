@@ -130,7 +130,11 @@
           <div class="flex items-center gap-1.5 mb-0.5">
             <ArtSvgIcon
               :icon="alert.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
-              :class="alert.direction === 'outgoing' ? 'text-blue-500' : 'text-green-500'"
+              :class="
+                alert.direction === 'outgoing'
+                  ? 'text-[var(--el-color-primary)]'
+                  : 'text-[var(--el-color-success)]'
+              "
               class="text-base"
             />
             <span class="text-lg font-bold text-g-900">{{ alert.amount }}</span>
@@ -145,8 +149,8 @@
               class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
               :class="
                 alert.direction === 'outgoing'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-green-100 text-green-800'
+                  ? 'bg-[var(--el-color-primary-light-8)] text-[var(--el-color-primary)]'
+                  : 'bg-[var(--el-color-success-light-8)] text-[var(--el-color-success)]'
               "
               >{{
                 alert.direction === 'outgoing' ? $t('alerts.outgoing') : $t('alerts.incoming')
@@ -524,19 +528,19 @@
 
   function statusBadgeClass(status: string) {
     const map: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800'
+      pending: 'bg-[var(--el-color-warning-light-8)] text-[var(--el-color-warning)]',
+      approved: 'bg-[var(--el-color-success-light-8)] text-[var(--el-color-success)]',
+      rejected: 'bg-[var(--el-color-danger-light-8)] text-[var(--el-color-danger)]'
     }
-    return map[status] || 'bg-gray-100 text-gray-800'
+    return map[status] || 'bg-[var(--el-fill-color)] text-[var(--el-text-color-regular)]'
   }
   function severityBadgeClass(severity: string) {
     const map: Record<string, string> = {
-      Critical: 'bg-red-100 text-red-800',
-      Medium: 'bg-yellow-100 text-yellow-800',
-      Routine: 'bg-blue-100 text-blue-800'
+      Critical: 'bg-[var(--el-color-danger-light-8)] text-[var(--el-color-danger)]',
+      Medium: 'bg-[var(--el-color-warning-light-8)] text-[var(--el-color-warning)]',
+      Routine: 'bg-[var(--el-color-primary-light-8)] text-[var(--el-color-primary)]'
     }
-    return map[severity] || 'bg-gray-100 text-gray-800'
+    return map[severity] || 'bg-[var(--el-fill-color)] text-[var(--el-text-color-regular)]'
   }
   function statusLabel(status: string) {
     const map: Record<string, string> = {
@@ -562,13 +566,13 @@
 
 <style scoped>
   .originator-box {
-    background: #eff6ff;
-    border-left: 3px solid #3b82f6;
+    background: var(--el-color-primary-light-9);
+    border-left: 3px solid var(--el-color-primary);
   }
 
   .beneficiary-box {
-    background: #f0fdf4;
-    border-left: 3px solid #22c55e;
+    background: var(--el-color-success-light-9);
+    border-left: 3px solid var(--el-color-success);
   }
 
   .filter-btn {
@@ -578,7 +582,7 @@
     font-weight: 500;
     color: var(--el-text-color-secondary);
     cursor: pointer;
-    background: #fff;
+    background: var(--el-bg-color);
     border: 1px solid var(--default-border);
     border-radius: 5px;
     transition: all 0.15s;

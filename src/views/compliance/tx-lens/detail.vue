@@ -43,7 +43,11 @@
         </div>
         <div
           class="text-xl font-bold"
-          :class="txData.direction === 'Outgoing' ? 'text-blue-500' : 'text-green-500'"
+          :class="
+            txData.direction === 'Outgoing'
+              ? 'text-[var(--el-color-primary)]'
+              : 'text-[var(--el-color-success)]'
+          "
         >
           →
         </div>
@@ -1412,13 +1416,13 @@
 <style scoped>
   /* Originator / Beneficiary boxes */
   .originator-box {
-    background: #eff6ff;
-    border-left: 3px solid #3b82f6;
+    background: var(--el-color-primary-light-9);
+    border-left: 3px solid var(--el-color-primary);
   }
 
   .beneficiary-box {
-    background: #f0fdf4;
-    border-left: 3px solid #22c55e;
+    background: var(--el-color-success-light-9);
+    border-left: 3px solid var(--el-color-success);
   }
 
   .pii-round {

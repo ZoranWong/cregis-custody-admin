@@ -147,7 +147,11 @@
               <div class="flex items-center gap-2 mb-1">
                 <ArtSvgIcon
                   :icon="tx.direction === 'Outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
-                  :class="tx.direction === 'Outgoing' ? 'text-blue-500' : 'text-green-500'"
+                  :class="
+                    tx.direction === 'Outgoing'
+                      ? 'text-[var(--el-color-primary)]'
+                      : 'text-[var(--el-color-success)]'
+                  "
                   class="text-lg"
                 />
                 <span class="text-lg font-semibold text-g-900">{{ tx.amount }}</span>
@@ -176,7 +180,11 @@
           <div class="flex items-stretch gap-3 mb-3 py-3">
             <div
               class="flex-1 min-w-0 rounded-lg p-3"
-              :class="tx.direction === 'Outgoing' ? 'bg-blue-50' : 'bg-green-50'"
+              :class="
+                tx.direction === 'Outgoing'
+                  ? 'bg-[var(--el-color-primary-light-9)]'
+                  : 'bg-[var(--el-color-success-light-9)]'
+              "
             >
               <div class="text-xs text-g-600 mb-1.5 font-medium">{{
                 partyLabel(tx.direction, 'originator')
@@ -200,7 +208,11 @@
             </div>
             <div
               class="flex-1 min-w-0 rounded-lg p-3"
-              :class="tx.direction === 'Outgoing' ? 'bg-green-50' : 'bg-blue-50'"
+              :class="
+                tx.direction === 'Outgoing'
+                  ? 'bg-[var(--el-color-success-light-9)]'
+                  : 'bg-[var(--el-color-primary-light-9)]'
+              "
             >
               <div class="text-xs text-g-600 mb-1.5 font-medium">{{
                 partyLabel(tx.direction, 'beneficiary')
