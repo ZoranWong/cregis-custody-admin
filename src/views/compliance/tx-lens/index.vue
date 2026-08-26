@@ -1,33 +1,7 @@
 <!-- Transaction Lens — 交易全景 -->
 <template>
   <div class="page-content">
-    <!-- ═══ 摘要卡片 ═══ -->
-    <ElRow :gutter="20" class="flex">
-      <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
-        <div class="art-card h-32 px-5 mb-5 flex flex-col justify-center">
-          <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-          <span class="text-[26px] font-medium mt-1" :class="card.valueClass">{{
-            card.value
-          }}</span>
-          <span class="text-xs mt-1 text-g-400">{{ $t(card.subKey) }}</span>
-        </div>
-      </ElCol>
-    </ElRow>
-
-    <!-- ═══ 审查结果卡片 ═══ -->
-    <ElRow :gutter="20" class="flex">
-      <ElCol :sm="12" :md="6" v-for="card in reviewCards" :key="card.key">
-        <div class="art-card h-32 px-5 mb-5 flex flex-col justify-center">
-          <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-          <span class="text-[22px] font-medium mt-1" :class="card.valueClass">{{
-            card.value
-          }}</span>
-          <span class="text-xs mt-1 text-g-400">{{ $t(card.subKey) }}</span>
-        </div>
-      </ElCol>
-    </ElRow>
-
-    <!-- ═══ 主要筛选栏（卡片上方） ═══ -->
+    <!-- ═══ 主要筛选栏（卡片区上方） ═══ -->
     <div class="flex flex-wrap items-center gap-4 mb-5">
       <el-select
         v-model="filters.merchant"
@@ -53,6 +27,32 @@
         <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
       </el-input>
     </div>
+
+    <!-- ═══ 摘要卡片 ═══ -->
+    <ElRow :gutter="20" class="flex">
+      <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
+        <div class="art-card h-32 px-5 mb-5 flex flex-col justify-center">
+          <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
+          <span class="text-[26px] font-medium mt-1" :class="card.valueClass">{{
+            card.value
+          }}</span>
+          <span class="text-xs mt-1 text-g-400">{{ $t(card.subKey) }}</span>
+        </div>
+      </ElCol>
+    </ElRow>
+
+    <!-- ═══ 审查结果卡片 ═══ -->
+    <ElRow :gutter="20" class="flex">
+      <ElCol :sm="12" :md="6" v-for="card in reviewCards" :key="card.key">
+        <div class="art-card h-32 px-5 mb-5 flex flex-col justify-center">
+          <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
+          <span class="text-[22px] font-medium mt-1" :class="card.valueClass">{{
+            card.value
+          }}</span>
+          <span class="text-xs mt-1 text-g-400">{{ $t(card.subKey) }}</span>
+        </div>
+      </ElCol>
+    </ElRow>
 
     <!-- ═══ 次要筛选栏（7组筛选） ═══ -->
     <div class="flex flex-wrap items-center gap-4 mb-5">
