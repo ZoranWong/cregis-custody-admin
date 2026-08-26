@@ -145,6 +145,11 @@
           <div class="flex items-start justify-between mb-3">
             <div>
               <div class="flex items-center gap-2 mb-1">
+                <ArtSvgIcon
+                  :icon="tx.direction === 'Outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
+                  :class="tx.direction === 'Outgoing' ? 'text-blue-500' : 'text-green-500'"
+                  class="text-lg"
+                />
                 <span class="text-lg font-semibold text-g-900">{{ tx.amount }}</span>
                 <span class="text-sm text-g-400">≈ {{ tx.fiatAmount }}</span>
               </div>
