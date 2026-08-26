@@ -27,104 +27,107 @@
       </ElCol>
     </ElRow>
 
-    <!-- ═══ 筛选栏 ═══ -->
-    <div class="art-card mb-5 p-4">
-      <div class="flex flex-wrap items-center gap-3">
-        <el-select
-          v-model="filters.merchant"
-          :placeholder="$t('txLens.merchant')"
-          clearable
-          class="!w-44"
-        >
-          <el-option v-for="m in merchants" :key="m" :label="m" :value="m" />
-        </el-select>
-        <el-date-picker
-          v-model="filters.dateRange"
-          type="daterange"
-          :start-placeholder="$t('txLens.startDate')"
-          :end-placeholder="$t('txLens.endDate')"
-          class="!w-64"
-        />
-        <el-input
-          v-model="filters.keyword"
-          :placeholder="$t('txLens.searchPlaceholder')"
-          clearable
-          class="!w-56"
-        />
-        <div class="w-px h-6 bg-g-300" />
-        <el-select
-          v-model="filters.direction"
-          :placeholder="$t('txLens.direction')"
-          clearable
-          class="!w-32"
-        >
-          <el-option :label="$t('txLens.outgoing')" value="Outgoing" />
-          <el-option :label="$t('txLens.incoming')" value="Incoming" />
-        </el-select>
-        <el-select
-          v-model="filters.compliance"
-          :placeholder="$t('txLens.compliance')"
-          clearable
-          class="!w-32"
-        >
-          <el-option :label="$t('txLens.clear')" value="Clear" />
-          <el-option :label="$t('txLens.flagged')" value="Flagged" />
-          <el-option :label="$t('txLens.inReview')" value="In Review" />
-        </el-select>
-        <el-select
-          v-model="filters.travelRule"
-          :placeholder="$t('txLens.travelRule')"
-          clearable
-          class="!w-32"
-        >
-          <el-option :label="$t('txLens.trComplete')" value="Complete" />
-          <el-option :label="$t('txLens.trPending')" value="Pending" />
-          <el-option :label="$t('txLens.trMismatch')" value="Mismatch" />
-          <el-option :label="$t('txLens.trNa')" value="N/A" />
-        </el-select>
-        <el-select
-          v-model="filters.signOff"
-          :placeholder="$t('txLens.signOff')"
-          clearable
-          class="!w-32"
-        >
-          <el-option :label="$t('txLens.soApproved')" value="Approved" />
-          <el-option :label="$t('txLens.soPending')" value="Pending" />
-        </el-select>
-        <el-select
-          v-model="filters.onChain"
-          :placeholder="$t('txLens.onChain')"
-          clearable
-          class="!w-32"
-        >
-          <el-option :label="$t('txLens.broadcasted')" value="Broadcasted" />
-          <el-option :label="$t('txLens.confirmed')" value="Confirmed" />
-          <el-option :label="$t('txLens.settled')" value="Settled" />
-          <el-option :label="$t('txLens.failed')" value="Failed" />
-        </el-select>
-        <el-select
-          v-model="filters.fundDisposition"
-          :placeholder="$t('txLens.fundDisposition')"
-          clearable
-          class="!w-32"
-        >
-          <el-option :label="$t('txLens.fdReleased')" value="Released" />
-          <el-option :label="$t('txLens.fdHeld')" value="Held" />
-          <el-option :label="$t('txLens.fdForfeited')" value="Forfeited" />
-          <el-option :label="$t('txLens.trNa')" value="N/A" />
-        </el-select>
-        <el-select
-          v-model="filters.reviewResult"
-          :placeholder="$t('txLens.reviewResult')"
-          clearable
-          class="!w-32"
-        >
-          <el-option :label="$t('txLens.rrNone')" value="None" />
-          <el-option :label="$t('txLens.truePositive')" value="True Positive" />
-          <el-option :label="$t('txLens.falsePositive')" value="False Positive" />
-          <el-option :label="$t('txLens.falseNegative')" value="False Negative" />
-        </el-select>
-      </div>
+    <!-- ═══ 主要筛选栏（卡片上方） ═══ -->
+    <div class="flex flex-wrap items-center gap-4 mb-5">
+      <el-select
+        v-model="filters.merchant"
+        :placeholder="$t('txLens.merchant')"
+        clearable
+        class="!w-48"
+      >
+        <el-option v-for="m in merchants" :key="m" :label="m" :value="m" />
+      </el-select>
+      <el-date-picker
+        v-model="filters.dateRange"
+        type="daterange"
+        :start-placeholder="$t('txLens.startDate')"
+        :end-placeholder="$t('txLens.endDate')"
+        class="!w-64"
+      />
+      <el-input
+        v-model="filters.keyword"
+        :placeholder="$t('txLens.searchPlaceholder')"
+        clearable
+        class="!w-64"
+      >
+        <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
+      </el-input>
+    </div>
+
+    <!-- ═══ 次要筛选栏（7组筛选） ═══ -->
+    <div class="flex flex-wrap items-center gap-4 mb-5">
+      <el-select
+        v-model="filters.direction"
+        :placeholder="$t('txLens.direction')"
+        clearable
+        class="!w-36"
+      >
+        <el-option :label="$t('txLens.outgoing')" value="Outgoing" />
+        <el-option :label="$t('txLens.incoming')" value="Incoming" />
+      </el-select>
+      <el-select
+        v-model="filters.compliance"
+        :placeholder="$t('txLens.compliance')"
+        clearable
+        class="!w-36"
+      >
+        <el-option :label="$t('txLens.clear')" value="Clear" />
+        <el-option :label="$t('txLens.flagged')" value="Flagged" />
+        <el-option :label="$t('txLens.inReview')" value="In Review" />
+      </el-select>
+      <el-select
+        v-model="filters.travelRule"
+        :placeholder="$t('txLens.travelRule')"
+        clearable
+        class="!w-36"
+      >
+        <el-option :label="$t('txLens.trComplete')" value="Complete" />
+        <el-option :label="$t('txLens.trPending')" value="Pending" />
+        <el-option :label="$t('txLens.trMismatch')" value="Mismatch" />
+        <el-option :label="$t('txLens.trNa')" value="N/A" />
+      </el-select>
+      <el-select
+        v-model="filters.signOff"
+        :placeholder="$t('txLens.signOff')"
+        clearable
+        class="!w-36"
+      >
+        <el-option :label="$t('txLens.soApproved')" value="Approved" />
+        <el-option :label="$t('txLens.soPending')" value="Pending" />
+      </el-select>
+      <el-select
+        v-model="filters.onChain"
+        :placeholder="$t('txLens.onChain')"
+        clearable
+        class="!w-36"
+      >
+        <el-option :label="$t('txLens.broadcasted')" value="Broadcasted" />
+        <el-option :label="$t('txLens.confirmed')" value="Confirmed" />
+        <el-option :label="$t('txLens.settled')" value="Settled" />
+        <el-option :label="$t('txLens.failed')" value="Failed" />
+      </el-select>
+      <el-select
+        v-model="filters.fundDisposition"
+        :placeholder="$t('txLens.fundDisposition')"
+        clearable
+        class="!w-36"
+      >
+        <el-option :label="$t('txLens.fdReleased')" value="Released" />
+        <el-option :label="$t('txLens.fdHeld')" value="Held" />
+        <el-option :label="$t('txLens.fdForfeited')" value="Forfeited" />
+        <el-option :label="$t('txLens.trNa')" value="N/A" />
+      </el-select>
+      <el-select
+        v-model="filters.reviewResult"
+        :placeholder="$t('txLens.reviewResult')"
+        clearable
+        class="!w-36"
+      >
+        <el-option :label="$t('txLens.rrNone')" value="None" />
+        <el-option :label="$t('txLens.truePositive')" value="True Positive" />
+        <el-option :label="$t('txLens.falsePositive')" value="False Positive" />
+        <el-option :label="$t('txLens.falseNegative')" value="False Negative" />
+      </el-select>
     </div>
 
     <!-- ═══ 交易卡片列表 ═══ -->
@@ -164,27 +167,43 @@
           </div>
 
           <!-- parties 两侧 -->
-          <div class="flex items-center gap-4 mb-3 py-3">
-            <div class="flex-1 min-w-0">
-              <div class="text-xs text-g-500 mb-1">{{
+          <div class="flex items-stretch gap-3 mb-3 py-3">
+            <div
+              class="flex-1 min-w-0 rounded-lg p-3"
+              :class="tx.direction === 'Outgoing' ? 'bg-blue-50' : 'bg-green-50'"
+            >
+              <div class="text-xs text-g-600 mb-1.5 font-medium">{{
                 partyLabel(tx.direction, 'originator')
               }}</div>
               <div class="text-sm font-semibold text-g-900 truncate">{{ tx.originator.name }}</div>
-              <div class="text-xs text-g-600 mt-1">{{ tx.originator.unit }}</div>
-              <div class="text-xs text-g-500 font-mono truncate">{{ tx.originator.address }}</div>
+              <div class="text-xs text-g-700 mt-1.5">{{ tx.originator.unit }}</div>
+              <div class="text-xs text-g-600 font-mono truncate mt-1">{{
+                tx.originator.address
+              }}</div>
             </div>
-            <ArtSvgIcon
-              :icon="tx.direction === 'Outgoing' ? 'ri:arrow-right-line' : 'ri:arrow-left-line'"
-              :class="tx.direction === 'Outgoing' ? 'text-primary' : 'text-success'"
-              class="text-xl flex-shrink-0"
-            />
-            <div class="flex-1 min-w-0">
-              <div class="text-xs text-g-500 mb-1">{{
+            <div class="flex items-center px-2">
+              <ArtSvgIcon
+                :icon="
+                  tx.direction === 'Outgoing'
+                    ? 'ri:arrow-right-long-line'
+                    : 'ri:arrow-left-long-line'
+                "
+                :class="tx.direction === 'Outgoing' ? 'text-blue-500' : 'text-green-500'"
+                class="text-2xl"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0 rounded-lg p-3"
+              :class="tx.direction === 'Outgoing' ? 'bg-green-50' : 'bg-blue-50'"
+            >
+              <div class="text-xs text-g-600 mb-1.5 font-medium">{{
                 partyLabel(tx.direction, 'beneficiary')
               }}</div>
               <div class="text-sm font-semibold text-g-900 truncate">{{ tx.beneficiary.name }}</div>
-              <div class="text-xs text-g-600 mt-1">{{ tx.beneficiary.unit }}</div>
-              <div class="text-xs text-g-500 font-mono truncate">{{ tx.beneficiary.address }}</div>
+              <div class="text-xs text-g-700 mt-1.5">{{ tx.beneficiary.unit }}</div>
+              <div class="text-xs text-g-600 font-mono truncate mt-1">{{
+                tx.beneficiary.address
+              }}</div>
             </div>
           </div>
 
