@@ -1,111 +1,179 @@
+<!-- Rule Detail — 规则详情 -->
 <template>
   <div class="page-content">
-    <div class="mb-5">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-xl font-semibold text-g-900">{{ $t('rules.ruleDetailTitle') }}</h1>
+        <p class="text-sm text-g-500 mt-1">{{ $t('rules.ruleDetailSubtitle') }}</p>
+      </div>
       <el-button text @click="router.back()">
-        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />Back
+        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />{{ $t('rules.backToRules') }}
       </el-button>
     </div>
 
-    <h1 class="text-xl font-semibold text-g-900 mb-5">Rule Detail</h1>
-
-    <!-- Rule Configuration -->
-    <div class="art-card mb-5">
-      <div class="p-4 border-b border-[var(--default-border)]">
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-semibold text-g-900">Sanctions Hit Block</h2>
-          <div class="flex items-center gap-2">
-            <el-tag type="danger" size="small" effect="light">Critical</el-tag>
-            <el-tag type="success" size="small" effect="light">Active</el-tag>
-          </div>
-        </div>
-      </div>
-      <div class="p-4">
-        <div class="text-sm text-g-700 mb-4">
-          <p class="mb-3">Block transactions where any party matches sanctions lists.</p>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <span class="text-g-500">Direction:</span>
-              <span class="ml-2 text-g-900">Outgoing</span>
-            </div>
-            <div>
-              <span class="text-g-500">Stage:</span>
-              <span class="ml-2 text-g-900">Due Diligence</span>
-            </div>
-            <div>
-              <span class="text-g-500">Decision:</span>
-              <span class="ml-2 text-g-900">Auto Reject</span>
-            </div>
-            <div>
-              <span class="text-g-500">Scope:</span>
-              <span class="ml-2 text-g-900">Global</span>
-            </div>
-          </div>
-        </div>
-        <div class="border-t border-[var(--default-border)] pt-4">
-          <h3 class="text-sm font-medium text-g-700 mb-2">Risk Factors</h3>
-          <div class="flex flex-wrap gap-2">
-            <el-tag size="small" effect="plain">Sanctions Screening</el-tag>
-            <el-tag size="small" effect="plain">Adverse Media</el-tag>
-            <el-tag size="small" effect="plain">Jurisdiction Risk</el-tag>
-          </div>
-        </div>
-      </div>
+    <!-- Read-only Notice -->
+    <div
+      class="flex items-center gap-2 px-4 py-3 bg-warning-50 border border-warning rounded-lg text-sm text-warning mb-5"
+    >
+      <ArtSvgIcon icon="ri:lock-line" class="text-base" />
+      <span>{{ $t('rules.readonlyNotice') }}</span>
     </div>
 
-    <!-- Trigger History -->
+    <!-- Rule Detail Card -->
     <div class="art-card mb-5">
-      <div class="p-4 border-b border-[var(--default-border)]">
-        <h2 class="text-base font-semibold text-g-900">Trigger History</h2>
+      <div class="p-5 border-b border-[var(--default-border)] flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-g-900">{{ currentRule.name }}</h2>
+        <div class="flex items-center gap-2">
+          <el-tag :type="statusTag(currentRule.status)" size="default" effect="light">
+            {{ currentRule.status }}
+          </el-tag>
+          <el-button
+            v-if="currentRule.status === 'Active'"
+            type="danger"
+            plain
+            size="small"
+            @click="cancelRule"
+          >
+            {{ $t('rules.cancelRule') }}
+          </el-button>
+          <el-button
+            v-if="currentRule.status === 'Pending'"
+            type="warning"
+            plain
+            size="small"
+            @click="activateRule"
+          >
+            {{ $t('rules.activateRule') }}
+          </el-button>
+          <el-button
+            v-if="currentRule.status === 'Cancelled'"
+            type="success"
+            plain
+            size="small"
+            @click="recoverRule"
+          >
+            {{ $t('rules.recoverRule') }}
+          </el-button>
+        </div>
       </div>
-      <div class="p-4">
-        <el-table :data="triggerHistory" stripe size="small">
-          <el-table-column prop="date" label="Date" width="160" />
-          <el-table-column prop="orderId" label="Order ID" min-width="180" />
-          <el-table-column prop="amount" label="Amount" width="120" />
-          <el-table-column prop="status" label="Status" width="100">
-            <template #default="{ row }">
-              <el-tag :type="row.status === 'Blocked' ? 'danger' : 'warning'" size="small">
-                {{ row.status }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="reviewer" label="Reviewer" width="120" />
-        </el-table>
-      </div>
-    </div>
+      <div class="p-5">
+        <!-- Description -->
+        <div class="mb-5">
+          <label class="text-xs font-semibold text-g-600 block mb-1">{{
+            $t('rules.description')
+          }}</label>
+          <div
+            class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800 leading-relaxed"
+          >
+            {{ currentRule.description }}
+          </div>
+        </div>
 
-    <!-- Approval Flow -->
-    <div class="art-card mb-5">
-      <div class="p-4 border-b border-[var(--default-border)]">
-        <h2 class="text-base font-semibold text-g-900">Rule Approval Flow</h2>
-      </div>
-      <div class="p-4">
-        <div class="space-y-4">
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-success-100 flex items-center justify-center">
-              <ArtSvgIcon icon="ri:check-line" class="text-success" />
-            </div>
-            <div class="flex-1">
-              <div class="text-sm text-g-900">Rule Created</div>
-              <div class="text-xs text-g-500">Michael Reed · 2026-01-15 09:00:00</div>
+        <!-- Direction + Amount + Severity -->
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div>
+            <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              $t('rules.direction')
+            }}</label>
+            <div
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+            >
+              {{ currentRule.direction }}
             </div>
           </div>
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-success-100 flex items-center justify-center">
-              <ArtSvgIcon icon="ri:check-line" class="text-success" />
-            </div>
-            <div class="flex-1">
-              <div class="text-sm text-g-900">Compliance Review - Approved</div>
-              <div class="text-xs text-g-500">Sarah Chen · 2026-01-15 14:30:00</div>
+          <div>
+            <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              $t('rules.minAmount')
+            }}</label>
+            <div
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+            >
+              {{ currentRule.minAmount || 'Any amount' }}
             </div>
           </div>
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-success-100 flex items-center justify-center">
-              <ArtSvgIcon icon="ri:check-line" class="text-success" />
+          <div>
+            <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              $t('rules.severity')
+            }}</label>
+            <div
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+            >
+              {{ currentRule.severity }}
             </div>
-            <div class="flex-1">
-              <div class="text-sm text-g-900">Final Approval - Activated</div>
-              <div class="text-xs text-g-500">Tom Wang · 2026-01-16 10:00:00</div>
+          </div>
+        </div>
+
+        <!-- Stage + Decision + Scope -->
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div>
+            <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              $t('rules.stage')
+            }}</label>
+            <div
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+            >
+              {{ currentRule.stage }}
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              $t('rules.decision')
+            }}</label>
+            <div
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+            >
+              {{ currentRule.decision }}
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              $t('rules.scope')
+            }}</label>
+            <div
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+            >
+              {{ currentRule.scope }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Factors -->
+        <div>
+          <label class="text-xs font-semibold text-g-600 block mb-2">{{
+            $t('rules.riskFactors')
+          }}</label>
+          <div
+            v-if="activeFactors.length === 0"
+            class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-400 italic"
+          >
+            {{ $t('rules.noRiskFactors') }}
+          </div>
+          <div v-else class="space-y-4">
+            <div v-for="domain in groupedFactors" :key="domain.domain">
+              <div
+                class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-1 border-b border-[var(--default-border)]"
+              >
+                {{ domain.domain }}
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <div
+                  v-for="factor in domain.items"
+                  :key="factor.label"
+                  class="flex items-center gap-2.5 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg"
+                >
+                  <span
+                    class="w-4 h-4 rounded bg-primary flex items-center justify-center text-white text-[10px] flex-shrink-0"
+                    >✓</span
+                  >
+                  <span class="text-sm font-medium text-g-800 min-w-[140px]">{{
+                    factor.label
+                  }}</span>
+                  <span class="text-xs text-primary font-medium ml-auto">{{
+                    factor.values.join(', ')
+                  }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -115,33 +183,105 @@
 </template>
 
 <script setup lang="ts">
-  import { useRouter } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
 
   defineOptions({ name: 'ComplianceRuleDetail' })
 
+  const route = useRoute()
   const router = useRouter()
 
-  const triggerHistory = [
-    {
-      date: '2026-08-24 16:45',
-      orderId: 'ORDER-2026-08-24-042',
-      amount: '5,000 USDT',
-      status: 'Blocked',
-      reviewer: 'Auto'
+  // Mock rule data (in real app, fetch by route.params.id)
+  const rulesMap: Record<string, any> = {
+    '1': {
+      name: 'Sanctions Hit Block',
+      status: 'Active',
+      severity: 'Critical',
+      description:
+        'Reject if counterparty VASP or beneficiary matches OFAC SDN, UN Security Council, or EU sanctions lists.',
+      direction: 'Outgoing',
+      decision: 'Auto Reject',
+      scope: 'Global',
+      minAmount: 'Any amount',
+      stage: 'Due Diligence',
+      factors: {
+        Screening: [
+          { label: 'Counterparty VASP', values: ['OFAC SDN', 'EU List', 'UN Security'] },
+          { label: 'Beneficiary', values: ['OFAC SDN', 'EU List', 'UN Security'] }
+        ]
+      }
     },
-    {
-      date: '2026-08-23 11:20',
-      orderId: 'ORDER-2026-08-23-018',
-      amount: '2,800 USDT',
-      status: 'Blocked',
-      reviewer: 'Auto'
-    },
-    {
-      date: '2026-08-20 09:15',
-      orderId: 'ORDER-2026-08-20-005',
-      amount: '1,500 USDT',
-      status: 'Review',
-      reviewer: 'Sarah Chen'
+    '2': {
+      name: 'High-Risk Jurisdiction Block',
+      status: 'Active',
+      severity: 'Critical',
+      description:
+        'Reject outgoing transfers to DPRK, Iran, Syria, or Cuba above 10,000 AED equivalent.',
+      direction: 'Outgoing',
+      decision: 'Auto Reject',
+      scope: 'Global',
+      minAmount: '10,000',
+      stage: 'Due Diligence',
+      factors: {
+        'Counterparty VASP': [
+          {
+            label: 'Jurisdiction',
+            values: ['KP — North Korea', 'IR — Iran', 'SY — Syria', 'CU — Cuba']
+          }
+        ]
+      }
     }
-  ]
+  }
+
+  const ruleId = route.params.id as string
+  const currentRule = reactive(
+    rulesMap[ruleId] || {
+      name: 'Rule Not Found',
+      status: 'Active',
+      severity: 'Routine',
+      description: 'The requested rule could not be found.',
+      direction: 'Outgoing',
+      decision: 'Submit for Review',
+      scope: 'Global',
+      minAmount: 'Any amount',
+      stage: 'Due Diligence',
+      factors: {}
+    }
+  )
+
+  const activeFactors = computed(() => {
+    const result: Array<{ domain: string; label: string; values: string[] }> = []
+    for (const [domain, items] of Object.entries(currentRule.factors || {})) {
+      for (const item of items as Array<{ label: string; values: string[] }>) {
+        result.push({ domain, ...item })
+      }
+    }
+    return result
+  })
+
+  const groupedFactors = computed(() => {
+    const groups: Record<string, Array<{ label: string; values: string[] }>> = {}
+    for (const f of activeFactors.value) {
+      if (!groups[f.domain]) groups[f.domain] = []
+      groups[f.domain].push({ label: f.label, values: f.values })
+    }
+    return Object.entries(groups).map(([domain, items]) => ({ domain, items }))
+  })
+
+  function statusTag(status: string) {
+    if (status === 'Active') return 'success'
+    if (status === 'Pending') return 'warning'
+    return 'info'
+  }
+
+  function cancelRule() {
+    currentRule.status = 'Cancelled'
+  }
+
+  function activateRule() {
+    currentRule.status = 'Active'
+  }
+
+  function recoverRule() {
+    currentRule.status = 'Active'
+  }
 </script>

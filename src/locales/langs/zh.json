@@ -86,8 +86,8 @@
     "endDate": "结束日期",
     "searchPlaceholder": "订单号/地址/商户",
     "direction": "方向",
-    "outgoing": "发出",
-    "incoming": "收入",
+    "outgoing": "出金",
+    "incoming": "入金",
     "compliance": "合规",
     "clear": "通过",
     "flagged": "标记",
@@ -291,8 +291,10 @@
     "noResults": "暂无告警"
   },
   "rules": {
-    "outgoing": "发出",
-    "incoming": "收入",
+    "title": "合规规则",
+    "subtitle": "每条规则在交易生命周期的各阶段评估条件并产生决策。",
+    "outgoing": "出金",
+    "incoming": "入金",
     "status": "状态",
     "severity": "严重级别",
     "all": "全部",
@@ -320,7 +322,15 @@
     "recover": "恢复",
     "edit": "编辑",
     "riskFactors": "风险因子",
-    "riskFactorHint": "点击选择需要纳入或忽略的风险因子"
+    "riskFactorHint": "点击选择需要纳入或忽略的风险因子",
+    "ruleDetailTitle": "规则详情",
+    "ruleDetailSubtitle": "查看合规规则的完整定义。",
+    "backToRules": "返回规则列表",
+    "readonlyNotice": "现有规则为只读状态。如需修改规则行为，请创建新规则或取消当前规则。",
+    "cancelRule": "取消规则",
+    "activateRule": "激活规则",
+    "recoverRule": "恢复规则",
+    "noRiskFactors": "未配置风险因子 — 此规则对所有匹配范围和金额条件的交易触发。"
   },
   "opsHome": {
     "ticketQueue": "工单队列",

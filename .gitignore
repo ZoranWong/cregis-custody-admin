@@ -13,3 +13,4 @@ src/types/import/auto-imports.d.ts
 src/types/import/components.d.ts
 .auto-import.json
 .claude/worktrees/
+.history

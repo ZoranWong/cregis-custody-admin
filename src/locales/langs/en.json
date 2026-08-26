@@ -291,6 +291,8 @@
     "noResults": "No alerts found"
   },
   "rules": {
+    "title": "Compliance Rules",
+    "subtitle": "Each rule evaluates a condition and produces a decision for its stage in the transaction lifecycle.",
     "outgoing": "Outgoing",
     "incoming": "Incoming",
     "status": "Status",
@@ -320,7 +322,15 @@
     "recover": "Recover",
     "edit": "Edit",
     "riskFactors": "Risk Factors",
-    "riskFactorHint": "Click to include or ignore risk factors"
+    "riskFactorHint": "Click to include or ignore risk factors",
+    "ruleDetailTitle": "Rule Detail",
+    "ruleDetailSubtitle": "View the complete definition of this compliance rule.",
+    "backToRules": "Back to Rules",
+    "readonlyNotice": "Existing rules are read-only. To modify rule behavior, create a new rule or cancel this one.",
+    "cancelRule": "Cancel Rule",
+    "activateRule": "Activate Rule",
+    "recoverRule": "Recover Rule",
+    "noRiskFactors": "No risk factors configured — this rule triggers on all transactions matching the scope and amount criteria."
   },
   "opsHome": {
     "ticketQueue": "Ticket Queue",
