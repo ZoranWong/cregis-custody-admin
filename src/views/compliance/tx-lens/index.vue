@@ -4,12 +4,12 @@
     <!-- ═══ 摘要卡片 ═══ -->
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
-        <div class="art-card h-28 px-5 mb-5 flex flex-col justify-center">
+        <div class="art-card h-32 px-5 mb-5 flex flex-col justify-center">
           <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
           <span class="text-[26px] font-medium mt-1" :class="card.valueClass">{{
             card.value
           }}</span>
-          <span v-if="card.sub" class="text-xs mt-1 text-g-400">{{ card.sub }}</span>
+          <span class="text-xs mt-1 text-g-400">{{ $t(card.subKey) }}</span>
         </div>
       </ElCol>
     </ElRow>
@@ -17,9 +17,12 @@
     <!-- ═══ 审查结果卡片 ═══ -->
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="6" v-for="card in reviewCards" :key="card.key">
-        <div class="art-card h-24 px-5 mb-5 flex flex-col justify-center">
+        <div class="art-card h-32 px-5 mb-5 flex flex-col justify-center">
           <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-          <span class="text-[22px] font-medium mt-1 text-g-900">{{ card.value }}</span>
+          <span class="text-[22px] font-medium mt-1" :class="card.valueClass">{{
+            card.value
+          }}</span>
+          <span class="text-xs mt-1 text-g-400">{{ $t(card.subKey) }}</span>
         </div>
       </ElCol>
     </ElRow>
@@ -161,17 +164,27 @@
           </div>
 
           <!-- parties 两侧 -->
-          <div class="flex items-center gap-3 mb-3 py-2">
+          <div class="flex items-center gap-4 mb-3 py-3">
             <div class="flex-1 min-w-0">
-              <div class="text-xs text-g-400 mb-0.5">{{ $t('txLens.originator') }}</div>
-              <div class="text-sm font-medium text-g-800 truncate">{{ tx.originator.name }}</div>
-              <div class="text-xs text-g-500 truncate">{{ tx.originator.account }}</div>
+              <div class="text-xs text-g-500 mb-1">{{
+                partyLabel(tx.direction, 'originator')
+              }}</div>
+              <div class="text-sm font-semibold text-g-900 truncate">{{ tx.originator.name }}</div>
+              <div class="text-xs text-g-600 mt-1">{{ tx.originator.unit }}</div>
+              <div class="text-xs text-g-500 font-mono truncate">{{ tx.originator.address }}</div>
             </div>
-            <ArtSvgIcon icon="ri:arrow-right-line" class="text-g-400 text-lg flex-shrink-0" />
+            <ArtSvgIcon
+              :icon="tx.direction === 'Outgoing' ? 'ri:arrow-right-line' : 'ri:arrow-left-line'"
+              :class="tx.direction === 'Outgoing' ? 'text-primary' : 'text-success'"
+              class="text-xl flex-shrink-0"
+            />
             <div class="flex-1 min-w-0">
-              <div class="text-xs text-g-400 mb-0.5">{{ $t('txLens.beneficiary') }}</div>
-              <div class="text-sm font-medium text-g-800 truncate">{{ tx.beneficiary.name }}</div>
-              <div class="text-xs text-g-500 truncate">{{ tx.beneficiary.account }}</div>
+              <div class="text-xs text-g-500 mb-1">{{
+                partyLabel(tx.direction, 'beneficiary')
+              }}</div>
+              <div class="text-sm font-semibold text-g-900 truncate">{{ tx.beneficiary.name }}</div>
+              <div class="text-xs text-g-600 mt-1">{{ tx.beneficiary.unit }}</div>
+              <div class="text-xs text-g-500 font-mono truncate">{{ tx.beneficiary.address }}</div>
             </div>
           </div>
 
@@ -229,41 +242,66 @@
       labelKey: 'txLens.totalTransactions',
       value: '1,247',
       valueClass: 'text-g-900',
-      sub: ''
+      subKey: 'txLens.subLast30Days'
     },
     {
       key: 'settled',
       labelKey: 'txLens.settled',
       value: '1,189',
       valueClass: 'text-success',
-      sub: '95.3%'
+      subKey: 'txLens.subSettlementRate'
     },
     {
       key: 'rejected',
       labelKey: 'txLens.rejected',
       value: '8',
       valueClass: 'text-[var(--el-color-danger)]',
-      sub: '0.6%'
+      subKey: 'txLens.subRejectionRate'
     },
     {
       key: 'pending',
       labelKey: 'txLens.pendingReview',
       value: '24',
       valueClass: 'text-[var(--el-color-warning)]',
-      sub: '8 critical'
+      subKey: 'txLens.subPendingDetail'
     }
   ]
 
   const reviewCards = [
-    { key: 'tp', labelKey: 'txLens.truePositive', value: 22 },
-    { key: 'tn', labelKey: 'txLens.trueNegative', value: 1194 },
-    { key: 'fp', labelKey: 'txLens.falsePositive', value: 12 },
-    { key: 'fn', labelKey: 'txLens.falseNegative', value: 3 }
+    {
+      key: 'tp',
+      labelKey: 'txLens.truePositive',
+      value: 22,
+      valueClass: 'text-success',
+      subKey: 'txLens.subCorrectlyFlagged'
+    },
+    {
+      key: 'tn',
+      labelKey: 'txLens.trueNegative',
+      value: 1194,
+      valueClass: 'text-success',
+      subKey: 'txLens.subCorrectlyCleared'
+    },
+    {
+      key: 'fp',
+      labelKey: 'txLens.falsePositive',
+      value: 12,
+      valueClass: 'text-warning',
+      subKey: 'txLens.subWronglyFlagged'
+    },
+    {
+      key: 'fn',
+      labelKey: 'txLens.falseNegative',
+      value: 3,
+      valueClass: 'text-purple-600',
+      subKey: 'txLens.subWronglyCleared'
+    }
   ]
 
   interface Party {
     name: string
-    account: string
+    unit: string
+    address: string
   }
   interface Stage {
     key: string
@@ -283,7 +321,6 @@
     stages: Stage[]
   }
 
-  // dot class: done / active / held / pending / rejected / released / na
   const mockTransactions: Tx[] = [
     {
       orderId: 'ORDER-2026-08-25-001',
@@ -292,8 +329,16 @@
       direction: 'Outgoing',
       reviewResult: 'None',
       time: '2026-08-25 10:30',
-      originator: { name: 'CryptoVault Ltd', account: 'Unit A · 0x4f2a...' },
-      beneficiary: { name: 'The UCE DMCC', account: '0x9c1b...' },
+      originator: {
+        name: 'CryptoVault Ltd',
+        unit: 'Unit: Treasury · Account: Primary Pay-Out',
+        address: '0xCA79D8bcF574956736E5B1C0F0f73ABF458F2d26'
+      },
+      beneficiary: {
+        name: 'John Doe',
+        unit: 'Counterparty',
+        address: '0xb20BED6c015a8e9579eae17762aA65d78d2E0b75'
+      },
       stages: [
         { key: 'compliance', label: 'Compliance', value: 'Clear', dotClass: 'done' },
         { key: 'travelRule', label: 'Travel Rule', value: 'Complete', dotClass: 'done' },
@@ -309,8 +354,16 @@
       direction: 'Incoming',
       reviewResult: 'False Positive',
       time: '2026-08-25 09:15',
-      originator: { name: 'Coinbase Prime', account: '0xa8f3...' },
-      beneficiary: { name: 'PayFlow Inc', account: 'Unit B · 0x2d7e...' },
+      originator: {
+        name: 'Coinbase Prime',
+        unit: 'Counterparty',
+        address: '0xa8f3c2D8eB44f7a96B2c5D3E8901AbCdEf123456'
+      },
+      beneficiary: {
+        name: 'PayFlow Inc',
+        unit: 'Unit: Operations · Account: Settlement',
+        address: '0x2d7e8B9c4F3a2D1e0F9a8B7c6D5e4F3a2B1c0D9'
+      },
       stages: [
         { key: 'compliance', label: 'Compliance', value: 'Flagged', dotClass: 'held' },
         { key: 'travelRule', label: 'Travel Rule', value: 'Pending', dotClass: 'pending' },
@@ -326,8 +379,16 @@
       direction: 'Outgoing',
       reviewResult: 'True Positive',
       time: '2026-08-24 16:45',
-      originator: { name: 'ChainBridge', account: 'Unit C · 0x7b3c...' },
-      beneficiary: { name: 'Kraken Pro', account: '0x1e6a...' },
+      originator: {
+        name: 'ChainBridge',
+        unit: 'Unit: C · Account: Bridge Ops',
+        address: '0x7b3c8D9e0F1a2B3c4D5e6F7a8B9c0D1e2F3a4B5'
+      },
+      beneficiary: {
+        name: 'Kraken Pro',
+        unit: 'Counterparty',
+        address: '0x1e6a7B8c9D0e1F2a3B4c5D6e7F8a9B0c1D2e3F4'
+      },
       stages: [
         { key: 'compliance', label: 'Compliance', value: 'In Review', dotClass: 'active' },
         { key: 'travelRule', label: 'Travel Rule', value: 'Mismatch', dotClass: 'held' },
@@ -343,8 +404,16 @@
       direction: 'Incoming',
       reviewResult: 'None',
       time: '2026-08-24 14:20',
-      originator: { name: 'Binance Institutional', account: '0x6c4d...' },
-      beneficiary: { name: 'TokenGuard', account: 'Unit D · 0x3f9b...' },
+      originator: {
+        name: 'Binance Institutional',
+        unit: 'Counterparty',
+        address: '0x6c4d5E6f7A8b9C0d1E2f3A4b5C6d7E8f9A0b1C2'
+      },
+      beneficiary: {
+        name: 'TokenGuard',
+        unit: 'Unit: D · Account: Custody',
+        address: '0x3f9b0C1d2E3f4A5b6C7d8E9f0A1b2C3d4E5f6A7'
+      },
       stages: [
         { key: 'compliance', label: 'Compliance', value: 'Clear', dotClass: 'done' },
         { key: 'travelRule', label: 'Travel Rule', value: 'Complete', dotClass: 'done' },
@@ -360,8 +429,16 @@
       direction: 'Outgoing',
       reviewResult: 'False Negative',
       time: '2026-08-24 11:00',
-      originator: { name: 'BlockSafe', account: 'Unit E · 0x8a2f...' },
-      beneficiary: { name: 'OKX', account: '0x5b1c...' },
+      originator: {
+        name: 'BlockSafe',
+        unit: 'Unit: E · Account: Safe Ops',
+        address: '0x8a2f3B4c5D6e7F8a9B0c1D2e3F4a5B6c7D8e9F0'
+      },
+      beneficiary: {
+        name: 'OKX',
+        unit: 'Counterparty',
+        address: '0x5b1c2D3e4F5a6B7c8D9e0F1a2B3c4D5e6F7a8B9'
+      },
       stages: [
         { key: 'compliance', label: 'Compliance', value: 'Clear', dotClass: 'done' },
         { key: 'travelRule', label: 'Travel Rule', value: 'Complete', dotClass: 'done' },
@@ -394,6 +471,14 @@
     return 'info'
   }
 
+  function partyLabel(direction: string, party: 'originator' | 'beneficiary'): string {
+    if (direction === 'Outgoing') {
+      return party === 'originator' ? 'Originator (Our Customer)' : 'Beneficiary (Counterparty)'
+    } else {
+      return party === 'originator' ? 'Originator (Counterparty)' : 'Beneficiary (Our Customer)'
+    }
+  }
+
   function inspect(orderId: string) {
     router.push({ name: 'TransactionLensDetail', params: { id: orderId } })
   }
@@ -401,81 +486,95 @@
 
 <style scoped>
   .tx-card {
+    padding: 16px;
     border: 1px solid var(--default-border);
     border-radius: 12px;
-    padding: 16px;
     transition: border-color 0.2s;
   }
+
   .tx-card:hover {
     border-color: var(--el-color-primary-light-5);
   }
+
   .lc-stages {
     display: flex;
-    align-items: center;
-    gap: 4px;
     flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
   }
+
   .lc-stage {
-    flex: 1;
-    min-width: 120px;
+    position: relative;
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
+    min-width: 120px;
     text-align: center;
-    position: relative;
   }
+
   .lc-stage:not(:last-child)::after {
-    content: '';
     position: absolute;
     top: 6px;
     right: -50%;
+    z-index: 0;
     width: 100%;
     height: 2px;
+    content: '';
     background: var(--default-border);
-    z-index: 0;
   }
+
   .lc-stage-dot {
+    z-index: 1;
     width: 12px;
     height: 12px;
-    border-radius: 50%;
-    border: 2px solid var(--default-border);
-    background: var(--art-bg-color);
-    z-index: 1;
     margin-bottom: 4px;
+    background: var(--art-bg-color);
+    border: 2px solid var(--default-border);
+    border-radius: 50%;
   }
+
   .lc-stage-dot.done {
     background: var(--el-color-success);
     border-color: var(--el-color-success);
   }
+
   .lc-stage-dot.active {
     background: var(--el-color-primary);
     border-color: var(--el-color-primary);
   }
+
   .lc-stage-dot.held {
     background: var(--el-color-warning);
     border-color: var(--el-color-warning);
   }
+
   .lc-stage-dot.pending {
     background: var(--el-color-info-light-5);
     border-color: var(--el-color-info);
   }
+
   .lc-stage-dot.rejected {
     background: var(--el-color-danger);
     border-color: var(--el-color-danger);
   }
+
   .lc-stage-dot.released {
     background: var(--el-color-success-light-5);
     border-color: var(--el-color-success);
   }
+
   .lc-stage-dot.na {
     background: var(--art-bg-color);
     border-color: var(--default-border);
   }
+
   .lc-stage-label {
+    margin-bottom: 2px;
     font-size: 11px;
     color: var(--el-text-color-secondary);
-    margin-bottom: 2px;
   }
+
   .lc-stage-value {
     font-size: 12px;
     font-weight: 500;
