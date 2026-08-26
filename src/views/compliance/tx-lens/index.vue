@@ -54,82 +54,6 @@
       </ElCol>
     </ElRow>
 
-    <!-- ═══ 次要筛选栏（7组筛选） ═══ -->
-    <div class="flex flex-wrap items-center gap-4 mb-5">
-      <el-select
-        v-model="filters.direction"
-        :placeholder="$t('txLens.direction')"
-        clearable
-        class="!w-36"
-      >
-        <el-option :label="$t('txLens.outgoing')" value="Outgoing" />
-        <el-option :label="$t('txLens.incoming')" value="Incoming" />
-      </el-select>
-      <el-select
-        v-model="filters.compliance"
-        :placeholder="$t('txLens.compliance')"
-        clearable
-        class="!w-36"
-      >
-        <el-option :label="$t('txLens.clear')" value="Clear" />
-        <el-option :label="$t('txLens.flagged')" value="Flagged" />
-        <el-option :label="$t('txLens.inReview')" value="In Review" />
-      </el-select>
-      <el-select
-        v-model="filters.travelRule"
-        :placeholder="$t('txLens.travelRule')"
-        clearable
-        class="!w-36"
-      >
-        <el-option :label="$t('txLens.trComplete')" value="Complete" />
-        <el-option :label="$t('txLens.trPending')" value="Pending" />
-        <el-option :label="$t('txLens.trMismatch')" value="Mismatch" />
-        <el-option :label="$t('txLens.trNa')" value="N/A" />
-      </el-select>
-      <el-select
-        v-model="filters.signOff"
-        :placeholder="$t('txLens.signOff')"
-        clearable
-        class="!w-36"
-      >
-        <el-option :label="$t('txLens.soApproved')" value="Approved" />
-        <el-option :label="$t('txLens.soPending')" value="Pending" />
-      </el-select>
-      <el-select
-        v-model="filters.onChain"
-        :placeholder="$t('txLens.onChain')"
-        clearable
-        class="!w-36"
-      >
-        <el-option :label="$t('txLens.broadcasted')" value="Broadcasted" />
-        <el-option :label="$t('txLens.confirmed')" value="Confirmed" />
-        <el-option :label="$t('txLens.settled')" value="Settled" />
-        <el-option :label="$t('txLens.failed')" value="Failed" />
-      </el-select>
-      <el-select
-        v-model="filters.fundDisposition"
-        :placeholder="$t('txLens.fundDisposition')"
-        clearable
-        class="!w-36"
-      >
-        <el-option :label="$t('txLens.fdReleased')" value="Released" />
-        <el-option :label="$t('txLens.fdHeld')" value="Held" />
-        <el-option :label="$t('txLens.fdForfeited')" value="Forfeited" />
-        <el-option :label="$t('txLens.trNa')" value="N/A" />
-      </el-select>
-      <el-select
-        v-model="filters.reviewResult"
-        :placeholder="$t('txLens.reviewResult')"
-        clearable
-        class="!w-36"
-      >
-        <el-option :label="$t('txLens.rrNone')" value="None" />
-        <el-option :label="$t('txLens.truePositive')" value="True Positive" />
-        <el-option :label="$t('txLens.falsePositive')" value="False Positive" />
-        <el-option :label="$t('txLens.falseNegative')" value="False Negative" />
-      </el-select>
-    </div>
-
     <!-- ═══ 交易卡片列表 ═══ -->
     <div class="art-card mb-5">
       <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
@@ -137,6 +61,83 @@
         <el-button text size="small">
           <ArtSvgIcon icon="ri:download-line" class="mr-1" />{{ $t('common.export') }}
         </el-button>
+      </div>
+      <!-- 次要筛选栏（7组筛选） -->
+      <div class="p-4 border-b border-[var(--default-border)]">
+        <div class="flex flex-wrap items-center gap-4">
+          <el-select
+            v-model="filters.direction"
+            :placeholder="$t('txLens.direction')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('txLens.outgoing')" value="Outgoing" />
+            <el-option :label="$t('txLens.incoming')" value="Incoming" />
+          </el-select>
+          <el-select
+            v-model="filters.compliance"
+            :placeholder="$t('txLens.compliance')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('txLens.clear')" value="Clear" />
+            <el-option :label="$t('txLens.flagged')" value="Flagged" />
+            <el-option :label="$t('txLens.inReview')" value="In Review" />
+          </el-select>
+          <el-select
+            v-model="filters.travelRule"
+            :placeholder="$t('txLens.travelRule')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('txLens.trComplete')" value="Complete" />
+            <el-option :label="$t('txLens.trPending')" value="Pending" />
+            <el-option :label="$t('txLens.trMismatch')" value="Mismatch" />
+            <el-option :label="$t('txLens.trNa')" value="N/A" />
+          </el-select>
+          <el-select
+            v-model="filters.signOff"
+            :placeholder="$t('txLens.signOff')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('txLens.soApproved')" value="Approved" />
+            <el-option :label="$t('txLens.soPending')" value="Pending" />
+          </el-select>
+          <el-select
+            v-model="filters.onChain"
+            :placeholder="$t('txLens.onChain')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('txLens.broadcasted')" value="Broadcasted" />
+            <el-option :label="$t('txLens.confirmed')" value="Confirmed" />
+            <el-option :label="$t('txLens.settled')" value="Settled" />
+            <el-option :label="$t('txLens.failed')" value="Failed" />
+          </el-select>
+          <el-select
+            v-model="filters.fundDisposition"
+            :placeholder="$t('txLens.fundDisposition')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('txLens.fdReleased')" value="Released" />
+            <el-option :label="$t('txLens.fdHeld')" value="Held" />
+            <el-option :label="$t('txLens.fdForfeited')" value="Forfeited" />
+            <el-option :label="$t('txLens.trNa')" value="N/A" />
+          </el-select>
+          <el-select
+            v-model="filters.reviewResult"
+            :placeholder="$t('txLens.reviewResult')"
+            clearable
+            class="!w-36"
+          >
+            <el-option :label="$t('txLens.rrNone')" value="None" />
+            <el-option :label="$t('txLens.truePositive')" value="True Positive" />
+            <el-option :label="$t('txLens.falsePositive')" value="False Positive" />
+            <el-option :label="$t('txLens.falseNegative')" value="False Negative" />
+          </el-select>
+        </div>
       </div>
       <div class="p-4">
         <div v-for="tx in filteredTransactions" :key="tx.orderId" class="tx-card mb-4 last:mb-0">

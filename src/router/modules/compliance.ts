@@ -11,12 +11,6 @@ export const complianceRoutes: AppRouteRecord = {
   },
   children: [
     {
-      path: 'dashboard',
-      name: 'ComplianceDashboard',
-      component: '/compliance/dashboard',
-      meta: { title: 'menus.compliance.dashboard', icon: 'ri:dashboard-line', keepAlive: false }
-    },
-    {
       path: 'tx-lens',
       name: 'TransactionLens',
       component: '/compliance/tx-lens',
