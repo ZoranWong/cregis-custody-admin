@@ -152,15 +152,15 @@
           <div v-else class="space-y-4">
             <div v-for="domain in groupedFactors" :key="domain.domain">
               <div
-                class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-1 border-b border-[var(--default-border)]"
+                class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-2 border-b border-[var(--default-border)]"
               >
                 {{ domain.domain }}
               </div>
-              <div class="flex flex-col gap-1.5">
+              <div class="flex flex-col gap-2">
                 <div
                   v-for="factor in domain.items"
                   :key="factor.label"
-                  class="flex items-center gap-2.5 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg"
+                  class="flex items-center gap-2 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg"
                 >
                   <span
                     class="w-4 h-4 rounded bg-primary flex items-center justify-center text-white text-[10px] flex-shrink-0"

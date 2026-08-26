@@ -179,11 +179,11 @@
             <el-checkbox-group v-model="form.riskFactors" size="small">
               <div v-for="domain in factorCatalog" :key="domain.domain">
                 <div
-                  class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-1 border-b border-[var(--default-border)]"
+                  class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-2 border-b border-[var(--default-border)]"
                 >
                   {{ domain.domain }}
                 </div>
-                <div class="flex flex-wrap gap-1.5 mb-2">
+                <div class="flex flex-wrap gap-2 mb-3">
                   <el-checkbox v-for="f in domain.factors" :key="f" :value="f" :label="f" />
                 </div>
               </div>
