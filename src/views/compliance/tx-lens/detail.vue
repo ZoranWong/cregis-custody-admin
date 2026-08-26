@@ -298,7 +298,7 @@
                   <!-- PII Validation Fields -->
                   <div v-if="round.isPii" class="flex flex-col gap-2 mb-2.5">
                     <div
-                      v-for="field in round.piiFields"
+                      v-for="field in round.piiFields || []"
                       :key="field.name"
                       class="flex items-center gap-3 px-3 py-2 rounded-md bg-g-50 text-sm"
                     >
@@ -537,7 +537,7 @@
                   <el-button type="primary" size="small">{{
                     $t('txLens.detail.resolve')
                   }}</el-button>
-                  <el-button type="danger" plain size="small">{{ $t('common.close') }}</el-button>
+                  <el-button type="danger" plain size="small">{{ $t('common.cancel') }}</el-button>
                 </div>
                 <div class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-3">{{
                   $t('txLens.detail.manualTrace')
@@ -741,14 +741,16 @@
     }
   })
 
-  function statusType(status: string) {
-    const map: Record<string, string> = {
-      Settled: '',
+  type TagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
+
+  function statusType(status: string): TagType | undefined {
+    const map: Record<string, TagType> = {
+      Settled: 'info',
       Broadcasted: 'warning',
       Confirmed: 'success',
       Failed: 'danger'
     }
-    return (map[status] || '') as any
+    return map[status]
   }
 
   // ─── Rules Triggered ───
@@ -802,7 +804,17 @@
   }
 
   // ─── Communication Rounds ───
-  const commRounds = [
+  const commRounds: Array<{
+    id: number
+    isPii: boolean
+    time: string
+    by: string
+    description: string
+    questions: Array<{ qNum: number; text: string; file: string; textAnswer: string }>
+    piiFields?: Array<{ name: string; status: string }>
+    responseTime: string
+    pending: string
+  }> = [
     {
       id: 1,
       isPii: false,
