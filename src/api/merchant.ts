@@ -28,7 +28,7 @@ export function fetchMerchantFilterOptions(): Promise<MerchantFilterOptionsView>
 }
 
 export function fetchMerchants(query: MerchantQuery): Promise<PageResult<MerchantListItemView>> {
-  return apiRequest<PageResult<MerchantListItemView>>('/api/v1/admin/merchants/page', {
+  return apiRequest<PageResult<MerchantListItemView>>('/merchants/list', {
     method: 'POST',
     body: toPageQuery(query)
   })

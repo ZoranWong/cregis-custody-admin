@@ -29,10 +29,10 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-0.5">
-                <span class="text-sm font-semibold text-g-900">{{ owner.name }}</span>
+                <span class="text-sm font-semibold text-g-900">{{ owner?.name }}</span>
                 <span class="owner-badge">{{ $t('system.ownerBadge') }}</span>
               </div>
-              <div class="text-xs text-g-500">{{ owner.email }}</div>
+              <div class="text-xs text-g-500">{{ owner?.email }}</div>
             </div>
             <el-button size="small" type="primary" plain @click="showTransferDialog = true">
               {{ $t('system.transferOwnership') }}
@@ -70,11 +70,17 @@
               size="small"
               type="danger"
               plain
-              @click="suspendMember(member.id)"
+              @click="handleSuspendMember(member.id)"
             >
               {{ $t('system.suspend') }}
             </el-button>
-            <el-button v-else size="small" type="success" plain @click="recoverMember(member.id)">
+            <el-button
+              v-else
+              size="small"
+              type="success"
+              plain
+              @click="handleRecoverMember(member.id)"
+            >
               {{ $t('system.recover') }}
             </el-button>
           </div>
@@ -381,7 +387,9 @@
       </el-form>
       <template #footer>
         <el-button @click="inviteDialogOpen = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="submitInvite">{{ $t('system.sendInvite') }}</el-button>
+        <el-button type="primary" @click="handleSubmitInvite">{{
+          $t('system.sendInvite')
+        }}</el-button>
       </template>
     </el-dialog>
 
@@ -395,7 +403,9 @@
       </div>
       <template #footer>
         <el-button @click="showTransferDialog = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmTransfer">{{ $t('system.confirm') }}</el-button>
+        <el-button type="primary" @click="handleConfirmTransfer">{{
+          $t('system.confirm')
+        }}</el-button>
       </template>
     </el-dialog>
 
@@ -409,19 +419,79 @@
 
 <script setup lang="ts">
   import { computed, ref } from 'vue'
+  import { useTeamManagement } from '@/features/system-admin/useTeamManagement'
 
   defineOptions({ name: 'TeamManagement' })
 
+  // ─── Members Tab (real API) ───
+  const {
+    owner,
+    regularMembers,
+    inviteDialogOpen,
+    showTransferDialog,
+    transferTo,
+    inviteForm,
+    suspendMember,
+    recoverMember,
+    inviteMember,
+    transferOwnership,
+    openInviteDialog
+  } = useTeamManagement()
+
+  const ownerInitials = computed(() => owner.value?.initials || '')
+
+  async function handleSubmitInvite() {
+    if (!inviteForm.value.name || !inviteForm.value.email) {
+      ElMessage.warning('Please fill in all required fields')
+      return
+    }
+    try {
+      await inviteMember(inviteForm.value)
+      inviteDialogOpen.value = false
+      ElMessage.success('Invitation sent')
+    } catch {
+      ElMessage.error('Failed to send invitation')
+    }
+  }
+
+  async function handleConfirmTransfer() {
+    if (!transferTo.value) {
+      ElMessage.warning('Please select a member')
+      return
+    }
+    try {
+      await transferOwnership(transferTo.value)
+      showTransferDialog.value = false
+      ElMessage.success('Ownership transferred')
+    } catch {
+      ElMessage.error('Failed to transfer ownership')
+    }
+  }
+
+  async function handleSuspendMember(id: string) {
+    try {
+      await suspendMember(id)
+      ElMessage.success('Member suspended')
+    } catch {
+      ElMessage.error('Failed to suspend member')
+    }
+  }
+
+  async function handleRecoverMember(id: string) {
+    try {
+      await recoverMember(id)
+      ElMessage.success('Member recovered')
+    } catch {
+      ElMessage.error('Failed to recover member')
+    }
+  }
+
+  // ─── Roles Tab (mock data for now) ───
   const currentTab = ref<'members' | 'roles'>('members')
   const editSection = ref<null | 'admins' | 'officers' | 'travelRule'>(null)
-  const inviteDialogOpen = ref(false)
-  const showTransferDialog = ref(false)
-  const transferTo = ref('')
   const newAdminId = ref('')
   const newOfficerId = ref('')
   const newTravelRuleId = ref('')
-
-  const inviteForm = ref({ name: '', email: '', role: '' })
 
   // ─── All available people ───
   interface Person {
@@ -486,96 +556,6 @@
     },
     { id: 'nl', initials: 'NL', name: 'Nadia Lo', email: 'nadia.lo@cregis.com', role: 'Operator' }
   ]
-
-  // ─── Members ───
-  interface Member {
-    id: string
-    initials: string
-    name: string
-    email: string
-    status: string
-    owner?: boolean
-  }
-
-  const members = ref<Member[]>([
-    {
-      id: 'tw',
-      initials: 'TW',
-      name: 'Tom Wang',
-      email: 'tom.wang@cregis.com',
-      status: 'Active',
-      owner: true
-    },
-    {
-      id: 'lk',
-      initials: 'LK',
-      name: 'Lisa Kumar',
-      email: 'lisa.kumar@cregis.com',
-      status: 'Active'
-    },
-    {
-      id: 'sc',
-      initials: 'SC',
-      name: 'Sarah Chen',
-      email: 'sarah.chen@cregis.com',
-      status: 'Active'
-    },
-    {
-      id: 'mr',
-      initials: 'MR',
-      name: 'Michael Reed',
-      email: 'michael.reed@cregis.com',
-      status: 'Active'
-    },
-    {
-      id: 'jz',
-      initials: 'JZ',
-      name: 'Jing Zhang',
-      email: 'jing.zhang@cregis.com',
-      status: 'Active'
-    },
-    {
-      id: 'ap',
-      initials: 'AP',
-      name: 'Aisha Patel',
-      email: 'aisha.patel@cregis.com',
-      status: 'Active'
-    },
-    {
-      id: 'dk',
-      initials: 'DK',
-      name: 'David Kim',
-      email: 'david.kim@cregis.com',
-      status: 'Active'
-    },
-    { id: 'lt', initials: 'LT', name: 'Li Tan', email: 'li.tan@cregis.com', status: 'Active' },
-    {
-      id: 'rm',
-      initials: 'RM',
-      name: 'Rohit Mehta',
-      email: 'rohit.mehta@cregis.com',
-      status: 'Active'
-    },
-    {
-      id: 'eh',
-      initials: 'EH',
-      name: 'Emma Huang',
-      email: 'emma.huang@cregis.com',
-      status: 'Active'
-    },
-    {
-      id: 'jw',
-      initials: 'JW',
-      name: 'James Wilson',
-      email: 'james.wilson@cregis.com',
-      status: 'Active'
-    },
-    { id: 'nl', initials: 'NL', name: 'Nadia Lo', email: 'nadia.lo@cregis.com', status: 'Active' }
-  ])
-
-  const owner = computed(() => members.value.find((m) => m.owner) || members.value[0])
-  const ownerInitials = computed(() => owner.value.initials)
-  const regularMembers = computed(() => members.value.filter((m) => !m.owner))
 
   // ─── Role groups ───
   const adminIds = ref(['tw', 'lk'])
@@ -655,57 +635,6 @@
       steps: [{ personId: 'dk' }, { personId: 'jz' }, { personId: 'sc' }]
     }
   ]
-
-  // ─── Member actions ───
-  function suspendMember(id: string) {
-    const m = members.value.find((m) => m.id === id)
-    if (m) m.status = 'Suspended'
-  }
-
-  function recoverMember(id: string) {
-    const m = members.value.find((m) => m.id === id)
-    if (m) m.status = 'Active'
-  }
-
-  function openInviteDialog() {
-    inviteForm.value = { name: '', email: '', role: '' }
-    inviteDialogOpen.value = true
-  }
-
-  function submitInvite() {
-    if (!inviteForm.value.name || !inviteForm.value.email) {
-      ElMessage.warning('Please fill in all required fields')
-      return
-    }
-    const initials = inviteForm.value.name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-    members.value.push({
-      id: `new-${Date.now()}`,
-      initials,
-      name: inviteForm.value.name,
-      email: inviteForm.value.email,
-      status: 'Pending'
-    })
-    inviteDialogOpen.value = false
-    ElMessage.success('Invitation sent')
-  }
-
-  function confirmTransfer() {
-    if (!transferTo.value) {
-      ElMessage.warning('Please select a member')
-      return
-    }
-    const oldOwner = members.value.find((m) => m.owner)
-    if (oldOwner) oldOwner.owner = false
-    const newOwner = members.value.find((m) => m.id === transferTo.value)
-    if (newOwner) newOwner.owner = true
-    showTransferDialog.value = false
-    ElMessage.success('Ownership transferred')
-  }
 </script>
 
 <style scoped>

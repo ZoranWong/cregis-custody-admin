@@ -142,7 +142,7 @@ function readNumber(raw: Record<string, unknown>, key: string, fallback: number)
 // ---- 导出 API 函数（参考 employeeAccess.ts） ----
 
 export async function fetchEmployees(query: EmployeePageQuery): Promise<EmployeePageResponse> {
-  const raw = (await apiRequest('/system/staff/page', {
+  const raw = (await apiRequest('/api/v1/system/staff/page', {
     method: 'POST',
     body: buildStaffPageQuery(query)
   })) as Record<string, unknown>
