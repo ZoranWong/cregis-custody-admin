@@ -1,311 +1,295 @@
-<!-- Cregis Employee Management -->
+<!-- Team Management — 团队管理 -->
 <template>
   <div class="page-content">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-      <h2 class="text-base font-semibold text-g-900">{{ $t('system.employeeManagement') }}</h2>
-      <div class="flex gap-2">
-        <ElButton @click="() => load()">{{ $t('console.refresh') }}</ElButton>
-        <ElButton type="primary" @click="openCreateModal">
-          <ArtSvgIcon icon="ri:user-add-line" class="mr-1" />{{ $t('system.inviteMember') }}
-        </ElButton>
-      </div>
+    <!-- Page Header -->
+    <div class="mb-4">
+      <h1 class="text-xl font-semibold text-g-900">{{ $t('system.teamManagement') }}</h1>
+      <p class="text-sm text-g-500 mt-1">{{ $t('system.teamSubtitle') }}</p>
     </div>
 
-    <!-- Tab Switcher -->
-    <div class="mb-5">
-      <el-radio-group v-model="currentTab" size="small">
-        <el-radio-button value="members">{{ $t('system.members') }}</el-radio-button>
-        <el-radio-button value="roles">{{ $t('system.roles') }}</el-radio-button>
-      </el-radio-group>
-    </div>
+    <!-- Tab Bar -->
+    <el-tabs v-model="currentTab" class="mb-5">
+      <el-tab-pane :label="$t('system.members')" name="members" />
+      <el-tab-pane :label="$t('system.roles')" name="roles" />
+    </el-tabs>
 
-    <!-- Members Tab -->
+    <!-- ═══════ Members Tab ═══════ -->
     <template v-if="currentTab === 'members'">
       <!-- Owner Section -->
-      <div class="art-card mb-5">
+      <div class="art-card mb-4 overflow-hidden">
         <div class="p-4 border-b border-[var(--default-border)]">
           <h3 class="text-sm font-semibold text-g-900">{{ $t('system.owner') }}</h3>
         </div>
         <div class="p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div
-                class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary font-semibold"
-              >
-                TW
-              </div>
-              <div>
-                <div class="text-sm font-medium text-g-900">Tom Wang</div>
-                <div class="text-xs text-g-500">tom.wang@cregis.com</div>
-              </div>
+          <div class="owner-card">
+            <div
+              class="w-10 h-10 rounded-full bg-[var(--el-color-primary)] text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
+            >
+              {{ ownerInitials }}
             </div>
-            <div class="flex items-center gap-2">
-              <el-tag type="primary" size="small">Owner</el-tag>
-              <el-button size="small" text>{{ $t('system.transferOwnership') }}</el-button>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-sm font-semibold text-g-900">{{ owner.name }}</span>
+                <span class="owner-badge">{{ $t('system.ownerBadge') }}</span>
+              </div>
+              <div class="text-xs text-g-500">{{ owner.email }}</div>
             </div>
+            <el-button size="small" type="primary" plain @click="showTransferDialog = true">
+              {{ $t('system.transferOwnership') }}
+            </el-button>
           </div>
         </div>
       </div>
 
-      <div class="art-card art-table-card overflow-hidden mb-5">
-        <div class="p-4 border-b border-[var(--default-border)]">
-          <div class="flex flex-wrap items-center gap-3">
-            <el-select
-              v-model="filters.status"
-              :placeholder="$t('audit.status')"
-              clearable
-              class="!w-40"
-              @change="onStatusChange"
-            >
-              <el-option value="all" :label="$t('system.statusAll')" />
-              <el-option value="pending_activation" :label="$t('system.statusPending')" />
-              <el-option value="active" :label="$t('system.statusActive')" />
-              <el-option value="disabled" :label="$t('system.statusDisabled')" />
-              <el-option value="expired" :label="$t('system.statusExpired')" />
-            </el-select>
-            <el-input
-              v-model="filters.searchQuery"
-              :placeholder="$t('system.searchEmployee')"
-              clearable
-              class="!w-64"
-            >
-              <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
-            </el-input>
-          </div>
+      <!-- Members Section -->
+      <div class="art-card mb-4 overflow-hidden">
+        <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.ordinaryMembers') }}</h3>
+          <el-button size="small" type="primary" @click="openInviteDialog">
+            + {{ $t('system.inviteMember') }}
+          </el-button>
         </div>
-
-        <template v-if="loading"><el-skeleton :rows="10" animated class="p-5" /></template>
-        <el-table v-else :data="rows" stripe size="small">
-          <template #empty
-            ><div class="p-10 text-center text-g-500">{{ $t('system.noEmployees') }}</div></template
-          >
-          <el-table-column prop="displayName" :label="$t('system.name')" min-width="140" />
-          <el-table-column prop="email" :label="$t('system.email')" min-width="180" />
-          <el-table-column :label="$t('system.activation')" width="120">
-            <template #default="{ row }">
-              <el-tag :type="activationTag(row.activationStatus)" size="small">{{
-                activationLabel(row.activationStatus)
-              }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column :label="$t('system.accountStatus')" width="100">
-            <template #default="{ row }">
-              <el-tag :type="row.accountStatus === 'enabled' ? 'success' : 'danger'" size="small">{{
-                row.accountStatus === 'enabled' ? $t('system.enabled') : $t('system.disabled')
-              }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column :label="$t('system.role')" width="140">
-            <template #default="{ row }">{{ roleLabel(row.roleCode || row.initialRole) }}</template>
-          </el-table-column>
-          <el-table-column :label="$t('system.lastSignIn')" width="180">
-            <template #default="{ row }">{{ row.lastSignIn || 'Never' }}</template>
-          </el-table-column>
-          <el-table-column :label="$t('audit.actions')" :min-width="actionColWidth" fixed="right">
-            <template #default="{ row }">
-              <div class="flex gap-1 flex-nowrap">
-                <ElButton
-                  v-for="action in onVisibleActions(row)"
-                  :key="action"
-                  size="small"
-                  :disabled="onIsActionPending(row, action)"
-                  @click="onTriggerAction(row, action)"
-                >
-                  {{ actionTitle(action) }}
-                </ElButton>
+        <div class="p-4">
+          <div v-for="member in regularMembers" :key="member.id" class="member-row">
+            <div
+              class="w-8 h-8 rounded-full bg-g-100 text-g-600 flex items-center justify-center text-xs font-semibold flex-shrink-0"
+            >
+              {{ member.initials }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="text-[13px] font-semibold text-g-900">{{ member.name }}</span>
+                <span class="status-badge" :class="member.status.toLowerCase()">
+                  {{ member.status }}
+                </span>
               </div>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div
-          v-if="pagination.totalCount > 0"
-          class="flex justify-between items-center px-5 py-3 border-t border-[var(--default-border)]"
-        >
-          <span class="text-xs text-g-500"
-            >Page {{ currentPage }} / {{ totalPages || 1 }} ·
-            {{ pagination.totalCount }} employees</span
-          >
-          <el-pagination
-            v-model:current-page="filters.pageNum"
-            :total="pagination.totalCount"
-            :page-sizes="[10, 20, 50]"
-            background
-            layout="prev,pager,next,sizes"
-            @current-change="
-              (v: number) => {
-                filters.pageNum = v
-              }
-            "
-            @size-change="
-              (v: number) => {
-                filters.pageSize = v
-              }
-            "
-          />
+              <div class="text-[11px] text-g-500">{{ member.email }}</div>
+            </div>
+            <el-button
+              v-if="member.status !== 'Suspended'"
+              size="small"
+              type="danger"
+              plain
+              @click="suspendMember(member.id)"
+            >
+              {{ $t('system.suspend') }}
+            </el-button>
+            <el-button v-else size="small" type="success" plain @click="recoverMember(member.id)">
+              {{ $t('system.recover') }}
+            </el-button>
+          </div>
+          <div v-if="regularMembers.length === 0" class="py-6 text-center text-g-400 text-sm">
+            {{ $t('system.noEmployees') }}
+          </div>
         </div>
       </div>
     </template>
 
-    <!-- Roles Tab -->
+    <!-- ═══════ Roles Tab ═══════ -->
     <template v-if="currentTab === 'roles'">
       <!-- System Administrators -->
-      <div class="art-card mb-5">
+      <div class="art-card mb-4 overflow-hidden">
         <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-g-900">System Administrators</h3>
-          <el-button size="small" text>Edit</el-button>
+          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.systemAdmins') }}</h3>
+          <el-button
+            size="small"
+            text
+            @click="editSection = editSection === 'admins' ? null : 'admins'"
+          >
+            {{ editSection === 'admins' ? $t('system.save') : $t('system.edit') }}
+          </el-button>
         </div>
         <div class="p-4">
           <div class="flex flex-wrap gap-3">
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
+            <div
+              v-for="person in adminPeople"
+              :key="person.id"
+              class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
+            >
               <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >TW</div
+                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--el-color-primary)] flex items-center justify-center text-xs font-semibold"
               >
-              <span class="text-sm text-g-900">Tom Wang</span>
+                {{ person.initials }}
+              </div>
+              <span class="text-sm text-g-900">{{ person.name }}</span>
+              <el-button
+                v-if="editSection === 'admins'"
+                :icon="'ri:close-line'"
+                circle
+                size="small"
+                @click="removeFromSection('admins', person.id)"
+              />
             </div>
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-              <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >LK</div
-              >
-              <span class="text-sm text-g-900">Lisa Kumar</span>
-            </div>
+          </div>
+          <div v-if="editSection === 'admins'" class="mt-3 flex flex-wrap gap-2">
+            <el-select
+              v-model="newAdminId"
+              :placeholder="$t('system.addMember')"
+              clearable
+              class="!w-56"
+              @change="
+                (v: string) => {
+                  if (v) {
+                    adminIds.push(v)
+                    newAdminId = ''
+                  }
+                }
+              "
+            >
+              <el-option
+                v-for="p in availablePeople('admins')"
+                :key="p.id"
+                :label="p.name"
+                :value="p.id"
+              />
+            </el-select>
           </div>
         </div>
       </div>
 
       <!-- Compliance Officers -->
-      <div class="art-card mb-5">
-        <div class="p-4 border-b border-[var(--default-border)]">
-          <h3 class="text-sm font-semibold text-g-900">Compliance Officers</h3>
+      <div class="art-card mb-4 overflow-hidden">
+        <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.complianceOfficers') }}</h3>
+          <el-button
+            size="small"
+            text
+            @click="editSection = editSection === 'officers' ? null : 'officers'"
+          >
+            {{ editSection === 'officers' ? $t('system.save') : $t('system.edit') }}
+          </el-button>
         </div>
         <div class="p-4">
           <div class="mb-3 flex flex-wrap gap-2">
-            <el-tag size="small">Set Rules</el-tag>
-            <el-tag size="small">Monitor</el-tag>
-            <el-tag size="small">Label FP/FN</el-tag>
+            <el-tag size="small">{{ $t('system.permSetRules') }}</el-tag>
+            <el-tag size="small">{{ $t('system.permMonitor') }}</el-tag>
+            <el-tag size="small">{{ $t('system.permLabelFPFN') }}</el-tag>
           </div>
           <div class="flex flex-wrap gap-3">
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
+            <div
+              v-for="person in officerPeople"
+              :key="person.id"
+              class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
+            >
               <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >SC</div
+                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--el-color-primary)] flex items-center justify-center text-xs font-semibold"
               >
-              <span class="text-sm text-g-900">Sarah Chen</span>
+                {{ person.initials }}
+              </div>
+              <span class="text-sm text-g-900">{{ person.name }}</span>
+              <el-button
+                v-if="editSection === 'officers'"
+                :icon="'ri:close-line'"
+                circle
+                size="small"
+                @click="removeFromSection('officers', person.id)"
+              />
             </div>
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-              <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >MR</div
-              >
-              <span class="text-sm text-g-900">Michael Reed</span>
-            </div>
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-              <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >JZ</div
-              >
-              <span class="text-sm text-g-900">Jing Zhang</span>
-            </div>
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-              <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >AP</div
-              >
-              <span class="text-sm text-g-900">Aisha Patel</span>
-            </div>
+          </div>
+          <div v-if="editSection === 'officers'" class="mt-3 flex flex-wrap gap-2">
+            <el-select
+              v-model="newOfficerId"
+              :placeholder="$t('system.addMember')"
+              clearable
+              class="!w-56"
+              @change="
+                (v: string) => {
+                  if (v) {
+                    officerIds.push(v)
+                    newOfficerId = ''
+                  }
+                }
+              "
+            >
+              <el-option
+                v-for="p in availablePeople('officers')"
+                :key="p.id"
+                :label="p.name"
+                :value="p.id"
+              />
+            </el-select>
           </div>
         </div>
       </div>
 
       <!-- Transaction Compliance Review Flow -->
-      <div class="art-card mb-5">
-        <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-g-900">Transaction Compliance Review Flow</h3>
-          <el-button size="small" text>Edit Flow</el-button>
+      <div class="art-card mb-4 overflow-hidden">
+        <div class="p-4 border-b border-[var(--default-border)]">
+          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.txReviewFlow') }}</h3>
         </div>
-        <div class="p-4 space-y-6">
-          <!-- Routine -->
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <el-tag type="info" size="small">Routine</el-tag>
-              <span class="text-xs text-g-500">Timeout: Auto-Resolve 4h</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-                <div
-                  class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs"
-                  >DK</div
-                >
-                <span class="text-sm text-g-900">David Kim</span>
+        <div class="p-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div v-for="flow in flows" :key="flow.id" class="tier-card" :class="flow.sevClass">
+              <div class="tier-card-header">
+                <div class="flex items-center gap-1.5">
+                  <span class="sev-dot" :class="flow.sevClass" />
+                  <span class="text-[13px] font-semibold text-g-900">{{ flow.label }}</span>
+                </div>
+                <span class="step-badge" :class="flow.sevClass">
+                  {{ flow.steps.length }}-Step
+                </span>
               </div>
-              <ArtSvgIcon icon="ri:arrow-right-line" class="text-g-400" />
-              <div class="bg-success-50 rounded-lg px-3 py-2">
-                <span class="text-sm text-success">Resolved</span>
-              </div>
-            </div>
-          </div>
-          <!-- Medium -->
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <el-tag type="warning" size="small">Medium</el-tag>
-              <span class="text-xs text-g-500">Timeout: Escalation 2h</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-                <div
-                  class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs"
-                  >EH</div
-                >
-                <span class="text-sm text-g-900">Emma Huang</span>
-              </div>
-              <ArtSvgIcon icon="ri:arrow-right-line" class="text-g-400" />
-              <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-                <div
-                  class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs"
-                  >JW</div
-                >
-                <span class="text-sm text-g-900">James Wilson</span>
-              </div>
-              <ArtSvgIcon icon="ri:arrow-right-line" class="text-g-400" />
-              <div class="bg-success-50 rounded-lg px-3 py-2">
-                <span class="text-sm text-success">Resolved</span>
-              </div>
-            </div>
-          </div>
-          <!-- Critical -->
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <el-tag type="danger" size="small">Critical</el-tag>
-              <span class="text-xs text-g-500">Timeout: Escalation 30m</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-                <div
-                  class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs"
-                  >DK</div
-                >
-                <span class="text-sm text-g-900">David Kim</span>
-              </div>
-              <ArtSvgIcon icon="ri:arrow-right-line" class="text-g-400" />
-              <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-                <div
-                  class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs"
-                  >JZ</div
-                >
-                <span class="text-sm text-g-900">Jing Zhang</span>
-              </div>
-              <ArtSvgIcon icon="ri:arrow-right-line" class="text-g-400" />
-              <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-                <div
-                  class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs"
-                  >SC</div
-                >
-                <span class="text-sm text-g-900">Sarah Chen</span>
-              </div>
-              <ArtSvgIcon icon="ri:arrow-right-line" class="text-g-400" />
-              <div class="bg-success-50 rounded-lg px-3 py-2">
-                <span class="text-sm text-success">Resolved</span>
+              <div class="tier-card-body">
+                <div class="flow-config mb-3">
+                  <div>
+                    <div class="text-[10px] text-g-400 uppercase tracking-wider">{{
+                      $t('system.timeout')
+                    }}</div>
+                    <div class="text-[13px] font-semibold text-g-800">{{ flow.timeoutLabel }}</div>
+                  </div>
+                  <div>
+                    <div class="text-[10px] text-g-400 uppercase tracking-wider">{{
+                      $t('system.value')
+                    }}</div>
+                    <div class="text-[13px] font-semibold text-g-800">{{ flow.timeoutValue }}</div>
+                  </div>
+                </div>
+                <div class="flow-chain">
+                  <div v-for="(step, idx) in flow.steps" :key="idx" class="flow-step">
+                    <div class="flow-step-indicator">
+                      <span class="flow-step-num" :class="flow.stepClass">{{ idx + 1 }}</span>
+                      <div
+                        v-if="idx < flow.steps.length - 1"
+                        class="flow-connector"
+                        :class="flow.sevClass"
+                      />
+                      <div
+                        v-else
+                        class="flow-connector"
+                        :class="flow.sevClass"
+                        style="min-height: 14px"
+                      />
+                    </div>
+                    <div class="flow-step-content">
+                      <div class="flex items-center gap-2">
+                        <div
+                          class="w-[18px] h-[18px] rounded-full bg-g-200 text-g-700 flex items-center justify-center text-[9px] font-semibold flex-shrink-0"
+                        >
+                          {{ getPerson(step.personId)?.initials }}
+                        </div>
+                        <div class="flex flex-col gap-0.5">
+                          <span class="text-xs font-semibold text-g-900">
+                            {{ getPerson(step.personId)?.name }}
+                          </span>
+                          <span class="text-[10px] text-g-500">
+                            {{ getPerson(step.personId)?.email }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Resolved terminator -->
+                  <div class="flow-step">
+                    <div class="flow-step-indicator">
+                      <span class="flow-step-num resolved">✓</span>
+                    </div>
+                    <div class="flow-step-content resolved">
+                      <span class="text-xs font-semibold text-success">{{
+                        $t('system.resolved')
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -313,268 +297,661 @@
       </div>
 
       <!-- Travel Rule Manual Resolution Team -->
-      <div class="art-card mb-5">
-        <div class="p-4 border-b border-[var(--default-border)]">
-          <h3 class="text-sm font-semibold text-g-900">Travel Rule Manual Resolution Team</h3>
+      <div class="art-card mb-4 overflow-hidden">
+        <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.travelRuleTeam') }}</h3>
+          <el-button
+            size="small"
+            text
+            @click="editSection = editSection === 'travelRule' ? null : 'travelRule'"
+          >
+            {{ editSection === 'travelRule' ? $t('system.save') : $t('system.edit') }}
+          </el-button>
         </div>
         <div class="p-4">
           <div class="mb-3 flex flex-wrap gap-2">
-            <el-tag size="small">Resolve</el-tag>
-            <el-tag size="small">Reject</el-tag>
+            <el-tag size="small">{{ $t('system.permResolve') }}</el-tag>
+            <el-tag size="small">{{ $t('system.permReject') }}</el-tag>
           </div>
           <div class="flex flex-wrap gap-3">
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
+            <div
+              v-for="person in travelRulePeople"
+              :key="person.id"
+              class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
+            >
               <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >MR</div
+                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--el-color-primary)] flex items-center justify-center text-xs font-semibold"
               >
-              <span class="text-sm text-g-900">Michael Reed</span>
+                {{ person.initials }}
+              </div>
+              <span class="text-sm text-g-900">{{ person.name }}</span>
+              <el-button
+                v-if="editSection === 'travelRule'"
+                :icon="'ri:close-line'"
+                circle
+                size="small"
+                @click="removeFromSection('travelRule', person.id)"
+              />
             </div>
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-              <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >SC</div
-              >
-              <span class="text-sm text-g-900">Sarah Chen</span>
-            </div>
-            <div class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2">
-              <div
-                class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary text-xs font-semibold"
-                >NL</div
-              >
-              <span class="text-sm text-g-900">Nadia Lo</span>
-            </div>
+          </div>
+          <div v-if="editSection === 'travelRule'" class="mt-3 flex flex-wrap gap-2">
+            <el-select
+              v-model="newTravelRuleId"
+              :placeholder="$t('system.addMember')"
+              clearable
+              class="!w-56"
+              @change="
+                (v: string) => {
+                  if (v) {
+                    travelRuleIds.push(v)
+                    newTravelRuleId = ''
+                  }
+                }
+              "
+            >
+              <el-option
+                v-for="p in availablePeople('travelRule')"
+                :key="p.id"
+                :label="p.name"
+                :value="p.id"
+              />
+            </el-select>
           </div>
         </div>
       </div>
     </template>
 
-    <!-- Governance Notice -->
-    <div class="governance-notice mb-5">
-      <strong>Governance Notice:</strong>
-      High-risk changes (password reset, role or domain changes) may trigger re-authentication on
-      the user's next sensitive action.
-    </div>
-
-    <!-- Create Modal -->
-    <el-dialog v-model="createModalOpen" :title="$t('system.createUser')" width="600px">
-      <div class="space-y-4">
-        <div>
-          <label class="text-xs text-g-500"
-            >{{ $t('system.name') }} <span class="text-red-500">*</span></label
-          >
-          <el-input v-model="createForm.displayName" class="mt-1" placeholder="Enter full name" />
-        </div>
-        <div>
-          <label class="text-xs text-g-500"
-            >{{ $t('system.email') }} <span class="text-red-500">*</span></label
-          >
-          <el-input
-            v-model="createForm.email"
-            type="email"
-            class="mt-1"
-            placeholder="Enter work email"
-          />
-        </div>
-        <div>
-          <label class="text-xs text-g-500"
-            >{{ $t('system.role') }} <span class="text-red-500">*</span></label
-          >
-          <el-select v-model="createForm.initialRoleCode" class="!w-full mt-1">
-            <el-option
-              v-for="role in roleOptions"
-              :key="role.code"
-              :value="role.code"
-              :label="role.label"
-            />
+    <!-- ═══ Invite Member Dialog ═══ -->
+    <el-dialog v-model="inviteDialogOpen" :title="$t('system.inviteMember')" width="500px">
+      <el-form label-width="80px">
+        <el-form-item :label="$t('system.name')">
+          <el-input v-model="inviteForm.name" placeholder="Enter full name" />
+        </el-form-item>
+        <el-form-item :label="$t('system.email')">
+          <el-input v-model="inviteForm.email" type="email" placeholder="Enter work email" />
+        </el-form-item>
+        <el-form-item :label="$t('system.role')">
+          <el-select v-model="inviteForm.role" class="w-full">
+            <el-option label="System Administrator" value="SYSTEM_ADMIN" />
+            <el-option label="Compliance Officer" value="COMPLIANCE" />
+            <el-option label="Operations" value="OPERATIONS" />
+            <el-option label="Risk Reviewer" value="RISK" />
           </el-select>
-        </div>
-      </div>
+        </el-form-item>
+      </el-form>
       <template #footer>
-        <ElButton @click="closeCreateModal">{{ $t('table.form.reset') }}</ElButton>
-        <ElButton type="primary" :disabled="creating" @click="submitCreate">{{
-          creating ? 'Creating...' : $t('table.form.submit')
-        }}</ElButton>
+        <el-button @click="inviteDialogOpen = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submitInvite">{{ $t('system.sendInvite') }}</el-button>
       </template>
     </el-dialog>
 
-    <!-- Access Review Drawer -->
-    <el-drawer v-model="accessDrawerOpen" title="Review Access" direction="rtl" size="400px">
-      <template v-if="selectedAccess">
-        <div class="mb-4">
-          <div class="text-sm font-semibold">{{ selectedAccess.displayName }}</div>
-          <div class="text-xs text-g-500">{{ selectedAccess.email }}</div>
-        </div>
-        <div class="mb-4">
-          <label class="text-xs text-g-500 uppercase font-semibold">Role Assignment</label>
-          <el-select v-model="selectedAccess.roleCode" class="!w-full mt-1">
-            <el-option
-              v-for="role in roleOptions"
-              :key="role.code"
-              :value="role.code"
-              :label="role.label"
-            />
-          </el-select>
-        </div>
-        <div class="mb-4">
-          <label class="text-xs text-g-500 uppercase font-semibold">Authorized Page Domains</label>
-          <div class="mt-1 space-y-1">
-            <label
-              v-for="domain in domainOptions"
-              :key="domain.id"
-              class="flex items-center gap-2 p-2 rounded bg-g-50 text-xs"
-            >
-              <input
-                :checked="selectedAccess.authorizedDomainIds.includes(domain.id)"
-                type="checkbox"
-                class="w-4 h-4"
-                @change="
-                  updateSelectedDomains(domain.id, ($event.target as HTMLInputElement).checked)
-                "
-              />
-              <span>{{ domain.label }}</span>
-            </label>
-          </div>
-        </div>
-        <div class="flex gap-2">
-          <ElButton
-            type="primary"
-            size="small"
-            :disabled="accessSaving"
-            @click="saveAccessBinding"
-            >{{ accessSaving ? 'Saving...' : 'Save Changes' }}</ElButton
-          >
-          <ElButton size="small" @click="closeAccessDrawer">Cancel</ElButton>
-        </div>
+    <!-- ═══ Transfer Ownership Dialog ═══ -->
+    <el-dialog v-model="showTransferDialog" :title="$t('system.transferOwnership')" width="500px">
+      <div class="space-y-4">
+        <p class="text-sm text-g-600">{{ $t('system.transferNotice') }}</p>
+        <el-select v-model="transferTo" :placeholder="$t('system.selectMember')" class="w-full">
+          <el-option v-for="m in regularMembers" :key="m.id" :label="m.name" :value="m.id" />
+        </el-select>
+      </div>
+      <template #footer>
+        <el-button @click="showTransferDialog = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="confirmTransfer">{{ $t('system.confirm') }}</el-button>
       </template>
-    </el-drawer>
+    </el-dialog>
+
+    <!-- Governance Notice -->
+    <div class="governance-notice">
+      <strong>{{ $t('system.governanceTitle') }}:</strong>
+      {{ $t('system.governanceNotice') }}
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { useEmployeeManagement } from '@/features/system-admin/useEmployeeManagement'
-  import type { EmployeeRowView } from '@/features/system-admin/types'
+  import { computed, ref } from 'vue'
 
-  defineOptions({ name: 'EmployeeManagement' })
+  defineOptions({ name: 'TeamManagement' })
 
   const currentTab = ref<'members' | 'roles'>('members')
+  const editSection = ref<null | 'admins' | 'officers' | 'travelRule'>(null)
+  const inviteDialogOpen = ref(false)
+  const showTransferDialog = ref(false)
+  const transferTo = ref('')
+  const newAdminId = ref('')
+  const newOfficerId = ref('')
+  const newTravelRuleId = ref('')
 
-  const { t, locale } = useI18n()
+  const inviteForm = ref({ name: '', email: '', role: '' })
 
-  const actionColWidth = computed(() => (locale.value === 'zh' ? 220 : 280))
-
-  const {
-    loading,
-    rows,
-    pagination,
-    filters,
-    createModalOpen,
-    accessDrawerOpen,
-    createForm,
-    selectedAccess,
-    creating,
-    accessSaving,
-    roleOptions,
-    domainOptions,
-    load,
-    openCreateModal,
-    closeCreateModal,
-    submitCreate,
-    triggerRowAction,
-    closeAccessDrawer,
-    saveAccessBinding,
-    updateSelectedDomains,
-    isActionPending
-  } = useEmployeeManagement()
-
-  const ROLE_LABELS: Record<string, string> = {
-    SYSTEM_STAFF: 'System Staff',
-    ADMIN: 'Administrator',
-    SYSTEM_ADMIN: 'System Administrator',
-    OPERATIONS: 'Operations',
-    RISK: 'Risk',
-    COMPLIANCE: 'Compliance'
+  // ─── All available people ───
+  interface Person {
+    id: string
+    initials: string
+    name: string
+    email: string
+    role?: string
   }
 
-  const currentPage = computed(() => pagination.value.page || 1)
-  const totalPages = computed(() => pagination.value.totalPages || 1)
+  const allPeople: Person[] = [
+    { id: 'sc', initials: 'SC', name: 'Sarah Chen', email: 'sarah.chen@cregis.com', role: 'Lead' },
+    {
+      id: 'mr',
+      initials: 'MR',
+      name: 'Michael Reed',
+      email: 'michael.reed@cregis.com',
+      role: 'Officer'
+    },
+    {
+      id: 'jz',
+      initials: 'JZ',
+      name: 'Jing Zhang',
+      email: 'jing.zhang@cregis.com',
+      role: 'Officer'
+    },
+    {
+      id: 'ap',
+      initials: 'AP',
+      name: 'Aisha Patel',
+      email: 'aisha.patel@cregis.com',
+      role: 'Analyst'
+    },
+    {
+      id: 'dk',
+      initials: 'DK',
+      name: 'David Kim',
+      email: 'david.kim@cregis.com',
+      role: 'Operator'
+    },
+    { id: 'lt', initials: 'LT', name: 'Li Tan', email: 'li.tan@cregis.com', role: 'Operator' },
+    {
+      id: 'rm',
+      initials: 'RM',
+      name: 'Rohit Mehta',
+      email: 'rohit.mehta@cregis.com',
+      role: 'Operator'
+    },
+    {
+      id: 'eh',
+      initials: 'EH',
+      name: 'Emma Huang',
+      email: 'emma.huang@cregis.com',
+      role: 'Operator'
+    },
+    {
+      id: 'jw',
+      initials: 'JW',
+      name: 'James Wilson',
+      email: 'james.wilson@cregis.com',
+      role: 'Operator'
+    },
+    { id: 'nl', initials: 'NL', name: 'Nadia Lo', email: 'nadia.lo@cregis.com', role: 'Operator' }
+  ]
 
-  function onTriggerAction(row: unknown, action: string) {
-    triggerRowAction(row as EmployeeRowView, action)
+  // ─── Members ───
+  interface Member {
+    id: string
+    initials: string
+    name: string
+    email: string
+    status: string
+    owner?: boolean
   }
 
-  function onVisibleActions(row: unknown): string[] {
-    return visibleActions(row as EmployeeRowView)
+  const members = ref<Member[]>([
+    {
+      id: 'tw',
+      initials: 'TW',
+      name: 'Tom Wang',
+      email: 'tom.wang@cregis.com',
+      status: 'Active',
+      owner: true
+    },
+    {
+      id: 'lk',
+      initials: 'LK',
+      name: 'Lisa Kumar',
+      email: 'lisa.kumar@cregis.com',
+      status: 'Active'
+    },
+    {
+      id: 'sc',
+      initials: 'SC',
+      name: 'Sarah Chen',
+      email: 'sarah.chen@cregis.com',
+      status: 'Active'
+    },
+    {
+      id: 'mr',
+      initials: 'MR',
+      name: 'Michael Reed',
+      email: 'michael.reed@cregis.com',
+      status: 'Active'
+    },
+    {
+      id: 'jz',
+      initials: 'JZ',
+      name: 'Jing Zhang',
+      email: 'jing.zhang@cregis.com',
+      status: 'Active'
+    },
+    {
+      id: 'ap',
+      initials: 'AP',
+      name: 'Aisha Patel',
+      email: 'aisha.patel@cregis.com',
+      status: 'Active'
+    },
+    {
+      id: 'dk',
+      initials: 'DK',
+      name: 'David Kim',
+      email: 'david.kim@cregis.com',
+      status: 'Active'
+    },
+    { id: 'lt', initials: 'LT', name: 'Li Tan', email: 'li.tan@cregis.com', status: 'Active' },
+    {
+      id: 'rm',
+      initials: 'RM',
+      name: 'Rohit Mehta',
+      email: 'rohit.mehta@cregis.com',
+      status: 'Active'
+    },
+    {
+      id: 'eh',
+      initials: 'EH',
+      name: 'Emma Huang',
+      email: 'emma.huang@cregis.com',
+      status: 'Active'
+    },
+    {
+      id: 'jw',
+      initials: 'JW',
+      name: 'James Wilson',
+      email: 'james.wilson@cregis.com',
+      status: 'Active'
+    },
+    { id: 'nl', initials: 'NL', name: 'Nadia Lo', email: 'nadia.lo@cregis.com', status: 'Active' }
+  ])
+
+  const owner = computed(() => members.value.find((m) => m.owner) || members.value[0])
+  const ownerInitials = computed(() => owner.value.initials)
+  const regularMembers = computed(() => members.value.filter((m) => !m.owner))
+
+  // ─── Role groups ───
+  const adminIds = ref(['tw', 'lk'])
+  const officerIds = ref(['sc', 'mr', 'jz', 'ap'])
+  const travelRuleIds = ref(['mr', 'sc', 'nl'])
+
+  const adminPeople = computed(() => allPeople.filter((p) => adminIds.value.includes(p.id)))
+  const officerPeople = computed(() => allPeople.filter((p) => officerIds.value.includes(p.id)))
+  const travelRulePeople = computed(() =>
+    allPeople.filter((p) => travelRuleIds.value.includes(p.id))
+  )
+
+  function availablePeople(section: string): Person[] {
+    const ids =
+      section === 'admins'
+        ? adminIds.value
+        : section === 'officers'
+          ? officerIds.value
+          : travelRuleIds.value
+    return allPeople.filter((p) => !ids.includes(p.id))
   }
 
-  function onIsActionPending(row: unknown, action: string): boolean {
-    return isActionPending(row as EmployeeRowView, action)
-  }
-
-  function onStatusChange() {
-    filters.pageNum = 1
-  }
-
-  function roleLabel(role: string | null): string {
-    if (!role) return 'Pending'
-    const normalized = role.toUpperCase()
-    return ROLE_LABELS[normalized] || role
-  }
-
-  function visibleActions(row: EmployeeRowView): string[] {
-    if (
-      row.activationStatus === 'pending_activation' ||
-      row.activationStatus === 'expired_activation'
-    ) {
-      return ['reissue_activation_link']
+  function removeFromSection(section: string, personId: string) {
+    if (section === 'admins') {
+      adminIds.value = adminIds.value.filter((id) => id !== personId)
+    } else if (section === 'officers') {
+      officerIds.value = officerIds.value.filter((id) => id !== personId)
+    } else if (section === 'travelRule') {
+      travelRuleIds.value = travelRuleIds.value.filter((id) => id !== personId)
     }
-    return [
-      'reset_password',
-      row.accountStatus === 'disabled' ? 'enable' : 'disable',
-      'review_access'
-    ]
   }
 
-  function actionTitle(action: string): string {
-    switch (action) {
-      case 'reissue_activation_link':
-        return t('system.reissueActivation')
-      case 'reset_password':
-        return t('system.resetPassword')
-      case 'enable':
-        return t('system.enable')
-      case 'disable':
-        return t('system.disable')
-      case 'review_access':
-        return t('system.reviewAccess')
-      default:
-        return action
+  function getPerson(id: string): Person | undefined {
+    return allPeople.find((p) => p.id === id)
+  }
+
+  // ─── Approval Flows ───
+  interface FlowStep {
+    personId: string
+  }
+  interface Flow {
+    id: string
+    label: string
+    sevClass: string
+    stepClass: string
+    timeoutLabel: string
+    timeoutValue: string
+    steps: FlowStep[]
+  }
+
+  const flows: Flow[] = [
+    {
+      id: 'routine',
+      label: 'Routine',
+      sevClass: 'routine',
+      stepClass: 's1',
+      timeoutLabel: 'Auto-Resolve',
+      timeoutValue: '4h',
+      steps: [{ personId: 'dk' }]
+    },
+    {
+      id: 'medium',
+      label: 'Medium',
+      sevClass: 'medium',
+      stepClass: 's2',
+      timeoutLabel: 'Escalation',
+      timeoutValue: '2h',
+      steps: [{ personId: 'eh' }, { personId: 'jw' }]
+    },
+    {
+      id: 'critical',
+      label: 'Critical',
+      sevClass: 'critical',
+      stepClass: 's3',
+      timeoutLabel: 'Escalation',
+      timeoutValue: '30m',
+      steps: [{ personId: 'dk' }, { personId: 'jz' }, { personId: 'sc' }]
     }
+  ]
+
+  // ─── Member actions ───
+  function suspendMember(id: string) {
+    const m = members.value.find((m) => m.id === id)
+    if (m) m.status = 'Suspended'
   }
 
-  function activationTag(s: string) {
-    if (s === 'activated') return 'success'
-    if (s === 'pending_activation') return 'warning'
-    return 'danger'
+  function recoverMember(id: string) {
+    const m = members.value.find((m) => m.id === id)
+    if (m) m.status = 'Active'
   }
-  function activationLabel(s: string) {
-    if (s === 'activated') return 'Active'
-    if (s === 'pending_activation') return 'Pending'
-    return 'Expired'
+
+  function openInviteDialog() {
+    inviteForm.value = { name: '', email: '', role: '' }
+    inviteDialogOpen.value = true
+  }
+
+  function submitInvite() {
+    if (!inviteForm.value.name || !inviteForm.value.email) {
+      ElMessage.warning('Please fill in all required fields')
+      return
+    }
+    const initials = inviteForm.value.name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+    members.value.push({
+      id: `new-${Date.now()}`,
+      initials,
+      name: inviteForm.value.name,
+      email: inviteForm.value.email,
+      status: 'Pending'
+    })
+    inviteDialogOpen.value = false
+    ElMessage.success('Invitation sent')
+  }
+
+  function confirmTransfer() {
+    if (!transferTo.value) {
+      ElMessage.warning('Please select a member')
+      return
+    }
+    const oldOwner = members.value.find((m) => m.owner)
+    if (oldOwner) oldOwner.owner = false
+    const newOwner = members.value.find((m) => m.id === transferTo.value)
+    if (newOwner) newOwner.owner = true
+    showTransferDialog.value = false
+    ElMessage.success('Ownership transferred')
   }
 </script>
 
 <style scoped>
+  /* Owner card */
+  .owner-card {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(
+      135deg,
+      var(--el-color-primary-light-9) 0%,
+      var(--el-color-primary-light-8) 100%
+    );
+    border: 1px solid var(--el-color-primary-light-5);
+    border-radius: 12px;
+  }
+
+  .owner-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--el-color-primary);
+    border-radius: 4px;
+  }
+
+  /* Member row */
+  .member-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+
+  .member-row:last-child {
+    border-bottom: none;
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-radius: 4px;
+  }
+
+  .status-badge.active {
+    color: var(--el-color-success);
+    background: var(--el-color-success-light-8);
+  }
+
+  .status-badge.pending {
+    color: var(--el-color-warning-dark-2);
+    background: var(--el-color-warning-light-8);
+  }
+
+  .status-badge.inactive {
+    color: var(--el-text-color-secondary);
+    background: var(--el-fill-color);
+  }
+
+  .status-badge.suspended {
+    color: var(--el-color-danger);
+    background: var(--el-color-danger-light-8);
+  }
+
+  /* Tier cards */
+  .tier-card {
+    overflow: hidden;
+    border: 1px solid var(--el-border-color);
+    border-radius: 10px;
+  }
+
+  .tier-card.routine {
+    border-left: 3px solid var(--el-color-primary);
+  }
+
+  .tier-card.medium {
+    border-left: 3px solid var(--el-color-warning);
+  }
+
+  .tier-card.critical {
+    border-left: 3px solid var(--el-color-danger);
+  }
+
+  .tier-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+
+  .tier-card-body {
+    padding: 14px 16px;
+  }
+
+  /* Severity dot */
+  .sev-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .sev-dot.routine {
+    background: var(--el-color-primary);
+  }
+
+  .sev-dot.medium {
+    background: var(--el-color-warning);
+  }
+
+  .sev-dot.critical {
+    background: var(--el-color-danger);
+  }
+
+  /* Step badge */
+  .step-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 4px;
+  }
+
+  .step-badge.routine {
+    color: var(--el-color-primary);
+    background: var(--el-color-primary-light-8);
+  }
+
+  .step-badge.medium {
+    color: var(--el-color-warning-dark-2);
+    background: var(--el-color-warning-light-8);
+  }
+
+  .step-badge.critical {
+    color: var(--el-color-danger);
+    background: var(--el-color-danger-light-8);
+  }
+
+  /* Flow config */
+  .flow-config {
+    display: flex;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+
+  /* Flow chain */
+  .flow-chain {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .flow-step-indicator {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .flow-step-num {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    border-radius: 50%;
+  }
+
+  .flow-step-num.s1 {
+    background: var(--el-color-primary);
+  }
+
+  .flow-step-num.s2 {
+    background: var(--el-color-warning);
+  }
+
+  .flow-step-num.s3 {
+    background: var(--el-color-danger);
+  }
+
+  .flow-step-num.resolved {
+    background: var(--el-color-success);
+  }
+
+  .flow-connector {
+    flex: 1;
+    width: 2px;
+    min-height: 14px;
+    margin: 2px 0;
+  }
+
+  .flow-connector.routine {
+    background: var(--el-color-primary-light-5);
+  }
+
+  .flow-connector.medium {
+    background: var(--el-color-warning-light-5);
+  }
+
+  .flow-connector.critical {
+    background: var(--el-color-danger-light-5);
+  }
+
+  .flow-step-content {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    padding-bottom: 12px;
+  }
+
+  .flow-step-content.resolved {
+    padding-bottom: 0;
+  }
+
+  /* Governance notice */
   .governance-notice {
     max-width: 640px;
     padding: 10px 14px;
     font-size: 12px;
     line-height: 1.5;
-    color: var(--warning-700, #b45309);
-    background: var(--warning-50, #fffbeb);
-    border: 1px solid rgb(245 158 11 / 20%);
+    color: var(--el-color-warning-dark-2);
+    background: var(--el-color-warning-light-9);
+    border: 1px solid var(--el-color-warning-light-5);
     border-radius: 8px;
   }
 </style>
