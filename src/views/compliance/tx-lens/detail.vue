@@ -367,8 +367,12 @@
             </div>
           </el-tab-pane>
 
-          <!-- Fund Disposition -->
-          <el-tab-pane :label="$t('txLens.detail.compFundDisposition')" name="disposition">
+          <!-- Fund Disposition (only for Incoming) -->
+          <el-tab-pane
+            v-if="txData.direction === 'Incoming'"
+            :label="$t('txLens.detail.compFundDisposition')"
+            name="disposition"
+          >
             <div class="art-card mb-4">
               <div class="p-4 border-b border-[var(--default-border)]">
                 <span class="text-sm font-semibold text-g-900">{{
@@ -591,8 +595,12 @@
         </div>
       </el-tab-pane>
 
-      <!-- ═══════ Sign-off Tab ═══════ -->
-      <el-tab-pane :label="$t('txLens.detail.tabSignOff')" name="signoff">
+      <!-- ═══════ Sign-off Tab (only for Outgoing) ═══════ -->
+      <el-tab-pane
+        v-if="txData.direction === 'Outgoing'"
+        :label="$t('txLens.detail.tabSignOff')"
+        name="signoff"
+      >
         <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-sm font-semibold text-g-900">{{

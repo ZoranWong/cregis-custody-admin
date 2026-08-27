@@ -54,6 +54,10 @@ export class StorageConfig {
   /** 登出延迟时间（毫秒） */
   static readonly LOGOUT_DELAY = 1000
 
+  static readonly AUTH_STORAGE_KEY = 'cregis.admin.auth'
+
+  static readonly MFA_STORAGE_KEY = 'cregis.admin.mfa'
+
   /**
    * 生成版本化的存储键名
    * @param storeId 存储ID

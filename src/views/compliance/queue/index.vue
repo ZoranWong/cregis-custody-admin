@@ -8,12 +8,12 @@
     </div>
 
     <!-- ═══ Primary filters (above cards, matching tx-lens) ═══ -->
-    <div class="flex flex-wrap items-center gap-4 mb-5">
+    <div class="filter-bar mb-5">
       <el-select
         v-model="filters.merchant"
         :placeholder="$t('alerts.merchant')"
         clearable
-        class="!w-48"
+        class="filter-select !w-48"
       >
         <el-option :label="$t('alerts.allMerchants')" value="" />
         <el-option v-for="m in merchantOptions" :key="m" :label="m" :value="m" />
@@ -22,13 +22,13 @@
         v-model="filters.dateFrom"
         type="date"
         :placeholder="$t('alerts.from')"
-        class="!w-36"
+        class="filter-date !w-36"
       />
       <el-input
         v-model="filters.search"
         :placeholder="$t('alerts.searchPlaceholder')"
         clearable
-        class="!w-64"
+        class="filter-input !w-64"
       >
         <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
       </el-input>

@@ -247,12 +247,17 @@ export const useUserStore = defineStore(
         accessToken.value = value.token || ''
         refreshToken.value = value.refreshToken || ''
         isLogin.value = true
+        const token = value
+        delete token.user
+        localStorage.setItem(StorageConfig.AUTH_STORAGE_KEY, JSON.stringify(token))
         if (value.user) setUserInfo(value.user)
       },
       clearSession() {
         accessToken.value = ''
         refreshToken.value = ''
         isLogin.value = false
+        localStorage.removeItem(StorageConfig.AUTH_STORAGE_KEY)
+        localStorage.removeItem(StorageConfig.MFA_STORAGE_KEY)
         info.value = {}
       },
       rehydrate() {

@@ -380,36 +380,36 @@
         unit: 'Counterparty',
         address: '0xb20BED6c015a8e9579eae17762aA65d78d2E0b75'
       },
+      // Outgoing: Compliance → Travel Rule → Sign-off → On-Chain (no Fund Disposition)
       stages: [
         { key: 'compliance', label: 'Compliance', value: 'Clear', dotClass: 'done' },
         { key: 'travelRule', label: 'Travel Rule', value: 'Complete', dotClass: 'done' },
         { key: 'signOff', label: 'Sign-off', value: 'Approved', dotClass: 'done' },
-        { key: 'onChain', label: 'On-Chain', value: 'Settled', dotClass: 'done' },
-        { key: 'fund', label: 'Fund Disposition', value: 'Released', dotClass: 'released' }
+        { key: 'onChain', label: 'On-Chain', value: 'Settled', dotClass: 'done' }
       ]
     },
     {
       orderId: 'ORDER-2026-08-25-002',
-      amount: '1,200 USDT',
-      fiatAmount: '4,440 AED',
+      amount: '50,000 USDT',
+      fiatAmount: '50,000 AED',
       direction: 'Incoming',
-      reviewResult: 'False Positive',
+      reviewResult: 'False Negative',
       time: '2026-08-25 09:15',
       originator: {
-        name: 'Coinbase Prime',
+        name: 'Bybit',
         unit: 'Counterparty',
-        address: '0xa8f3c2D8eB44f7a96B2c5D3E8901AbCdEf123456'
+        address: '0x71C3E9...9A23'
       },
       beneficiary: {
-        name: 'PayFlow Inc',
-        unit: 'Unit: Operations · Account: Settlement',
-        address: '0x2d7e8B9c4F3a2D1e0F9a8B7c6D5e4F3a2B1c0D9'
+        name: 'NodeSphere',
+        unit: 'Unit: Treasury · Account: Inbound',
+        address: '0x89a42...B4c9'
       },
+      // Incoming: Compliance → Travel Rule → On-Chain → Fund Disposition (no Sign-off)
       stages: [
-        { key: 'compliance', label: 'Compliance', value: 'Flagged', dotClass: 'held' },
-        { key: 'travelRule', label: 'Travel Rule', value: 'Pending', dotClass: 'pending' },
-        { key: 'signOff', label: 'Sign-off', value: 'Pending', dotClass: 'pending' },
-        { key: 'onChain', label: 'On-Chain', value: 'Confirmed', dotClass: 'active' },
+        { key: 'compliance', label: 'Compliance', value: 'In Review', dotClass: 'active' },
+        { key: 'travelRule', label: 'Travel Rule', value: 'Mismatch', dotClass: 'rejected' },
+        { key: 'onChain', label: 'On-Chain', value: 'Confirmed', dotClass: 'done' },
         { key: 'fund', label: 'Fund Disposition', value: 'Held', dotClass: 'held' }
       ]
     },
@@ -430,12 +430,12 @@
         unit: 'Counterparty',
         address: '0x1e6a7B8c9D0e1F2a3B4c5D6e7F8a9B0c1D2e3F4'
       },
+      // Outgoing: in progress
       stages: [
         { key: 'compliance', label: 'Compliance', value: 'In Review', dotClass: 'active' },
-        { key: 'travelRule', label: 'Travel Rule', value: 'Mismatch', dotClass: 'held' },
+        { key: 'travelRule', label: 'Travel Rule', value: 'Pending', dotClass: 'pending' },
         { key: 'signOff', label: 'Sign-off', value: 'Pending', dotClass: 'pending' },
-        { key: 'onChain', label: 'On-Chain', value: 'Broadcasted', dotClass: 'active' },
-        { key: 'fund', label: 'Fund Disposition', value: 'N/A', dotClass: 'na' }
+        { key: 'onChain', label: 'On-Chain', value: 'Broadcasted', dotClass: 'pending' }
       ]
     },
     {
@@ -455,12 +455,12 @@
         unit: 'Unit: D · Account: Custody',
         address: '0x3f9b0C1d2E3f4A5b6C7d8E9f0A1b2C3d4E5f6A7'
       },
+      // Incoming: completed, released
       stages: [
         { key: 'compliance', label: 'Compliance', value: 'Clear', dotClass: 'done' },
         { key: 'travelRule', label: 'Travel Rule', value: 'Complete', dotClass: 'done' },
-        { key: 'signOff', label: 'Sign-off', value: 'Approved', dotClass: 'done' },
-        { key: 'onChain', label: 'On-Chain', value: 'Settled', dotClass: 'done' },
-        { key: 'fund', label: 'Fund Disposition', value: 'Released', dotClass: 'released' }
+        { key: 'onChain', label: 'On-Chain', value: 'Confirmed', dotClass: 'done' },
+        { key: 'fund', label: 'Fund Disposition', value: 'Released', dotClass: 'done' }
       ]
     },
     {

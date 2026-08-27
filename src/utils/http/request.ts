@@ -1,6 +1,8 @@
+import { StorageConfig } from '../storage'
+
 // v2 — HTTP 请求封装（参考 v1 src/api/request.ts）
 const ADMIN_API_BASE = import.meta.env.VITE_ADMIN_API_BASE || '/admin'
-const AUTH_STORAGE_KEY = 'cregis.admin.auth'
+// const AUTH_STORAGE_KEY = 'cregis.admin.auth'
 const MFA_STORAGE_KEY = 'cregis.admin.mfa'
 
 export class ApiError extends Error {
@@ -18,7 +20,7 @@ export class ApiError extends Error {
 
 function getPersistedToken(): string {
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY)
+    const raw = localStorage.getItem(StorageConfig.AUTH_STORAGE_KEY)
     const parsed = raw ? (JSON.parse(raw) as { token?: string }) : null
     return parsed?.token || ''
   } catch {
@@ -27,8 +29,8 @@ function getPersistedToken(): string {
 }
 
 function clearPersistedAuth(): void {
-  localStorage.removeItem(AUTH_STORAGE_KEY)
-  localStorage.removeItem(MFA_STORAGE_KEY)
+  localStorage.removeItem(StorageConfig.AUTH_STORAGE_KEY)
+  localStorage.removeItem(StorageConfig.MFA_STORAGE_KEY)
 }
 
 async function parseJson(response: Response): Promise<unknown> {

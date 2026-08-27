@@ -45,9 +45,16 @@ export default ({ mode }: { mode: string }) => {
           configure: (proxy) => {
             proxy.on('proxyReq', (proxyReq) => {
               proxyReq.removeHeader('origin')
+              console.log(
+                `Proxy request: ${proxyReq.method} ${proxyReq.path} (origin header removed)`
+              )
             })
           },
-          rewrite: (path) => path.replace(/^\/admin/, '')
+          rewrite: (path) => {
+            const newPath = path.replace(/^\/admin/, '')
+            // console.log(`Proxy rewrite: ${path} -> ${newPath}`)
+            return newPath
+          }
         }
       }
     },
