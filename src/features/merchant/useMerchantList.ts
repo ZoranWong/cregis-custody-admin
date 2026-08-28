@@ -53,7 +53,7 @@ export function useMerchantList() {
       'pageSize',
       DEFAULT_FILTERS.pageSize
     ),
-    view: getString(route.query as Record<string, unknown>, 'view', DEFAULT_FILTERS.view),
+    // view: getString(route.query as Record<string, unknown>, 'view', DEFAULT_FILTERS.view),
     status: getString(route.query as Record<string, unknown>, 'status'),
     merchantType: getString(route.query as Record<string, unknown>, 'merchantType'),
     watchBucket: getString(route.query as Record<string, unknown>, 'watchBucket'),

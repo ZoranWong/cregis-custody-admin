@@ -70,7 +70,8 @@ export const operationsRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.operations.businessAnalytics',
         icon: 'ri:bar-chart-2-line',
-        keepAlive: false
+        keepAlive: false,
+        isHide: true
       }
     },
     {
@@ -80,14 +81,20 @@ export const operationsRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.operations.serviceQuality',
         icon: 'ri:heart-line',
-        keepAlive: false
+        keepAlive: false,
+        isHide: true
       }
     },
     {
       path: 'tickets',
       name: 'TicketQueue',
       component: '/operations/tickets',
-      meta: { title: 'menus.operations.ticketQueue', icon: 'ri:file-list-3-line', keepAlive: true }
+      meta: {
+        title: 'menus.operations.ticketQueue',
+        icon: 'ri:file-list-3-line',
+        keepAlive: true,
+        isHide: true
+      }
     },
     {
       path: 'tickets/:ticketId',
@@ -114,7 +121,8 @@ export const operationsRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.operations.messageNotifications',
         icon: 'ri:mail-line',
-        keepAlive: true
+        keepAlive: true,
+        isHide: true
       }
     }
   ]
