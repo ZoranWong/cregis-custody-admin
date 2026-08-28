@@ -694,6 +694,9 @@
     "feeMonitor": "费用监控"
   },
   "merchantList": {
+    "pageTitle": "商户列表",
+    "pageSubtitle": "管理商户入驻、状态和合规筛查。",
+    "addMerchant": "添加商户",
     "total": "商户总数",
     "watch": "VASP 移交",
     "renewal": "续期跟进",
@@ -702,6 +705,7 @@
     "viewActive": "活跃",
     "viewWatch": "关注",
     "merchant": "商户",
+    "name": "名称",
     "id": "编号",
     "status": "状态",
     "type": "类型",
@@ -710,8 +714,17 @@
     "action": "操作",
     "open": "打开",
     "records": "条记录",
+    "totalRecords": "总计",
     "active": "活跃",
-    "search": "搜索..."
+    "search": "搜索...",
+    "searchPlaceholder": "搜索商户名称...",
+    "screening": "筛查",
+    "sort": "排序",
+    "sortNameAZ": "名称 A-Z",
+    "sortRecent": "最近提交",
+    "selected": "已选择",
+    "sendNotice": "发送通知",
+    "deselect": "取消选择"
   },
   "merchantDetail": {
     "copyCode": "复制编号",
