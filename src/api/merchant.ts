@@ -172,6 +172,30 @@ export async function fetchMerchantKybDetail(ecode: string): Promise<AdminMercha
 }
 
 /**
+ * Admin 预审通过
+ * 前置: kyb.status = PENDING_SCREENING
+ * 后置: kyb.status → DRAFT, 注册 Sumsub applicant
+ */
+export async function approveKybScreening(ecode: string): Promise<void> {
+  await apiRequest(`/merchant/${encodeURIComponent(ecode)}/kyb/screening/approve`, {
+    method: 'POST',
+    body: {}
+  })
+}
+
+/**
+ * Admin 预审拒绝
+ * 前置: kyb.status = PENDING_SCREENING
+ * 后置: kyb.status → REJECTED
+ */
+export async function rejectKybScreening(ecode: string, reason?: string): Promise<void> {
+  await apiRequest(`/merchant/${encodeURIComponent(ecode)}/kyb/screening/reject`, {
+    method: 'POST',
+    body: reason ? { reason } : {}
+  })
+}
+
+/**
  * 获取商户名称列表（用于下拉选择）
  */
 export async function fetchMerchantOptions(): Promise<Array<{ label: string; value: string }>> {
