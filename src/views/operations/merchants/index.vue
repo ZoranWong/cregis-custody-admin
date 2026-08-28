@@ -7,9 +7,9 @@
         <h1 class="text-xl font-semibold text-g-900">{{ $t('merchantList.pageTitle') }}</h1>
         <p class="text-sm text-g-500 mt-1">{{ $t('merchantList.pageSubtitle') }}</p>
       </div>
-      <el-button type="primary">
+      <!-- <el-button type="primary">
         <ArtSvgIcon icon="ri:add-line" class="mr-1" />{{ $t('merchantList.addMerchant') }}
-      </el-button>
+      </el-button> -->
     </div>
 
     <!-- ═══ Filter Bar ═══ -->
@@ -92,20 +92,20 @@
               <strong class="text-g-900">{{ row.merchantName }}</strong>
             </template>
           </el-table-column>
-          <el-table-column :label="$t('merchantList.type')" width="160">
+          <el-table-column :label="$t('merchantList.type')" min-width="160">
             <template #default="{ row }">{{ row.entityType || '-' }}</template>
           </el-table-column>
-          <el-table-column :label="$t('merchantList.status')" width="120">
+          <el-table-column :label="$t('merchantList.status')" min-width="120">
             <template #default="{ row }">
               <span class="status-badge" :class="statusClass(row.status)">
                 {{ statusLabel(row.status) }}
               </span>
             </template>
           </el-table-column>
-          <el-table-column :label="$t('merchantList.screening')" width="120">
+          <el-table-column :label="$t('merchantList.screening')" min-width="120">
             <template #default="{ row }">
-              <span class="screening-badge" :class="screeningClass(row)">
-                {{ screeningLabel(row) }}
+              <span class="screening-badge" :class="screeningClass(row as MerchantRecord)">
+                {{ screeningLabel(row as MerchantRecord) }}
               </span>
             </template>
           </el-table-column>
@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, reactive, ref } from 'vue'
+  import { onMounted, reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { fetchMerchantList } from '@/api/merchant'
   import type { MerchantRecord } from '@/api/merchant'

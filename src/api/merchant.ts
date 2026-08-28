@@ -81,6 +81,96 @@ function buildQueryList(
   return queryList
 }
 
+// ─── KYB Detail Types (POST /merchant/detail/{ecode}) ───
+
+export interface KybQuestionnaire {
+  id: number
+  caseId: number
+  ecode: string
+  legalName: string
+  dbaName?: string | null
+  jurisdiction?: string | null
+  countryCode?: string | null
+  dateOfIncorporation?: string | null
+  registrationNumber?: string | null
+  taxId?: string | null
+  entityType?: string | null
+  publiclyTraded?: boolean
+  employeeCount?: string | null
+  primaryActivity?: string | null
+  website?: string | null
+  businessDescription?: string | null
+  beneficiaryCount?: number
+  pepStatus?: string | null
+  annualVolumeUsd?: string | null
+  sourceOfFunds?: string | null
+  useCase?: string | null
+  regulated?: boolean
+  regulatoryAction?: boolean
+  screeningStatus?: string | null
+  screeningReason?: string | null
+  screeningNote?: string | null
+  reviewedBy?: number
+  reviewedAt?: string | null
+  version?: number
+  createTime?: string
+  updateTime?: string
+}
+
+export interface KybBeneficiary {
+  id: number
+  caseId: number
+  questionnaireId: number
+  ecode: string
+  name: string
+  type: 'ubo' | 'director' | 'shareholder' | string
+  shareSize?: number | null
+  country?: string | null
+  dateOfBirth?: string | null
+  email?: string | null
+  phone?: string | null
+  applicantId?: string | null
+  status: 'PENDING' | 'LINKED' | 'KYC_PASSED' | string
+  createTime?: string
+  updateTime?: string
+}
+
+export interface AdminMerchantKybDetailView {
+  merchantId: number
+  ecode: string
+  merchantName: string
+  merchantStatus: 'PENDING' | 'ACTIVE' | 'FROZEN' | 'CANCELLED' | string
+  merchantType: 'NON_FINANCIAL_CORPORATE' | 'REGULATED_VASP' | 'INTERNAL_SYSTEM' | string
+  email: string
+  industryType?: string | null
+  kybCaseId?: number
+  kybCaseNo?: string | null
+  kybStatus:
+    | 'DRAFT'
+    | 'PENDING_SCREENING'
+    | 'SUBMITTED'
+    | 'NEED_SUPPLEMENT'
+    | 'APPROVED'
+    | 'REJECTED'
+    | 'CANCELLED'
+    | string
+  kybStageLabel?: string | null
+  appliedAt?: string | null
+  questionnaire?: KybQuestionnaire | null
+  beneficiaries?: KybBeneficiary[]
+}
+
+/**
+ * 获取商户详情（含 KYB 问卷）
+ * POST /merchant/detail/{ecode}
+ */
+export async function fetchMerchantKybDetail(ecode: string): Promise<AdminMerchantKybDetailView> {
+  return (await apiRequest<AdminMerchantKybDetailView>(
+    `/merchant/detail/${encodeURIComponent(ecode)}`,
+    { method: 'POST', body: {} }
+  )) as AdminMerchantKybDetailView
+}
+
 /**
  * 获取商户名称列表（用于下拉选择）
  */
