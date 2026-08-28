@@ -157,7 +157,7 @@
 
     <template v-else>
       <div class="art-card p-10 text-center">
-        <p class="text-g-500 mb-4">{{ errorMessage || $t('merchantDetail.notFound') }}</p>
+        <p class="text-g-500 mb-4">{{ errorMessage }}</p>
         <ElButton type="primary" @click="backToList">
           {{ $t('merchantDetail.backToList') }}
         </ElButton>
@@ -189,8 +189,9 @@
     loading.value = true
     try {
       detail.value = await fetchMerchantKybDetail(ecode)
-    } catch (error) {
-      errorMessage.value = error instanceof Error ? error.message : 'Failed to load merchant'
+    } catch {
+      // Backend messages are English-only ("Merchant not exist!") — show localized fallback
+      errorMessage.value = t('merchantDetail.notFound')
     } finally {
       loading.value = false
     }

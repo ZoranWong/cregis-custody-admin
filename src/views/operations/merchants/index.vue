@@ -194,7 +194,7 @@
   }
 
   function openDetail(row: MerchantRecord) {
-    router.push({ name: 'merchant-detail', params: { merchantId: row.id } })
+    router.push({ name: 'merchant-detail', params: { merchantId: row.code } })
   }
 
   function statusClass(status: string): string {
