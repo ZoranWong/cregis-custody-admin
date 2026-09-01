@@ -11,37 +11,16 @@ export const operationsRoutes: AppRouteRecord = {
   },
   children: [
     {
-      path: 'home',
-      name: 'OperationsHome',
-      component: '/operations/home',
-      meta: {
-        title: 'menus.operations.overview',
-        icon: 'ri:home-4-line',
-        keepAlive: false
-      }
+      path: 'gas',
+      name: 'GasOperations',
+      component: '/operations/gas',
+      meta: { title: 'menus.operations.gasOperations', icon: 'ri:flashlight-line', keepAlive: true }
     },
     {
-      path: 'merchants',
-      name: 'MerchantList',
-      component: '/operations/merchants',
-      meta: { title: 'menus.operations.merchantList', icon: 'ri:store-line', keepAlive: true }
-    },
-    {
-      path: 'merchants/:merchantId',
-      name: 'merchant-detail',
-      component: '/operations/merchants/detail',
-      meta: { title: 'menus.operations.merchantDetail', icon: 'ri:store-line', isHide: true }
-    },
-    {
-      path: 'onboarding',
-      name: 'MerchantOnboarding',
-      component: '/operations/onboarding',
-      meta: {
-        title: 'menus.operations.merchantOnboarding',
-        icon: 'ri:user-add-line',
-        keepAlive: true,
-        isHide: true
-      }
+      path: 'gas/:cusAccountId',
+      name: 'gas-detail',
+      component: '/operations/gas/detail',
+      meta: { title: 'menus.operations.gasDetail', icon: 'ri:flashlight-line', isHide: true }
     },
     {
       path: 'fee',
@@ -60,68 +39,6 @@ export const operationsRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.operations.merchantFeeDetail',
         icon: 'ri:money-dollar-circle-line',
-        isHide: true
-      }
-    },
-    {
-      path: 'analytics',
-      name: 'BusinessAnalytics',
-      component: '/operations/analytics',
-      meta: {
-        title: 'menus.operations.businessAnalytics',
-        icon: 'ri:bar-chart-2-line',
-        keepAlive: false,
-        isHide: true
-      }
-    },
-    {
-      path: 'service-quality',
-      name: 'ServiceQuality',
-      component: '/operations/service-quality',
-      meta: {
-        title: 'menus.operations.serviceQuality',
-        icon: 'ri:heart-line',
-        keepAlive: false,
-        isHide: true
-      }
-    },
-    {
-      path: 'tickets',
-      name: 'TicketQueue',
-      component: '/operations/tickets',
-      meta: {
-        title: 'menus.operations.ticketQueue',
-        icon: 'ri:file-list-3-line',
-        keepAlive: true,
-        isHide: true
-      }
-    },
-    {
-      path: 'tickets/:ticketId',
-      name: 'ticket-detail',
-      component: '/operations/tickets/detail',
-      meta: { title: 'menus.operations.ticketDetail', icon: 'ri:file-list-3-line', isHide: true }
-    },
-    {
-      path: 'gas',
-      name: 'GasOperations',
-      component: '/operations/gas',
-      meta: { title: 'menus.operations.gasOperations', icon: 'ri:flashlight-line', keepAlive: true }
-    },
-    {
-      path: 'gas/:cusAccountId',
-      name: 'gas-detail',
-      component: '/operations/gas/detail',
-      meta: { title: 'menus.operations.gasDetail', icon: 'ri:flashlight-line', isHide: true }
-    },
-    {
-      path: 'notifications',
-      name: 'MessageNotifications',
-      component: '/operations/notifications',
-      meta: {
-        title: 'menus.operations.messageNotifications',
-        icon: 'ri:mail-line',
-        keepAlive: true,
         isHide: true
       }
     }

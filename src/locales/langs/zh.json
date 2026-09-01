@@ -610,18 +610,15 @@
     },
     "compliance": {
       "title": "合规管理",
-      "txLens": "Transaction Lens",
+      "merchants": "商户管理",
+      "merchantDetail": "商户详情",
+      "txLens": "交易检视",
       "txLensDetail": "交易详情",
       "rules": "规则管理",
       "ruleDetail": "规则详情",
       "alerts": "合规告警",
       "travelRuleEvents": "Travel Rule 事件",
-      "travelRuleShare": "Travel Rule 审批",
-      "queue": "合规队列",
-      "outbox": "发件箱",
-      "travelRuleWorkbench": "Travel Rule 工作台",
-      "exchangeEvidence": "交易所与证据",
-      "travelRuleConfig": "Travel Rule 配置"
+      "travelRuleShare": "Travel Rule 审批"
     },
     "audit": {
       "title": "审计管理",

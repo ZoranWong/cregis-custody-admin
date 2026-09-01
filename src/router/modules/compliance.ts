@@ -11,6 +11,18 @@ export const complianceRoutes: AppRouteRecord = {
   },
   children: [
     {
+      path: 'merchants',
+      name: 'ComplianceMerchants',
+      component: '/operations/merchants',
+      meta: { title: 'menus.compliance.merchants', icon: 'ri:store-line', keepAlive: true }
+    },
+    {
+      path: 'merchants/:merchantId',
+      name: 'merchant-detail',
+      component: '/operations/merchants/detail',
+      meta: { title: 'menus.compliance.merchantDetail', icon: 'ri:store-line', isHide: true }
+    },
+    {
       path: 'tx-lens',
       name: 'TransactionLens',
       component: '/compliance/tx-lens',
@@ -64,39 +76,6 @@ export const complianceRoutes: AppRouteRecord = {
         title: 'menus.compliance.travelRuleShare',
         icon: 'ri:global-line',
         keepAlive: false,
-        isHide: true
-      }
-    },
-    {
-      path: 'outbox',
-      name: 'ComplianceOutbox',
-      component: '/compliance/outbox',
-      meta: {
-        title: 'menus.compliance.outbox',
-        icon: 'ri:mail-send-line',
-        keepAlive: true,
-        isHide: true
-      }
-    },
-    {
-      path: 'travel-rule/exchange-status',
-      name: 'TravelRuleExchange',
-      component: '/compliance/travel-rule/exchange-status',
-      meta: {
-        title: 'menus.compliance.exchangeEvidence',
-        icon: 'ri:exchange-line',
-        keepAlive: true,
-        isHide: true
-      }
-    },
-    {
-      path: 'travel-rule/configuration',
-      name: 'TravelRuleConfig',
-      component: '/compliance/travel-rule/configuration',
-      meta: {
-        title: 'menus.compliance.travelRuleConfig',
-        icon: 'ri:settings-3-line',
-        keepAlive: true,
         isHide: true
       }
     }

@@ -608,18 +608,15 @@
     },
     "compliance": {
       "title": "Compliance",
+      "merchants": "Merchants",
+      "merchantDetail": "Merchant Detail",
       "txLens": "Transaction Lens",
       "txLensDetail": "Transaction Detail",
       "rules": "Rules",
       "ruleDetail": "Rule Detail",
       "alerts": "Compliance Alerts",
       "travelRuleEvents": "Travel Rule Events",
-      "travelRuleShare": "Travel Rule Approval",
-      "queue": "Compliance Queue",
-      "outbox": "Outbox",
-      "travelRuleWorkbench": "Travel Rule Workbench",
-      "exchangeEvidence": "Exchange & Evidence",
-      "travelRuleConfig": "Travel Rule Configuration"
+      "travelRuleShare": "Travel Rule Approval"
     },
     "audit": {
       "title": "Audit",
