@@ -78,6 +78,16 @@
           }}</el-radio-button>
         </el-radio-group>
       </div>
+      <!-- Lifecycle Row -->
+      <div class="tx-lifecycle mt-3 pt-3 border-t border-[var(--default-border)]">
+        <div class="lc-stage" v-for="stage in lifecycleStages" :key="stage.key">
+          <div class="lc-stage-dot" :class="stage.dotClass"></div>
+          <div class="lc-stage-content">
+            <div class="lc-stage-label">{{ stage.label }}</div>
+            <div class="lc-stage-state" :class="stage.stateClass">{{ stage.state }}</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══ Action Bar (visible during active review) ═══ -->
@@ -967,6 +977,8 @@
     status: 'Settled',
     compliance: 'Clear',
     travelRule: 'Complete',
+    signOff: 'Approved',
+    fundDisposition: '',
     originator: {
       name: 'CryptoVault Ltd',
       detail: 'Unit: Treasury · Account: Primary Pay-Out',
@@ -977,6 +989,117 @@
       detail: '',
       address: '0xb20BED6c015a8e9579eae17762aA65d78d2E0b75'
     }
+  })
+
+  // ─── Lifecycle Stages ──
+  const lifecycleStages = computed(() => {
+    const stages: Array<{
+      key: string
+      label: string
+      state: string
+      dotClass: string
+      stateClass: string
+    }> = []
+
+    // Compliance - always shown
+    stages.push({
+      key: 'compliance',
+      label: 'Compliance',
+      state: txData.compliance,
+      dotClass:
+        txData.compliance === 'Clear'
+          ? 'done'
+          : txData.compliance === 'Flagged'
+            ? 'rejected'
+            : 'active',
+      stateClass:
+        txData.compliance === 'Clear'
+          ? 'done'
+          : txData.compliance === 'Flagged'
+            ? 'rejected'
+            : 'active'
+    })
+
+    // Travel Rule - always shown
+    stages.push({
+      key: 'travel',
+      label: 'Travel Rule',
+      state: txData.travelRule,
+      dotClass:
+        txData.travelRule === 'Complete'
+          ? 'done'
+          : txData.travelRule === 'Mismatch'
+            ? 'rejected'
+            : 'active',
+      stateClass:
+        txData.travelRule === 'Complete'
+          ? 'done'
+          : txData.travelRule === 'Mismatch'
+            ? 'rejected'
+            : 'active'
+    })
+
+    if (txData.direction === 'Outgoing') {
+      // Sign-off - outgoing only
+      stages.push({
+        key: 'signoff',
+        label: 'Sign-off',
+        state: txData.signOff,
+        dotClass: txData.signOff === 'Approved' ? 'done' : 'pending',
+        stateClass: txData.signOff === 'Approved' ? 'done' : 'pending'
+      })
+      // On-Chain - outgoing only
+      stages.push({
+        key: 'onchain',
+        label: 'On-Chain',
+        state: txData.status,
+        dotClass:
+          txData.status === 'Settled' ? 'done' : txData.status === 'Failed' ? 'rejected' : 'active',
+        stateClass:
+          txData.status === 'Settled' ? 'done' : txData.status === 'Failed' ? 'rejected' : 'active'
+      })
+    } else {
+      // On-Chain - incoming
+      stages.push({
+        key: 'onchain',
+        label: 'On-Chain',
+        state: txData.status,
+        dotClass:
+          txData.status === 'Confirmed'
+            ? 'done'
+            : txData.status === 'Failed'
+              ? 'rejected'
+              : 'active',
+        stateClass:
+          txData.status === 'Confirmed'
+            ? 'done'
+            : txData.status === 'Failed'
+              ? 'rejected'
+              : 'active'
+      })
+      // Fund Disposition - incoming only
+      if (txData.fundDisposition) {
+        stages.push({
+          key: 'disposition',
+          label: 'Fund Disposition',
+          state: txData.fundDisposition,
+          dotClass:
+            txData.fundDisposition === 'Released'
+              ? 'released'
+              : txData.fundDisposition === 'Forfeited'
+                ? 'forfeited'
+                : 'held',
+          stateClass:
+            txData.fundDisposition === 'Released'
+              ? 'released'
+              : txData.fundDisposition === 'Forfeited'
+                ? 'forfeited'
+                : 'held'
+        })
+      }
+    }
+
+    return stages
   })
 
   type TagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
@@ -1435,6 +1558,116 @@
 
   .pii-round {
     border-color: var(--el-color-warning-light-5);
+  }
+
+  /* Lifecycle Row */
+  .tx-lifecycle {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 12px;
+    background: var(--el-fill-color-light);
+    border-radius: 8px;
+  }
+
+  .lc-stage {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .lc-stage-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .lc-stage-dot.done {
+    background: #16a34a;
+  }
+
+  .lc-stage-dot.active {
+    background: #d97706;
+  }
+
+  .lc-stage-dot.rejected {
+    background: #dc2626;
+  }
+
+  .lc-stage-dot.pending {
+    background: var(--el-text-color-placeholder);
+  }
+
+  .lc-stage-dot.released {
+    background: #16a34a;
+  }
+
+  .lc-stage-dot.held {
+    background: #d97706;
+  }
+
+  .lc-stage-dot.forfeited {
+    background: #dc2626;
+  }
+
+  .lc-stage-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .lc-stage-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--el-text-color-secondary);
+    line-height: 1;
+  }
+
+  .lc-stage-state {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .lc-stage-state.done {
+    color: #16a34a;
+  }
+
+  .lc-stage-state.active {
+    color: #d97706;
+  }
+
+  .lc-stage-state.rejected {
+    color: #dc2626;
+  }
+
+  .lc-stage-state.pending {
+    color: var(--el-text-color-secondary);
+  }
+
+  .lc-stage-state.released {
+    color: #16a34a;
+  }
+
+  .lc-stage-state.held {
+    color: #d97706;
+  }
+
+  .lc-stage-state.forfeited {
+    color: #dc2626;
+  }
+
+  .lc-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--el-border-color-light);
+    flex-shrink: 0;
   }
 
   /* Timeline chain */
