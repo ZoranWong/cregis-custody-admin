@@ -798,7 +798,8 @@
     border: 2.5px solid var(--el-border-color-light);
     color: var(--el-text-color-placeholder);
   }
-  .step-circle.done {
+  .step-circle.done,
+  .progress-step.completed .step-circle {
     background: var(--el-color-success);
     border-color: transparent;
     color: #fff;
