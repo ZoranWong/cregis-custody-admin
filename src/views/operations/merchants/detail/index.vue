@@ -151,6 +151,60 @@
                   </div>
                 </div>
               </div>
+              <!-- Beneficiaries -->
+              <div>
+                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                  {{ $t('merchantDetail.beneficiaries') }}
+                  <span class="text-xs text-g-500 font-normal ml-2">
+                    ({{ (detail.beneficiaries || []).length }})
+                  </span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div v-for="b in detail.beneficiaries || []" :key="b.id" class="summary-card">
+                    <div class="summary-card-title">
+                      <span class="text-sm font-semibold text-g-900">{{ b.name || '-' }}</span>
+                      <el-tag size="small" type="info" class="ml-2">{{
+                        beneficiaryTypeLabel(b.type)
+                      }}</el-tag>
+                      <span v-if="b.shareSize != null" class="text-xs text-g-500 ml-2">
+                        {{ b.shareSize }}%
+                      </span>
+                    </div>
+                    <div class="text-xs text-g-600 space-y-1 mt-2">
+                      <div v-if="b.country" class="flex items-center gap-2">
+                        <span class="text-g-500"
+                          >{{ $t('merchantDetail.beneficiaryCountry') }}:</span
+                        >
+                        <span>{{ b.country }}</span>
+                      </div>
+                      <div v-if="b.dateOfBirth" class="flex items-center gap-2">
+                        <span class="text-g-500">{{ $t('merchantDetail.beneficiaryDob') }}:</span>
+                        <span>{{ b.dateOfBirth }}</span>
+                      </div>
+                      <div v-if="b.email" class="flex items-center gap-2">
+                        <span class="text-g-500">{{ $t('merchantDetail.beneficiaryEmail') }}:</span>
+                        <span>{{ b.email }}</span>
+                      </div>
+                      <div v-if="b.phone" class="flex items-center gap-2">
+                        <span class="text-g-500">{{ $t('merchantDetail.beneficiaryPhone') }}:</span>
+                        <span>{{ b.phone }}</span>
+                      </div>
+                      <div v-if="b.applicantId" class="flex items-center gap-2">
+                        <span class="text-g-500"
+                          >{{ $t('merchantDetail.beneficiaryApplicant') }}:</span
+                        >
+                        <span class="font-mono">{{ b.applicantId }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    v-if="(detail.beneficiaries || []).length === 0"
+                    class="col-span-2 py-6 text-center text-g-400 text-sm"
+                  >
+                    {{ $t('merchantDetail.noBeneficiaries') }}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Page 3: Financial + Regulatory + Decision -->
@@ -563,7 +617,23 @@
       return '-'
     }
     if (raw == null || raw === '') return '-'
-    return String(raw)
+    const str = String(raw)
+
+    // Map enum values to i18n keys
+    const enumMap: Record<string, string> = {
+      entityType: `merchantDetail.entityType_${str}`,
+      sourceOfFunds: `merchantDetail.sourceOfFunds_${str}`,
+      pepStatus: `merchantDetail.pepStatus_${str}`,
+      employeeCount: `merchantDetail.employeeCount_${str}`,
+      annualVolumeUsd: `merchantDetail.annualVolume_${str}`,
+      primaryActivity: `merchantDetail.primaryActivity_${str}`
+    }
+    const i18nKey = enumMap[key]
+    if (i18nKey) {
+      const translated = t(i18nKey)
+      if (translated !== i18nKey) return translated
+    }
+    return str
   }
 
   // ─── Label helpers ───
