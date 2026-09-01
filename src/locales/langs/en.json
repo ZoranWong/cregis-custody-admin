@@ -691,8 +691,8 @@
     "feeMonitor": "Fee Monitor"
   },
   "merchantList": {
-    "pageTitle": "Merchant List",
-    "pageSubtitle": "Manage merchant onboarding, status and compliance screening.",
+    "pageTitle": "Merchant Management",
+    "pageSubtitle": "Manage merchant applications, onboarding status and compliance screening.",
     "addMerchant": "Add Merchant",
     "total": "Total Merchants",
     "watch": "VASP Handoff",
@@ -718,10 +718,23 @@
     "screening": "Screening",
     "sort": "Sort",
     "sortNameAZ": "Name A-Z",
-    "sortRecent": "Recent submission",
+    "sortRecent": "Recent First",
     "selected": "selected",
     "sendNotice": "Send Notice",
-    "deselect": "Deselect"
+    "deselect": "Deselect",
+    "applications": "Applications",
+    "merchantList": "Merchant List",
+    "email": "Email",
+    "code": "Code",
+    "appliedAt": "Applied At",
+    "updatedAt": "Updated At",
+    "allStatus": "All Status",
+    "statusActive": "Active",
+    "statusFrozen": "Frozen",
+    "statusInactive": "Cancelled",
+    "allScreening": "All Screening",
+    "screeningClear": "Clear",
+    "screeningHits": "Hits"
   },
   "merchantDetail": {
     "copyCode": "Copy Code",

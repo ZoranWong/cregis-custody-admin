@@ -34,6 +34,7 @@ export interface MerchantQuery {
   pageSize?: number
   status?: string
   keyword?: string
+  sort?: 'createTime_desc' | 'updateTime_desc' | 'merchantName_asc'
 }
 
 // ─── API Functions ───
@@ -43,9 +44,16 @@ export interface MerchantQuery {
  * POST /merchant/list
  */
 export async function fetchMerchantList(query: MerchantQuery = {}): Promise<MerchantListResponse> {
+  const sortMap: Record<string, string> = {
+    createTime_desc: 'createTime_d',
+    updateTime_desc: 'updateTime_d',
+    merchantName_asc: 'merchantName_a'
+  }
+
   const body = {
     pageIndex: query.pageNum || 1,
     pageSize: query.pageSize || 10,
+    sortFields: query.sort ? sortMap[query.sort] || 'createTime_d' : 'createTime_d',
     queryList: buildQueryList(query)
   }
 
