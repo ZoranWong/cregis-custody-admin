@@ -72,21 +72,38 @@
       </div>
     </div>
 
-    <!-- ═══ Step Navigation ═══ -->
-    <div class="step-nav mb-5">
-      <div
-        v-for="(step, index) in steps"
-        :key="step.key"
-        class="step-item"
-        :class="{ active: activeStep === step.key, completed: step.completed }"
-        @click="activeStep = step.key"
-      >
-        <div class="step-number">
-          <span v-if="step.completed" class="step-check">✓</span>
-          <span v-else>{{ index + 1 }}</span>
+    <!-- ═══ Progress Stepper ═══ -->
+    <div class="onboarding-progress mb-5">
+      <div class="progress-stepper">
+        <div
+          v-for="(step, index) in steps"
+          :key="step.key"
+          class="progress-step"
+          :class="{
+            completed: step.stepStatus === 'success',
+            active: step.stepStatus === 'progress',
+            failed: step.stepStatus === 'error',
+            clickable: step.stepStatus !== 'pending'
+          }"
+          @click="handleStepClick(index)"
+        >
+          <div
+            class="step-circle"
+            :class="{
+              done: step.stepStatus === 'success',
+              active: step.stepStatus === 'progress',
+              failed: step.stepStatus === 'error'
+            }"
+          >
+            <span v-if="step.stepStatus === 'success'" class="step-check">✓</span>
+            <span v-else-if="step.stepStatus === 'error'" class="step-fail">✗</span>
+            <span v-else>{{ index + 1 }}</span>
+          </div>
+          <div class="step-label">{{ step.label }}</div>
+          <div v-if="step.state" class="step-meta" :class="statusMetaClass(step.stepStatus)">
+            {{ step.state }}
+          </div>
         </div>
-        <div class="step-label">{{ step.label }}</div>
-        <div v-if="step.state" class="step-state" :class="step.stateClass">{{ step.state }}</div>
       </div>
     </div>
 
@@ -207,48 +224,66 @@
     return stages
   })
 
-  // ─── Step Navigation ──
+  // ── Step Navigation ───
+  type StepStatus = 'pending' | 'progress' | 'success' | 'error'
+
+  const stepOrder = ['compliance', 'travel-rule', 'signoff', 'onchain']
+
+  const stepIndex = computed(() => {
+    const idx = stepOrder.indexOf(activeStep.value)
+    return idx === -1 ? 0 : idx
+  })
+
   const steps = computed(() => {
-    const result: Array<{
-      key: string
-      label: string
-      state?: string
-      stateClass?: string
-      completed?: boolean
-    }> = [
-      {
-        key: 'compliance',
-        label: 'Compliance',
-        state: txData.compliance,
-        stateClass: 'done',
-        completed: txData.compliance === 'Clear'
-      },
-      {
-        key: 'travel-rule',
-        label: 'Travel Rule',
-        state: txData.travelRule,
-        stateClass: 'done',
-        completed: txData.travelRule === 'Complete'
-      }
-    ]
+    const allSteps: Array<{ key: string; label: string; state?: string; stepStatus: StepStatus }> =
+      [
+        { key: 'compliance', label: 'Compliance', state: txData.compliance, stepStatus: 'success' },
+        {
+          key: 'travel-rule',
+          label: 'Travel Rule',
+          state: txData.travelRule,
+          stepStatus: 'success'
+        }
+      ]
     if (txData.direction === 'Outgoing') {
-      result.push({
+      allSteps.push({
         key: 'signoff',
         label: 'Sign-off',
         state: txData.signOff,
-        stateClass: txData.signOff === 'Approved' ? 'done' : 'pending',
-        completed: txData.signOff === 'Approved'
+        stepStatus:
+          txData.signOff === 'Approved' ? 'success' : txData.signOff ? 'progress' : 'pending'
       })
     }
-    result.push({
+    allSteps.push({
       key: 'onchain',
       label: 'On-Chain',
       state: txData.status,
-      stateClass: txData.status === 'Settled' || txData.status === 'Confirmed' ? 'done' : 'active',
-      completed: txData.status === 'Settled' || txData.status === 'Confirmed'
+      stepStatus:
+        txData.status === 'Settled' || txData.status === 'Confirmed'
+          ? 'success'
+          : txData.status === 'Failed'
+            ? 'error'
+            : 'progress'
     })
-    return result
+    return allSteps
   })
+
+  function handleStepClick(index: number) {
+    // Only pending steps cannot be clicked
+    if (steps.value[index]?.stepStatus !== 'pending') {
+      activeStep.value = stepOrder[index]
+    }
+  }
+
+  function statusMetaClass(status: StepStatus): string {
+    const map: Record<StepStatus, string> = {
+      success: 'text-success',
+      progress: 'text-warning',
+      error: 'text-danger',
+      pending: 'text-g-400'
+    }
+    return map[status]
+  }
 
   // ─── Helpers ───
   type TagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
@@ -352,76 +387,112 @@
     color: #d97706;
   }
 
-  .step-nav {
+  /* Progress Stepper */
+  .onboarding-progress {
+    background: linear-gradient(135deg, var(--el-fill-color-light) 0%, var(--el-bg-color) 100%);
+    border: 1px solid var(--el-border-color-light);
+    border-radius: 14px;
+    padding: 24px 32px 20px;
+  }
+  .progress-stepper {
     display: flex;
     align-items: flex-start;
-    gap: 0;
-    border-bottom: 2px solid var(--el-border-color-light);
   }
-  .step-item {
+  .progress-step {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 12px 24px;
+    position: relative;
+    text-align: center;
     cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -2px;
-    transition: all 0.2s;
-    min-width: 120px;
   }
-  .step-item:hover {
-    background: var(--el-fill-color-light);
+  .progress-step::before {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: -50%;
+    right: 50%;
+    height: 3px;
+    background: var(--el-border-color-lighter);
+    border-radius: 2px;
+    z-index: 0;
   }
-  .step-item.active {
-    border-bottom-color: var(--el-color-primary);
+  .progress-step:first-child::before {
+    display: none;
   }
-  .step-item.active .step-number {
-    background: var(--el-color-primary);
-    color: #fff;
-    border-color: var(--el-color-primary);
-  }
-  .step-item.completed .step-number {
+  .progress-step.completed::before {
     background: var(--el-color-success);
-    color: #fff;
-    border-color: var(--el-color-success);
   }
-  .step-number {
-    width: 28px;
-    height: 28px;
+  .progress-step.active::before {
+    background: var(--el-color-success-light-5);
+  }
+  .step-circle {
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
     background: var(--el-bg-color);
-    border: 2px solid var(--el-border-color);
-    color: var(--el-text-color-secondary);
-    margin-bottom: 6px;
+    border: 2.5px solid var(--el-border-color-light);
+    color: var(--el-text-color-placeholder);
+    transition: all 0.2s;
+  }
+  .step-circle.done {
+    background: var(--el-color-success);
+    border-color: transparent;
+    color: #fff;
+  }
+  .step-circle.active {
+    background: var(--el-color-primary);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--el-color-primary-light-8);
+  }
+  .step-circle.failed {
+    background: var(--el-color-danger);
+    border-color: transparent;
+    color: #fff;
   }
   .step-check {
+    font-size: 16px;
+  }
+  .step-fail {
     font-size: 14px;
   }
   .step-label {
-    font-size: 13px;
-    font-weight: 600;
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--el-text-color-secondary);
+    max-width: 120px;
+  }
+  .progress-step.completed .step-label {
     color: var(--el-text-color-primary);
-    margin-bottom: 2px;
-  }
-  .step-item:not(.active) .step-label {
-    color: var(--el-text-color-secondary);
-  }
-  .step-state {
-    font-size: 11px;
     font-weight: 600;
   }
-  .step-state.done {
-    color: var(--el-color-success);
+  .progress-step.active .step-label {
+    color: var(--el-color-primary);
+    font-weight: 700;
   }
-  .step-state.active {
-    color: var(--el-color-warning);
+  .progress-step.failed .step-label {
+    color: var(--el-color-danger);
+    font-weight: 600;
   }
-  .step-state.pending {
-    color: var(--el-text-color-secondary);
+  .progress-step.pending {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .progress-step.clickable:hover .step-circle {
+    transform: scale(1.1);
+  }
+  .step-meta {
+    font-size: 11px;
+    margin-top: 3px;
   }
 </style>
