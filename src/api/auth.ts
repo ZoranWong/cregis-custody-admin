@@ -45,16 +45,16 @@ export interface TotpSetupResponse {
   accountName: string
 }
 
-export async function setupTotp(mfaToken: string): Promise<TotpSetupResponse> {
+export async function setupTotp(mfaToken: string, email: string): Promise<TotpSetupResponse> {
   const raw = (await apiRequest<Record<string, unknown>>('/v1/auth/mfa/settings/totp/setup', {
     method: 'POST',
     auth: false,
-    body: { mfaToken }
+    body: { mfaToken, email }
   })) as Record<string, unknown>
   return {
     qrCodeBase64: readRequired(raw, 'qrCodeBase64'),
     secretKey: readRequired(raw, 'secretKey'),
-    accountName: readRequired(raw, 'accountName')
+    accountName: readStr(raw, 'accountName') || email
   }
 }
 

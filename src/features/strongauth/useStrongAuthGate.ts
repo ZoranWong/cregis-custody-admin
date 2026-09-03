@@ -1,4 +1,4 @@
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { enableTotpCode, setupTotp, verifyRecoveryCode, verifyTotpChallenge } from '@/api/auth'
 import { ApiError } from '@/utils/http/request'
@@ -46,10 +46,11 @@ export function useStrongAuthGate() {
   const isRecoveryDisplay = computed(() => recoveryCodes.value.length > 0)
 
   async function loadTotpBootstrap(): Promise<void> {
-    if (!strongAuth.value?.mfaToken) return
+    const sa = strongAuth.value
+    if (!sa?.mfaToken || !sa.identifiedEmail) return
     busy.value = true
     try {
-      const result = await setupTotp(strongAuth.value.mfaToken)
+      const result = await setupTotp(sa.mfaToken, sa.identifiedEmail)
       authBootstrapStore.updateStrongAuthSetup({
         qrCodeBase64: result.qrCodeBase64,
         secretKeyMasked: result.secretKey,
@@ -245,6 +246,22 @@ export function useStrongAuthGate() {
       void loadTotpBootstrap()
     }
   })
+
+  // Tab 切回前台时刷新二维码（二维码可能过期，参考 manager 实现）
+  function onVisibilityChange(): void {
+    if (
+      document.visibilityState === 'visible' &&
+      isSetupMode.value &&
+      !isRecoveryDisplay.value &&
+      !busy.value &&
+      strongAuth.value?.mfaToken
+    ) {
+      void loadTotpBootstrap()
+    }
+  }
+
+  onMounted(() => window.addEventListener('visibilitychange', onVisibilityChange))
+  onUnmounted(() => window.removeEventListener('visibilitychange', onVisibilityChange))
 
   return {
     code,
