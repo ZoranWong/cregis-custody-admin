@@ -33,7 +33,7 @@ export const staticRoutes: AppRouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    redirect: '/operations/home',
+    redirect: '/operations/gas',
     meta: { title: 'Home', isHideTab: false }
   },
   {

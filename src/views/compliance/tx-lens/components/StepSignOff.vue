@@ -9,8 +9,10 @@
         <div class="timeline-chain">
           <div v-for="node in approvalFlowTimeline" :key="node.label" class="timeline-node">
             <div class="timeline-dot" :class="node.dotClass" />
-            <div class="text-sm font-semibold text-g-800">{{ node.label }}</div>
-            <div class="text-xs text-g-600 mt-0.5" :class="node.detailClass">{{ node.detail }}</div>
+            <div class="text-sm font-semibold text-g-800">{{ $t(node.label) }}</div>
+            <div class="text-xs text-g-600 mt-0.5" :class="node.detailClass">{{
+              $t(node.detail)
+            }}</div>
             <div class="text-[11px] text-g-400 mt-0.5">{{ node.time }}</div>
             <!-- Multi-sign approvals -->
             <div v-if="node.approvers" class="flex flex-col gap-2 mt-2">
@@ -57,7 +59,7 @@
 
   const approvalFlowTimeline = [
     {
-      label: 'Initiated',
+      label: 'txLens.detail.approvalInitiated',
       detail: 'John Doe',
       time: '2026-07-28 10:25:00 UTC',
       dotClass: 'completed',
@@ -65,16 +67,16 @@
       approvers: null
     },
     {
-      label: 'Risk Policy Check',
-      detail: 'Passed (Auto)',
+      label: 'txLens.detail.approvalRiskPolicy',
+      detail: 'txLens.detail.approvalPassed',
       time: '2026-07-28 10:25:01 UTC',
       dotClass: 'completed',
       detailClass: 'text-success',
       approvers: null
     },
     {
-      label: 'Approval',
-      detail: 'Multi-sign: 2 of 3 approvals collected',
+      label: 'txLens.detail.approvalApproval',
+      detail: 'txLens.detail.approvalMultiSign',
       time: '2026-07-28 10:27:30 UTC',
       dotClass: 'completed',
       detailClass: '',
@@ -103,8 +105,8 @@
       ]
     },
     {
-      label: 'Execution',
-      detail: 'Transaction broadcasted to network',
+      label: 'txLens.detail.approvalExecution',
+      detail: 'txLens.detail.approvalBroadcasted',
       time: '2026-07-28 10:28:15 UTC',
       dotClass: 'completed',
       detailClass: '',

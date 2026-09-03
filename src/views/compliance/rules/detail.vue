@@ -89,7 +89,7 @@
             <div
               class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
             >
-              {{ currentRule.minAmount || 'Any amount' }}
+              {{ currentRule.minAmount || $t('rules.anyAmount') }}
             </div>
           </div>
           <div>

@@ -46,6 +46,17 @@ export const complianceRoutes: AppRouteRecord = {
       meta: { title: 'menus.compliance.rules', icon: 'ri:file-list-3-line', keepAlive: false }
     },
     {
+      path: 'rules/editor/:id?',
+      name: 'ComplianceRuleEditor',
+      component: '/compliance/rules/editor',
+      meta: {
+        title: 'menus.compliance.ruleEditor',
+        icon: 'ri:file-list-3-line',
+        keepAlive: false,
+        isHide: true
+      }
+    },
+    {
       path: 'rules/:id',
       name: 'ComplianceRuleDetail',
       component: '/compliance/rules/detail',

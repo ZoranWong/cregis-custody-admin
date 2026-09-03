@@ -60,16 +60,6 @@
           <div class="text-xs text-g-500 font-mono mt-0.5">{{ txData.beneficiary.address }}</div>
         </div>
       </div>
-      <!-- Lifecycle Row -->
-      <div class="tx-lifecycle mt-3 pt-3 border-t border-[var(--default-border)]">
-        <div class="lc-stage" v-for="stage in lifecycleStages" :key="stage.key">
-          <div class="lc-stage-dot" :class="stage.dotClass"></div>
-          <div class="lc-stage-content">
-            <div class="lc-stage-label">{{ stage.label }}</div>
-            <div class="lc-stage-state" :class="stage.stateClass">{{ stage.state }}</div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- ═══ Progress Stepper ═══ -->
@@ -124,6 +114,7 @@
 </template>
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
   import StepCompliance from './components/StepCompliance.vue'
   import StepTravelRule from './components/StepTravelRule.vue'
@@ -131,6 +122,8 @@
   import StepOnChain from './components/StepOnChain.vue'
 
   defineOptions({ name: 'TransactionLensDetail' })
+
+  const { t } = useI18n()
 
   const route = useRoute()
   const router = useRouter()
@@ -165,65 +158,6 @@
     }
   })
 
-  // ─── Lifecycle Stages ───
-  const lifecycleStages = computed(() => {
-    const stages: Array<{
-      key: string
-      label: string
-      state: string
-      dotClass: string
-      stateClass: string
-    }> = []
-    stages.push({
-      key: 'compliance',
-      label: 'Compliance',
-      state: txData.compliance,
-      dotClass: txData.compliance === 'Clear' ? 'done' : 'active',
-      stateClass: txData.compliance === 'Clear' ? 'done' : 'active'
-    })
-    stages.push({
-      key: 'travel',
-      label: 'Travel Rule',
-      state: txData.travelRule,
-      dotClass: txData.travelRule === 'Complete' ? 'done' : 'active',
-      stateClass: txData.travelRule === 'Complete' ? 'done' : 'active'
-    })
-    if (txData.direction === 'Outgoing') {
-      stages.push({
-        key: 'signoff',
-        label: 'Sign-off',
-        state: txData.signOff,
-        dotClass: txData.signOff === 'Approved' ? 'done' : 'pending',
-        stateClass: txData.signOff === 'Approved' ? 'done' : 'pending'
-      })
-      stages.push({
-        key: 'onchain',
-        label: 'On-Chain',
-        state: txData.status,
-        dotClass: txData.status === 'Settled' ? 'done' : 'active',
-        stateClass: txData.status === 'Settled' ? 'done' : 'active'
-      })
-    } else {
-      stages.push({
-        key: 'onchain',
-        label: 'On-Chain',
-        state: txData.status,
-        dotClass: txData.status === 'Confirmed' ? 'done' : 'active',
-        stateClass: txData.status === 'Confirmed' ? 'done' : 'active'
-      })
-      if (txData.fundDisposition) {
-        stages.push({
-          key: 'disposition',
-          label: 'Fund Disposition',
-          state: txData.fundDisposition,
-          dotClass: txData.fundDisposition === 'Released' ? 'released' : 'held',
-          stateClass: txData.fundDisposition === 'Released' ? 'released' : 'held'
-        })
-      }
-    }
-    return stages
-  })
-
   // ── Step Navigation ───
   type StepStatus = 'pending' | 'progress' | 'success' | 'error'
 
@@ -237,10 +171,15 @@
   const steps = computed(() => {
     const allSteps: Array<{ key: string; label: string; state?: string; stepStatus: StepStatus }> =
       [
-        { key: 'compliance', label: 'Compliance', state: txData.compliance, stepStatus: 'success' },
+        {
+          key: 'compliance',
+          label: t('txLens.detail.tabCompliance'),
+          state: txData.compliance,
+          stepStatus: 'success'
+        },
         {
           key: 'travel-rule',
-          label: 'Travel Rule',
+          label: t('txLens.detail.tabTravelRule'),
           state: txData.travelRule,
           stepStatus: 'success'
         }
@@ -248,7 +187,7 @@
     if (txData.direction === 'Outgoing') {
       allSteps.push({
         key: 'signoff',
-        label: 'Sign-off',
+        label: t('txLens.detail.tabSignOff'),
         state: txData.signOff,
         stepStatus:
           txData.signOff === 'Approved' ? 'success' : txData.signOff ? 'progress' : 'pending'
@@ -256,7 +195,7 @@
     }
     allSteps.push({
       key: 'onchain',
-      label: 'On-Chain',
+      label: t('txLens.detail.tabOnChain'),
       state: txData.status,
       stepStatus:
         txData.status === 'Settled' || txData.status === 'Confirmed'
@@ -314,77 +253,6 @@
   .beneficiary-box {
     background: var(--el-color-success-light-9);
     border-left: 3px solid var(--el-color-success);
-  }
-
-  .tx-lifecycle {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 8px 12px;
-    background: var(--el-fill-color-light);
-    border-radius: 8px;
-  }
-  .lc-stage {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex: 1;
-    min-width: 0;
-  }
-  .lc-stage-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .lc-stage-dot.done {
-    background: #16a34a;
-  }
-  .lc-stage-dot.active {
-    background: #d97706;
-  }
-  .lc-stage-dot.pending {
-    background: var(--el-text-color-placeholder);
-  }
-  .lc-stage-dot.released {
-    background: #16a34a;
-  }
-  .lc-stage-dot.held {
-    background: #d97706;
-  }
-  .lc-stage-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    min-width: 0;
-  }
-  .lc-stage-label {
-    font-size: 9px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--el-text-color-secondary);
-    line-height: 1;
-  }
-  .lc-stage-state {
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-  .lc-stage-state.done {
-    color: #16a34a;
-  }
-  .lc-stage-state.active {
-    color: #d97706;
-  }
-  .lc-stage-state.pending {
-    color: var(--el-text-color-secondary);
-  }
-  .lc-stage-state.released {
-    color: #16a34a;
-  }
-  .lc-stage-state.held {
-    color: #d97706;
   }
 
   /* Progress Stepper */

@@ -10,7 +10,7 @@
         :class="{ active: activeTab === tab.key }"
         @click="activeTab = tab.key"
       >
-        {{ tab.label }}
+        {{ $t(tab.label) }}
       </button>
     </div>
 
@@ -62,7 +62,7 @@
             class="flex items-center gap-1.5 text-xs text-g-700"
           >
             <span class="text-success font-bold">✓</span>
-            <span>{{ item.label }}</span>
+            <span>{{ $t(item.label) }}</span>
           </div>
         </div>
       </div>
@@ -85,12 +85,14 @@
               :key="item.key"
               class="flex items-center justify-between py-1.5"
             >
-              <span class="text-xs text-g-700">{{ item.label }}</span>
+              <span class="text-xs text-g-700">{{ $t(item.label) }}</span>
               <el-tag
                 :type="item.status === 'CLEAR' ? 'success' : 'danger'"
                 size="small"
                 effect="dark"
-                >{{ item.status }}</el-tag
+                >{{
+                  item.status === 'CLEAR' ? $t('txLens.detail.statusClear') : $t(item.status)
+                }}</el-tag
               >
             </div>
           </div>
@@ -104,9 +106,9 @@
               :key="item.key"
               class="flex items-center justify-between py-1.5"
             >
-              <span class="text-xs text-g-700">{{ item.label }}</span>
+              <span class="text-xs text-g-700">{{ $t(item.label) }}</span>
               <el-tag type="success" size="small" effect="dark">{{
-                $t('txLens.detail.clear')
+                $t('txLens.detail.statusClear')
               }}</el-tag>
             </div>
           </div>
@@ -310,8 +312,8 @@
           <div class="timeline-chain">
             <div v-for="node in complianceTimeline" :key="node.label" class="timeline-node">
               <div class="timeline-dot" :class="node.dotClass" />
-              <div class="text-sm font-semibold text-g-800">{{ node.label }}</div>
-              <div class="text-xs text-g-600 mt-0.5">{{ node.detail }}</div>
+              <div class="text-sm font-semibold text-g-800">{{ $t(node.label) }}</div>
+              <div class="text-xs text-g-600 mt-0.5">{{ $t(node.detail) }}</div>
               <div class="text-[11px] text-g-400 mt-0.5">{{ node.time }}</div>
             </div>
           </div>
@@ -332,14 +334,22 @@
   const piiMissingCount = ref(3)
 
   const tabs = [
-    { key: 'assessment', label: 'Risk Profile' },
-    { key: 'communication', label: 'Communication' },
-    { key: 'timeline', label: 'Timeline' }
+    { key: 'assessment', label: 'txLens.detail.subTabRiskProfile' },
+    { key: 'communication', label: 'txLens.detail.subTabCommunication' },
+    { key: 'timeline', label: 'txLens.detail.subTabTimeline' }
   ]
 
   const rulesTriggered = [
-    { key: 'sanctions-hit', name: 'Sanctions Hit Block', tags: ['Beneficiary: OFAC SDN'] },
-    { key: 'large-tx', name: 'Large Transaction Review', tags: ['Amount ≥ 10,000 AED'] },
+    {
+      key: 'sanctions-hit',
+      name: 'Sanctions Hit Block',
+      tags: ['txLens.detail.screeningBeneficiary']
+    },
+    {
+      key: 'large-tx',
+      name: 'Large Transaction Review',
+      tags: ['Amount ≥ 10,000 AED']
+    },
     {
       key: 'high-risk-juris',
       name: 'High-Risk Jurisdiction Block',
@@ -348,23 +358,27 @@
   ]
 
   const cddItems = [
-    { key: 'onboarding', label: 'Onboarding Status: Onboarded' },
-    { key: 'customerType', label: 'Customer Type: Qualified Investor' },
-    { key: 'riskLevel', label: 'Risk Level: 3. High' },
-    { key: 'proof', label: 'Proof (CRS/FATCA): Passive NFE' },
-    { key: 'corporateId', label: 'Corporate Identity Verified' },
-    { key: 'sourceOfWealth', label: 'Source of Wealth Verified' },
-    { key: 'sourceOfFunds', label: 'Source of Funds Verified' },
-    { key: 'financialThreshold', label: 'Financial Threshold Met' }
+    { key: 'onboarding', label: 'txLens.detail.cddOnboardingStatus' },
+    { key: 'customerType', label: 'txLens.detail.cddCustomerType' },
+    { key: 'riskLevel', label: 'txLens.detail.cddRiskLevel' },
+    { key: 'proof', label: 'txLens.detail.cddProofCrsFatca' },
+    { key: 'corporateId', label: 'txLens.detail.cddCorporateIdentity' },
+    { key: 'sourceOfWealth', label: 'txLens.detail.cddSourceOfWealth' },
+    { key: 'sourceOfFunds', label: 'txLens.detail.cddSourceOfFunds' },
+    { key: 'financialThreshold', label: 'txLens.detail.cddFinancialThreshold' }
   ]
 
   const entityScreening = [
-    { key: 'vasp', label: 'VASP — The UCE DMCC', status: 'CLEAR' },
-    { key: 'beneficiary', label: 'Beneficiary — John Doe', status: 'OFAC SDN' }
+    { key: 'vasp', label: 'txLens.detail.screeningVasp', status: 'CLEAR' },
+    {
+      key: 'beneficiary',
+      label: 'txLens.detail.screeningBeneficiary',
+      status: 'txLens.detail.statusOfacSdn'
+    }
   ]
   const onChainScreening = [
-    { key: 'originatorAddr', label: 'Originator Address', status: 'CLEAR' },
-    { key: 'beneficiaryAddr', label: 'Beneficiary Address', status: 'CLEAR' }
+    { key: 'originatorAddr', label: 'txLens.detail.screeningOriginatorAddr', status: 'CLEAR' },
+    { key: 'beneficiaryAddr', label: 'txLens.detail.screeningBeneficiaryAddr', status: 'CLEAR' }
   ]
 
   const vaspIdentity = {
@@ -446,26 +460,26 @@
 
   const complianceTimeline = [
     {
-      label: 'Rule Triggered',
-      detail: 'Sanctions Hit Block — Beneficiary: OFAC SDN',
+      label: 'txLens.detail.timelineRuleTriggered',
+      detail: 'txLens.detail.detailRuleTriggered',
       time: '2026-07-28 10:28:16 UTC',
       dotClass: 'info'
     },
     {
-      label: 'Auto-Rejected',
-      detail: 'Transaction blocked by compliance rule',
+      label: 'txLens.detail.timelineAutoRejected',
+      detail: 'txLens.detail.detailAutoRejected',
       time: '2026-07-28 10:28:16 UTC',
       dotClass: 'failed'
     },
     {
-      label: 'Customer Escalation',
-      detail: 'Customer disputed the auto-rejection',
+      label: 'txLens.detail.timelineCustomerEscalation',
+      detail: 'txLens.detail.detailCustomerEscalation',
       time: '2026-07-28 10:45:00 UTC',
       dotClass: 'pending'
     },
     {
-      label: 'Sarah Chen — Approved',
-      detail: 'Compliance Officer · Manual override',
+      label: 'txLens.detail.timelineApproved',
+      detail: 'txLens.detail.detailManualOverride',
       time: '2026-07-28 11:15:00 UTC',
       dotClass: 'completed'
     }

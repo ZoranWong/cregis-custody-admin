@@ -55,7 +55,7 @@
         >
           {{ stepIdx + 1 }}
         </span>
-        <span class="text-[15px] font-semibold text-g-900">{{ step.name }}</span>
+        <span class="text-[15px] font-semibold text-g-900">{{ stageLabel(step.name) }}</span>
       </div>
       <div class="text-xs text-g-500 mb-4 ml-[34px]">{{ stepDescription(step.name) }}</div>
 
@@ -72,10 +72,10 @@
             <span class="text-sm font-semibold text-g-900">{{ rule.name }}</span>
             <div class="flex gap-1 flex-shrink-0">
               <el-tag :type="severityTag(rule.severity)" size="small" effect="light">
-                {{ rule.severity }}
+                {{ severityLabel(rule.severity) }}
               </el-tag>
               <el-tag :type="statusTag(rule.status)" size="small" effect="light">
-                {{ rule.status }}
+                {{ statusLabel(rule.status) }}
               </el-tag>
             </div>
           </div>
@@ -123,106 +123,44 @@
         + {{ $t('rules.addRule') }}
       </button>
     </div>
-
-    <!-- ═══ 新增/编辑规则弹窗 ═══ -->
-    <el-dialog
-      v-model="showDialog"
-      :title="editing ? $t('rules.editRule') : $t('rules.addRule')"
-      width="760px"
-      destroy-on-close
-    >
-      <el-form label-width="140px" :model="form">
-        <el-form-item :label="$t('rules.ruleName')">
-          <el-input v-model="form.name" />
-        </el-form-item>
-        <el-form-item :label="$t('rules.description')">
-          <el-input v-model="form.description" type="textarea" :rows="2" />
-        </el-form-item>
-        <div class="grid grid-cols-2 gap-x-6">
-          <el-form-item :label="$t('rules.direction')">
-            <el-input :model-value="form.direction" disabled />
-          </el-form-item>
-          <el-form-item :label="$t('rules.stage')">
-            <el-input :model-value="form.stage" disabled />
-          </el-form-item>
-        </div>
-        <div class="grid grid-cols-2 gap-x-6">
-          <el-form-item :label="$t('rules.minAmount')">
-            <el-input v-model="form.minAmount" placeholder="e.g. 10000" />
-          </el-form-item>
-          <el-form-item :label="$t('rules.severity')">
-            <el-select v-model="form.severity" class="w-full">
-              <el-option label="Routine" value="Routine" />
-              <el-option label="Medium" value="Medium" />
-              <el-option label="Critical" value="Critical" />
-            </el-select>
-          </el-form-item>
-        </div>
-        <div class="grid grid-cols-2 gap-x-6">
-          <el-form-item :label="$t('rules.scope')">
-            <el-select v-model="form.scope" class="w-full">
-              <el-option :label="$t('rules.global')" value="Global" />
-              <el-option :label="$t('rules.merchantSpecific')" value="Merchant Specific" />
-            </el-select>
-          </el-form-item>
-          <el-form-item :label="$t('rules.decision')">
-            <el-select v-model="form.decision" class="w-full">
-              <el-option :label="$t('rules.autoReject')" value="Auto Reject" />
-              <el-option :label="$t('rules.submitReview')" value="Submit for Review" />
-              <el-option :label="$t('rules.hold')" value="Hold" />
-            </el-select>
-          </el-form-item>
-        </div>
-        <el-form-item :label="$t('rules.riskFactors')">
-          <div class="w-full">
-            <p class="text-xs text-g-400 mb-2">{{ $t('rules.riskFactorHint') }}</p>
-            <el-checkbox-group v-model="form.riskFactors" size="small">
-              <div v-for="domain in factorCatalog" :key="domain.domain">
-                <div
-                  class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-2 border-b border-[var(--default-border)]"
-                >
-                  {{ domain.domain }}
-                </div>
-                <div class="flex flex-wrap gap-2 mb-3">
-                  <el-checkbox v-for="f in domain.factors" :key="f" :value="f" :label="f" />
-                </div>
-              </div>
-            </el-checkbox-group>
-          </div>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showDialog = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="saveRule">{{ $t('common.confirm') }}</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
   import { useRouter } from 'vue-router'
+  import countriesEn from '@/data/countries-en.json'
+  import countriesZh from '@/data/countries-zh.json'
+  import { useI18n } from 'vue-i18n'
 
   defineOptions({ name: 'ComplianceRules' })
 
   const router = useRouter()
+  const { locale, t } = useI18n()
+
+  // Get country list based on current locale
+  function getCountries(): { code: string; name: string }[] {
+    return locale.value === 'zh' ? countriesZh : countriesEn
+  }
+
+  const countryOptions = computed(() => getCountries().map((c) => `${c.code} — ${c.name}`))
   const direction = ref('outgoing')
   const statusFilter = ref('all')
   const severityFilter = ref('all')
   const showDialog = ref(false)
   const editing = ref(false)
 
-  const statusOptions = [
-    { label: 'All', value: 'all' },
-    { label: 'Active', value: 'Active' },
-    { label: 'Pending', value: 'Pending' },
-    { label: 'Cancelled', value: 'Cancelled' }
-  ]
-  const severityOptions = [
-    { label: 'All', value: 'all' },
-    { label: 'Routine', value: 'Routine' },
-    { label: 'Medium', value: 'Medium' },
-    { label: 'Critical', value: 'Critical' }
-  ]
+  const statusOptions = computed(() => [
+    { label: t('rules.all'), value: 'all' },
+    { label: t('rules.active'), value: 'Active' },
+    { label: t('rules.pending'), value: 'Pending' },
+    { label: t('rules.cancelled'), value: 'Cancelled' }
+  ])
+  const severityOptions = computed(() => [
+    { label: t('rules.all'), value: 'all' },
+    { label: t('rules.routine'), value: 'Routine' },
+    { label: t('rules.medium'), value: 'Medium' },
+    { label: t('rules.critical'), value: 'Critical' }
+  ])
 
   interface Rule {
     id: number
@@ -236,20 +174,160 @@
     direction: string
   }
 
-  const factorCatalog = [
+  interface FactorOption {
+    key: string
+    labelKey: string
+    type: 'multi'
+    options: string[]
+  }
+
+  interface FactorDomain {
+    domainKey: string
+    factors: FactorOption[]
+  }
+
+  // Factor catalog with i18n keys
+  const factorCatalogTemplate: FactorDomain[] = [
     {
-      domain: 'Customer Due Diligence',
-      factors: ['Onboarding Status', 'Customer Risk Level']
+      domainKey: 'rules.factorDomains.customerDueDiligence',
+      factors: [
+        {
+          key: 'onboarding_state',
+          labelKey: 'rules.factors.onboardingStatus',
+          type: 'multi',
+          options: ['onboarded', 'pending', 'labeled', 'frozen', 'offboarded']
+        },
+        {
+          key: 'customer_risk_level',
+          labelKey: 'rules.factors.customerRiskLevel',
+          type: 'multi',
+          options: ['low', 'medium', 'high']
+        }
+      ]
     },
     {
-      domain: 'Screening',
-      factors: ['Counterparty VASP', 'Beneficiary', 'Originator Address', 'Beneficiary Address']
+      domainKey: 'rules.factorDomains.screening',
+      factors: [
+        {
+          key: 'screening.counterparty_vasp',
+          labelKey: 'rules.factors.counterpartyVasp',
+          type: 'multi',
+          options: ['ofacSdn', 'euList', 'unSecurity', 'pep', 'adverseMedia', 'criminal']
+        },
+        {
+          key: 'screening.beneficiary_entity',
+          labelKey: 'rules.factors.beneficiary',
+          type: 'multi',
+          options: ['ofacSdn', 'euList', 'unSecurity', 'pep', 'adverseMedia', 'criminal']
+        },
+        {
+          key: 'screening.originator_address',
+          labelKey: 'rules.factors.originatorAddress',
+          type: 'multi',
+          options: ['mixer', 'darknet', 'ransomware', 'sanctionsAddr', 'theftScam', 'structuring']
+        },
+        {
+          key: 'screening.beneficiary_address',
+          labelKey: 'rules.factors.beneficiaryAddress',
+          type: 'multi',
+          options: ['mixer', 'darknet', 'ransomware', 'sanctionsAddr', 'theftScam', 'structuring']
+        }
+      ]
     },
     {
-      domain: 'Counterparty VASP',
-      factors: ['Jurisdiction', 'VASP Status', 'Regulatory', 'Travel Rule Capable', 'IVMS101 PII']
+      domainKey: 'rules.factorDomains.counterpartyVasp',
+      factors: [
+        {
+          key: 'counterparty_jurisdiction',
+          labelKey: 'rules.factors.jurisdiction',
+          type: 'multi',
+          options: countryOptions.value
+        },
+        {
+          key: 'vasp_status',
+          labelKey: 'rules.factors.vaspStatus',
+          type: 'multi',
+          options: ['registered', 'exempt', 'unlicensed']
+        },
+        {
+          key: 'vasp_regulatory',
+          labelKey: 'rules.factors.regulatory',
+          type: 'multi',
+          options: ['verified', 'unverified']
+        },
+        {
+          key: 'tr_capable',
+          labelKey: 'rules.factors.trCapable',
+          type: 'multi',
+          options: ['yes', 'no']
+        },
+        {
+          key: 'ivms101_valid',
+          labelKey: 'rules.factors.ivms101Valid',
+          type: 'multi',
+          options: ['valid', 'invalid']
+        }
+      ]
     }
   ]
+
+  // Computed factor catalog with translated labels
+  const factorCatalog = computed(() =>
+    factorCatalogTemplate.map((domain) => ({
+      domain: t(domain.domainKey),
+      factors: domain.factors.map((factor) => ({
+        ...factor,
+        label: t(factor.labelKey),
+        options: factor.options.map((opt) => {
+          // Check if it's a country option (contains ' — ')
+          if (opt.includes(' — ')) return opt
+          // Try to translate the option
+          const translated = t(`rules.factorOptions.${opt}`)
+          return translated.startsWith('rules.factorOptions.') ? opt : translated
+        })
+      }))
+    }))
+  )
+
+  // Active factors with selected options: { factorKey: string[] }
+  const activeFactors = ref<Record<string, string[]>>({})
+
+  function toggleFactor(factorKey: string) {
+    if (activeFactors.value[factorKey]) {
+      delete activeFactors.value[factorKey]
+    } else {
+      activeFactors.value[factorKey] = []
+    }
+  }
+
+  function toggleFactorOption(factorKey: string, option: string) {
+    if (!activeFactors.value[factorKey]) {
+      activeFactors.value[factorKey] = []
+    }
+    const idx = activeFactors.value[factorKey].indexOf(option)
+    if (idx >= 0) {
+      activeFactors.value[factorKey].splice(idx, 1)
+      if (activeFactors.value[factorKey].length === 0) {
+        delete activeFactors.value[factorKey]
+      }
+    } else {
+      activeFactors.value[factorKey].push(option)
+    }
+  }
+
+  function isFactorActive(factorKey: string): boolean {
+    return !!activeFactors.value[factorKey]
+  }
+
+  function isOptionSelected(factorKey: string, option: string): boolean {
+    return activeFactors.value[factorKey]?.includes(option) ?? false
+  }
+
+  function getFactorOptionsDisplay(factorKey: string): string {
+    const factor = factorCatalog.value.flatMap((d) => d.factors).find((f) => f.key === factorKey)
+    if (!factor) return ''
+    return factor.options.join(' | ')
+  }
 
   const form = reactive({
     id: 0,
@@ -397,15 +475,48 @@
 
   function stepDescription(stage: string): string {
     const dir = direction.value
-    const descs: Record<string, string> = {
-      'Due Diligence':
-        dir === 'outgoing'
-          ? 'Screen the transaction for risk before anything leaves our side. Decision: Auto Reject or Submit for Review.'
-          : 'Screen the received funds for risk before crediting to the customer. Decision: Hold or Submit for Review.',
-      'Mismatch Hold':
-        'Hold incoming transfers when the on-chain transaction does not match the Travel Rule PII. Decision: Hold or Submit for Review.'
+    if (stage === 'Due Diligence') {
+      return dir === 'outgoing'
+        ? t('rules.stages.outgoingDueDiligenceDesc')
+        : t('rules.stages.incomingDueDiligenceDesc')
     }
-    return descs[stage] || ''
+    if (stage === 'Mismatch Hold') {
+      return t('rules.stages.mismatchHoldDesc')
+    }
+    return ''
+  }
+
+  function stageLabel(stage: string): string {
+    if (stage === 'Due Diligence') return t('rules.stages.dueDiligence')
+    if (stage === 'Mismatch Hold') return t('rules.stages.mismatchHold')
+    return stage
+  }
+
+  function severityLabel(severity: string): string {
+    if (severity === 'Routine') return t('rules.routine')
+    if (severity === 'Medium') return t('rules.medium')
+    if (severity === 'Critical') return t('rules.critical')
+    return severity
+  }
+
+  function statusLabel(status: string): string {
+    if (status === 'Active') return t('rules.active')
+    if (status === 'Pending') return t('rules.pending')
+    if (status === 'Cancelled') return t('rules.cancelled')
+    return status
+  }
+
+  function decisionLabel(decision: string): string {
+    if (decision === 'Auto Reject') return t('rules.autoReject')
+    if (decision === 'Submit for Review') return t('rules.submitReview')
+    if (decision === 'Hold') return t('rules.hold')
+    return decision
+  }
+
+  function scopeLabel(scope: string): string {
+    if (scope === 'Global') return t('rules.global')
+    if (scope === 'Merchant Specific') return t('rules.merchantSpecific')
+    return scope
   }
 
   function severityTag(severity: string) {
@@ -421,26 +532,17 @@
   }
 
   function openAddRule(stage: string) {
-    editing.value = false
-    Object.assign(form, {
-      id: 0,
-      name: '',
-      description: '',
-      direction: direction.value === 'outgoing' ? 'Outgoing' : 'Incoming',
-      stage,
-      minAmount: '',
-      severity: 'Routine',
-      scope: 'Global',
-      decision: direction.value === 'outgoing' ? 'Auto Reject' : 'Hold',
-      riskFactors: []
+    router.push({
+      name: 'ComplianceRuleEditor',
+      query: { stage, direction: direction.value }
     })
-    showDialog.value = true
   }
 
   function editRule(rule: Rule) {
-    editing.value = true
-    Object.assign(form, { ...rule, riskFactors: (rule as any).riskFactors || [] })
-    showDialog.value = true
+    router.push({
+      name: 'ComplianceRuleEditor',
+      params: { id: String(rule.id) }
+    })
   }
 
   function toggleRuleStatus(rule: Rule, status: string) {
@@ -516,5 +618,65 @@
   .rule-card-hover:hover {
     border-color: var(--el-border-color);
     box-shadow: 0 1px 3px rgb(0 0 0 / 4%);
+  }
+
+  /* Dialog height limitation */
+  :deep(.el-dialog) {
+    max-height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  :deep(.el-dialog__body) {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  /* Factor row styles */
+  .factor-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--el-fill-color-light);
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 8px;
+    transition: all 0.15s;
+  }
+
+  .factor-row.active {
+    background: var(--el-bg-color);
+    border-color: var(--el-color-primary-light-5);
+  }
+
+  .factor-toggle {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--el-border-color);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .factor-row.active .factor-toggle {
+    background: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+  }
+
+  .factor-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--el-text-color-primary);
+    min-width: 140px;
+  }
+
+  .factor-options-hint {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
 </style>
