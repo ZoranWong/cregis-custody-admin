@@ -82,10 +82,12 @@
           <p class="text-xs text-g-600 leading-relaxed mb-3">{{ rule.description }}</p>
           <div class="flex gap-3 text-[11px] text-g-400">
             <span
-              >{{ $t('rules.decision') }}: <span class="text-g-600">{{ rule.decision }}</span></span
+              >{{ $t('rules.decision') }}:
+              <span class="text-g-600">{{ decisionLabel(rule.decision) }}</span></span
             >
             <span
-              >{{ $t('rules.scope') }}: <span class="text-g-600">{{ rule.scope }}</span></span
+              >{{ $t('rules.scope') }}:
+              <span class="text-g-600">{{ scopeLabel(rule.scope) }}</span></span
             >
           </div>
           <!-- Actions -->
@@ -128,26 +130,22 @@
 
 <script setup lang="ts">
   import { useRouter } from 'vue-router'
-  import countriesEn from '@/data/countries-en.json'
-  import countriesZh from '@/data/countries-zh.json'
   import { useI18n } from 'vue-i18n'
+  import {
+    decisionLabelKey,
+    scopeLabelKey,
+    severityLabelKey,
+    ruleStatusLabelKey
+  } from './dictionaries'
 
   defineOptions({ name: 'ComplianceRules' })
 
   const router = useRouter()
-  const { locale, t } = useI18n()
+  const { t } = useI18n()
 
-  // Get country list based on current locale
-  function getCountries(): { code: string; name: string }[] {
-    return locale.value === 'zh' ? countriesZh : countriesEn
-  }
-
-  const countryOptions = computed(() => getCountries().map((c) => `${c.code} — ${c.name}`))
   const direction = ref('outgoing')
   const statusFilter = ref('all')
   const severityFilter = ref('all')
-  const showDialog = ref(false)
-  const editing = ref(false)
 
   const statusOptions = computed(() => [
     { label: t('rules.all'), value: 'all' },
@@ -173,174 +171,6 @@
     stage: string
     direction: string
   }
-
-  interface FactorOption {
-    key: string
-    labelKey: string
-    type: 'multi'
-    options: string[]
-  }
-
-  interface FactorDomain {
-    domainKey: string
-    factors: FactorOption[]
-  }
-
-  // Factor catalog with i18n keys
-  const factorCatalogTemplate: FactorDomain[] = [
-    {
-      domainKey: 'rules.factorDomains.customerDueDiligence',
-      factors: [
-        {
-          key: 'onboarding_state',
-          labelKey: 'rules.factors.onboardingStatus',
-          type: 'multi',
-          options: ['onboarded', 'pending', 'labeled', 'frozen', 'offboarded']
-        },
-        {
-          key: 'customer_risk_level',
-          labelKey: 'rules.factors.customerRiskLevel',
-          type: 'multi',
-          options: ['low', 'medium', 'high']
-        }
-      ]
-    },
-    {
-      domainKey: 'rules.factorDomains.screening',
-      factors: [
-        {
-          key: 'screening.counterparty_vasp',
-          labelKey: 'rules.factors.counterpartyVasp',
-          type: 'multi',
-          options: ['ofacSdn', 'euList', 'unSecurity', 'pep', 'adverseMedia', 'criminal']
-        },
-        {
-          key: 'screening.beneficiary_entity',
-          labelKey: 'rules.factors.beneficiary',
-          type: 'multi',
-          options: ['ofacSdn', 'euList', 'unSecurity', 'pep', 'adverseMedia', 'criminal']
-        },
-        {
-          key: 'screening.originator_address',
-          labelKey: 'rules.factors.originatorAddress',
-          type: 'multi',
-          options: ['mixer', 'darknet', 'ransomware', 'sanctionsAddr', 'theftScam', 'structuring']
-        },
-        {
-          key: 'screening.beneficiary_address',
-          labelKey: 'rules.factors.beneficiaryAddress',
-          type: 'multi',
-          options: ['mixer', 'darknet', 'ransomware', 'sanctionsAddr', 'theftScam', 'structuring']
-        }
-      ]
-    },
-    {
-      domainKey: 'rules.factorDomains.counterpartyVasp',
-      factors: [
-        {
-          key: 'counterparty_jurisdiction',
-          labelKey: 'rules.factors.jurisdiction',
-          type: 'multi',
-          options: countryOptions.value
-        },
-        {
-          key: 'vasp_status',
-          labelKey: 'rules.factors.vaspStatus',
-          type: 'multi',
-          options: ['registered', 'exempt', 'unlicensed']
-        },
-        {
-          key: 'vasp_regulatory',
-          labelKey: 'rules.factors.regulatory',
-          type: 'multi',
-          options: ['verified', 'unverified']
-        },
-        {
-          key: 'tr_capable',
-          labelKey: 'rules.factors.trCapable',
-          type: 'multi',
-          options: ['yes', 'no']
-        },
-        {
-          key: 'ivms101_valid',
-          labelKey: 'rules.factors.ivms101Valid',
-          type: 'multi',
-          options: ['valid', 'invalid']
-        }
-      ]
-    }
-  ]
-
-  // Computed factor catalog with translated labels
-  const factorCatalog = computed(() =>
-    factorCatalogTemplate.map((domain) => ({
-      domain: t(domain.domainKey),
-      factors: domain.factors.map((factor) => ({
-        ...factor,
-        label: t(factor.labelKey),
-        options: factor.options.map((opt) => {
-          // Check if it's a country option (contains ' — ')
-          if (opt.includes(' — ')) return opt
-          // Try to translate the option
-          const translated = t(`rules.factorOptions.${opt}`)
-          return translated.startsWith('rules.factorOptions.') ? opt : translated
-        })
-      }))
-    }))
-  )
-
-  // Active factors with selected options: { factorKey: string[] }
-  const activeFactors = ref<Record<string, string[]>>({})
-
-  function toggleFactor(factorKey: string) {
-    if (activeFactors.value[factorKey]) {
-      delete activeFactors.value[factorKey]
-    } else {
-      activeFactors.value[factorKey] = []
-    }
-  }
-
-  function toggleFactorOption(factorKey: string, option: string) {
-    if (!activeFactors.value[factorKey]) {
-      activeFactors.value[factorKey] = []
-    }
-    const idx = activeFactors.value[factorKey].indexOf(option)
-    if (idx >= 0) {
-      activeFactors.value[factorKey].splice(idx, 1)
-      if (activeFactors.value[factorKey].length === 0) {
-        delete activeFactors.value[factorKey]
-      }
-    } else {
-      activeFactors.value[factorKey].push(option)
-    }
-  }
-
-  function isFactorActive(factorKey: string): boolean {
-    return !!activeFactors.value[factorKey]
-  }
-
-  function isOptionSelected(factorKey: string, option: string): boolean {
-    return activeFactors.value[factorKey]?.includes(option) ?? false
-  }
-
-  function getFactorOptionsDisplay(factorKey: string): string {
-    const factor = factorCatalog.value.flatMap((d) => d.factors).find((f) => f.key === factorKey)
-    if (!factor) return ''
-    return factor.options.join(' | ')
-  }
-
-  const form = reactive({
-    id: 0,
-    name: '',
-    description: '',
-    direction: 'Outgoing',
-    stage: '',
-    minAmount: '',
-    severity: 'Routine',
-    scope: 'Global',
-    decision: 'Submit for Review',
-    riskFactors: [] as string[]
-  })
 
   const rules = ref<Rule[]>([
     {
@@ -492,31 +322,53 @@
     return stage
   }
 
+  // ─── 字典翻译（value 为后端枚举，labelKey 来自 dictionaries.ts）───
+  function dictLabel(
+    lookup: (value: string) => string | undefined,
+    value: string,
+    fallbackMap?: Record<string, string>
+  ): string {
+    const key = lookup(value)
+    if (key) return t(key)
+    // 兼容 mock 数据中的旧英文值
+    if (fallbackMap?.[value]) return t(fallbackMap[value])
+    return value
+  }
+
+  const DECISION_FALLBACK: Record<string, string> = {
+    'Auto Reject': 'rules.decisions.autoReject',
+    'Submit for Review': 'rules.decisions.submitReview',
+    Hold: 'rules.decisions.hold'
+  }
+  const SCOPE_FALLBACK: Record<string, string> = {
+    Global: 'rules.scopes.global',
+    'Merchant Specific': 'rules.scopes.merchantSpecific'
+  }
+  const SEVERITY_FALLBACK: Record<string, string> = {
+    Routine: 'rules.severities.routine',
+    Medium: 'rules.severities.medium',
+    Critical: 'rules.severities.critical'
+  }
+  const STATUS_FALLBACK: Record<string, string> = {
+    Active: 'rules.statuses.active',
+    Pending: 'rules.statuses.pending',
+    Cancelled: 'rules.statuses.cancelled'
+  }
+
   function severityLabel(severity: string): string {
-    if (severity === 'Routine') return t('rules.routine')
-    if (severity === 'Medium') return t('rules.medium')
-    if (severity === 'Critical') return t('rules.critical')
-    return severity
+    return dictLabel(severityLabelKey, severity, SEVERITY_FALLBACK)
   }
 
   function statusLabel(status: string): string {
-    if (status === 'Active') return t('rules.active')
-    if (status === 'Pending') return t('rules.pending')
-    if (status === 'Cancelled') return t('rules.cancelled')
-    return status
+    return dictLabel(ruleStatusLabelKey, status, STATUS_FALLBACK)
   }
 
   function decisionLabel(decision: string): string {
-    if (decision === 'Auto Reject') return t('rules.autoReject')
-    if (decision === 'Submit for Review') return t('rules.submitReview')
-    if (decision === 'Hold') return t('rules.hold')
-    return decision
+    return dictLabel(decisionLabelKey, decision, DECISION_FALLBACK)
   }
 
   function scopeLabel(scope: string): string {
-    if (scope === 'Global') return t('rules.global')
-    if (scope === 'Merchant Specific') return t('rules.merchantSpecific')
-    return scope
+    return dictLabel(scopeLabelKey, scope, SCOPE_FALLBACK)
   }
 
   function severityTag(severity: string) {
@@ -551,38 +403,6 @@
 
   function goDetail(id: number) {
     router.push({ name: 'ComplianceRuleDetail', params: { id: String(id) } })
-  }
-
-  function saveRule() {
-    if (editing.value) {
-      const idx = rules.value.findIndex((r) => r.id === form.id)
-      if (idx >= 0) {
-        rules.value[idx] = {
-          id: form.id,
-          name: form.name,
-          description: form.description,
-          direction: form.direction,
-          stage: form.stage,
-          severity: form.severity,
-          scope: form.scope,
-          decision: form.decision,
-          status: rules.value[idx].status
-        }
-      }
-    } else {
-      rules.value.push({
-        id: Date.now(),
-        name: form.name,
-        description: form.description,
-        direction: form.direction,
-        stage: form.stage,
-        severity: form.severity,
-        scope: form.scope,
-        decision: form.decision,
-        status: 'Pending'
-      })
-    }
-    showDialog.value = false
   }
 </script>
 

@@ -39,24 +39,34 @@
             </el-form-item>
             <el-form-item :label="$t('rules.severity')">
               <el-select v-model="form.severity" class="w-full">
-                <el-option :label="$t('rules.severityRoutine')" value="Routine" />
-                <el-option :label="$t('rules.severityMedium')" value="Medium" />
-                <el-option :label="$t('rules.severityCritical')" value="Critical" />
+                <el-option
+                  v-for="item in severityDict"
+                  :key="item.value"
+                  :label="$t(item.labelKey)"
+                  :value="item.value"
+                />
               </el-select>
             </el-form-item>
           </div>
           <div class="grid grid-cols-2 gap-x-6">
             <el-form-item :label="$t('rules.scope')">
               <el-select v-model="form.scope" class="w-full">
-                <el-option :label="$t('rules.global')" value="Global" />
-                <el-option :label="$t('rules.merchantSpecific')" value="Merchant Specific" />
+                <el-option
+                  v-for="item in scopeDict"
+                  :key="item.value"
+                  :label="$t(item.labelKey)"
+                  :value="item.value"
+                />
               </el-select>
             </el-form-item>
             <el-form-item :label="$t('rules.decision')">
               <el-select v-model="form.decision" class="w-full">
-                <el-option :label="$t('rules.autoReject')" value="Auto Reject" />
-                <el-option :label="$t('rules.submitReview')" value="Submit for Review" />
-                <el-option :label="$t('rules.hold')" value="Hold" />
+                <el-option
+                  v-for="item in decisionDict"
+                  :key="item.value"
+                  :label="$t(item.labelKey)"
+                  :value="item.value"
+                />
               </el-select>
             </el-form-item>
           </div>
@@ -122,6 +132,11 @@
   import { useI18n } from 'vue-i18n'
   import countriesEn from '@/data/countries-en.json'
   import countriesZh from '@/data/countries-zh.json'
+  import {
+    DECISION_DICT as decisionDict,
+    SCOPE_DICT as scopeDict,
+    SEVERITY_DICT as severityDict
+  } from './dictionaries'
 
   defineOptions({ name: 'RuleEditor' })
 
@@ -301,9 +316,9 @@
     direction: 'Outgoing',
     stage: '',
     minAmount: '',
-    severity: 'Routine',
-    scope: 'Global',
-    decision: 'Submit for Review',
+    severity: 'ROUTINE',
+    scope: 'GLOBAL',
+    decision: 'SUBMIT_REVIEW',
     riskFactors: [] as string[]
   })
 

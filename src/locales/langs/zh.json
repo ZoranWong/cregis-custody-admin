@@ -407,6 +407,25 @@
     "severityRoutine": "常规",
     "severityMedium": "中等",
     "severityCritical": "严重",
+    "decisions": {
+      "autoReject": "自动拒绝",
+      "submitReview": "提交审查",
+      "hold": "挂起"
+    },
+    "scopes": {
+      "global": "全局",
+      "merchantSpecific": "指定商户"
+    },
+    "severities": {
+      "routine": "常规",
+      "medium": "中等",
+      "critical": "严重"
+    },
+    "statuses": {
+      "active": "启用",
+      "pending": "待生效",
+      "cancelled": "已取消"
+    },
     "factorDomains": {
       "customerDueDiligence": "客户尽职调查",
       "screening": "筛查",

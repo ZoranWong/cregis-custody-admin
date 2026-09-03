@@ -355,6 +355,25 @@
     "severityRoutine": "Routine",
     "severityMedium": "Medium",
     "severityCritical": "Critical",
+    "decisions": {
+      "autoReject": "Auto Reject",
+      "submitReview": "Submit for Review",
+      "hold": "Hold"
+    },
+    "scopes": {
+      "global": "Global",
+      "merchantSpecific": "Merchant Specific"
+    },
+    "severities": {
+      "routine": "Routine",
+      "medium": "Medium",
+      "critical": "Critical"
+    },
+    "statuses": {
+      "active": "Active",
+      "pending": "Pending",
+      "cancelled": "Cancelled"
+    },
     "factorDomains": {
       "customerDueDiligence": "Customer Due Diligence",
       "screening": "Screening",
