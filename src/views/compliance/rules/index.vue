@@ -135,7 +135,9 @@
     decisionLabelKey,
     scopeLabelKey,
     severityLabelKey,
-    ruleStatusLabelKey
+    ruleStatusLabelKey,
+    stageLabelKey,
+    stageDescKey
   } from './dictionaries'
 
   defineOptions({ name: 'ComplianceRules' })
@@ -182,7 +184,7 @@
         'Reject if counterparty VASP or beneficiary matches OFAC SDN, UN Security Council, or EU sanctions lists.',
       decision: 'Auto Reject',
       scope: 'Global',
-      stage: 'Due Diligence',
+      stage: 'DUE_DILIGENCE',
       direction: 'Outgoing'
     },
     {
@@ -194,7 +196,7 @@
         'Reject outgoing transfers to DPRK, Iran, Syria, or Cuba above 10,000 AED equivalent.',
       decision: 'Auto Reject',
       scope: 'Global',
-      stage: 'Due Diligence',
+      stage: 'DUE_DILIGENCE',
       direction: 'Outgoing'
     },
     {
@@ -206,7 +208,7 @@
         'Route to compliance review for any outgoing transfer exceeding 50,000 AED equivalent.',
       decision: 'Submit for Review',
       scope: 'Global',
-      stage: 'Due Diligence',
+      stage: 'DUE_DILIGENCE',
       direction: 'Outgoing'
     },
     {
@@ -218,7 +220,7 @@
         'Hold for manual review when counterparty VASP status is Unlicensed or regulatory verification is unconfirmed.',
       decision: 'Submit for Review',
       scope: 'Global',
-      stage: 'Due Diligence',
+      stage: 'DUE_DILIGENCE',
       direction: 'Outgoing'
     },
     {
@@ -230,7 +232,7 @@
         'Reject incoming transfers from addresses flagged for mixer interaction, darknet market, or ransomware association.',
       decision: 'Hold',
       scope: 'Global',
-      stage: 'Due Diligence',
+      stage: 'DUE_DILIGENCE',
       direction: 'Incoming'
     },
     {
@@ -242,7 +244,7 @@
         'Merchant-specific override: review incoming transfers to CryptoVault Ltd exceeding 100,000 AED.',
       decision: 'Submit for Review',
       scope: 'Merchant-Specific',
-      stage: 'Due Diligence',
+      stage: 'DUE_DILIGENCE',
       direction: 'Incoming'
     },
     {
@@ -253,7 +255,7 @@
       description: 'Flag transactions matching known suspicious patterns or structuring behavior.',
       decision: 'Submit for Review',
       scope: 'Global',
-      stage: 'Due Diligence',
+      stage: 'DUE_DILIGENCE',
       direction: 'Incoming'
     },
     {
@@ -265,7 +267,7 @@
         'Hold for review when originator PII fails IVMS101 validation or contains incomplete identifying information.',
       decision: 'Submit for Review',
       scope: 'Global',
-      stage: 'Mismatch Hold',
+      stage: 'MISMATCH_HOLD',
       direction: 'Incoming'
     },
     {
@@ -277,7 +279,7 @@
         'Hold incoming transfers when the on-chain amount differs from the Travel Rule message by more than 1%.',
       decision: 'Hold',
       scope: 'Global',
-      stage: 'Mismatch Hold',
+      stage: 'MISMATCH_HOLD',
       direction: 'Incoming'
     }
   ])
@@ -303,22 +305,33 @@
     }))
   })
 
+  // ─── 阶段（按编号查字典，出金/入金描述自动区分）───
+  const STAGE_LABEL_FALLBACK: Record<string, string> = {
+    'Due Diligence': 'rules.stages.dueDiligence',
+    'Mismatch Hold': 'rules.stages.mismatchHold'
+  }
+  const STAGE_DESC_FALLBACK: Record<string, [string, string]> = {
+    // value: [outgoingDescKey, incomingDescKey]
+    'Due Diligence': [
+      'rules.stages.outgoingDueDiligenceDesc',
+      'rules.stages.incomingDueDiligenceDesc'
+    ],
+    'Mismatch Hold': ['rules.stages.mismatchHoldDesc', 'rules.stages.mismatchHoldDesc']
+  }
+
   function stepDescription(stage: string): string {
-    const dir = direction.value
-    if (stage === 'Due Diligence') {
-      return dir === 'outgoing'
-        ? t('rules.stages.outgoingDueDiligenceDesc')
-        : t('rules.stages.incomingDueDiligenceDesc')
-    }
-    if (stage === 'Mismatch Hold') {
-      return t('rules.stages.mismatchHoldDesc')
-    }
+    const dirCode = direction.value === 'outgoing' ? 'OUTGOING' : 'INCOMING'
+    const key = stageDescKey(stage, dirCode)
+    if (key) return t(key)
+    const fallback = STAGE_DESC_FALLBACK[stage]
+    if (fallback) return t(dirCode === 'OUTGOING' ? fallback[0] : fallback[1])
     return ''
   }
 
   function stageLabel(stage: string): string {
-    if (stage === 'Due Diligence') return t('rules.stages.dueDiligence')
-    if (stage === 'Mismatch Hold') return t('rules.stages.mismatchHold')
+    const key = stageLabelKey(stage)
+    if (key) return t(key)
+    if (STAGE_LABEL_FALLBACK[stage]) return t(STAGE_LABEL_FALLBACK[stage])
     return stage
   }
 

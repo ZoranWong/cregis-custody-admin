@@ -27,10 +27,10 @@
           </el-form-item>
           <div class="grid grid-cols-2 gap-x-6">
             <el-form-item :label="$t('rules.direction')">
-              <el-input :model-value="form.direction" disabled />
+              <el-input :model-value="directionLabel(form.direction)" disabled />
             </el-form-item>
             <el-form-item :label="$t('rules.stage')">
-              <el-input :model-value="form.stage" disabled />
+              <el-input :model-value="stageLabel(form.stage)" disabled />
             </el-form-item>
           </div>
           <div class="grid grid-cols-2 gap-x-6">
@@ -135,7 +135,9 @@
   import {
     DECISION_DICT as decisionDict,
     SCOPE_DICT as scopeDict,
-    SEVERITY_DICT as severityDict
+    SEVERITY_DICT as severityDict,
+    stageLabelKey,
+    directionLabelKey
   } from './dictionaries'
 
   defineOptions({ name: 'RuleEditor' })
@@ -143,6 +145,34 @@
   const route = useRoute()
   const router = useRouter()
   const { locale, t } = useI18n()
+
+  const DIRECTION_FALLBACK: Record<string, string> = {
+    Outgoing: 'rules.outgoing',
+    Incoming: 'rules.incoming'
+  }
+  const STAGE_FALLBACK: Record<string, string> = {
+    'Due Diligence': 'rules.stages.dueDiligence',
+    'Mismatch Hold': 'rules.stages.mismatchHold'
+  }
+
+  function dictText(
+    lookup: (value: string) => string | undefined,
+    value: string,
+    fallbackMap?: Record<string, string>
+  ): string {
+    const key = lookup(value)
+    if (key) return t(key)
+    if (fallbackMap?.[value]) return t(fallbackMap[value])
+    return value
+  }
+
+  function stageLabel(value: string): string {
+    return dictText(stageLabelKey, value, STAGE_FALLBACK)
+  }
+
+  function directionLabel(value: string): string {
+    return dictText(directionLabelKey, value, DIRECTION_FALLBACK)
+  }
 
   const ruleId = computed(() => route.params.id as string)
   const isEdit = computed(() => !!ruleId.value)
@@ -313,7 +343,7 @@
     id: 0,
     name: '',
     description: '',
-    direction: 'Outgoing',
+    direction: 'OUTGOING',
     stage: '',
     minAmount: '',
     severity: 'ROUTINE',
@@ -332,6 +362,15 @@
     if (isEdit.value) {
       // TODO: Load rule data from API
       console.log('Edit rule:', ruleId.value)
+      return
+    }
+    // 新增：从 query 读取 stage 编号与方向编号
+    const stageCode = route.query.stage as string
+    const directionCode = route.query.direction as string
+    if (stageCode) form.stage = stageCode
+    if (directionCode === 'incoming') {
+      form.direction = 'INCOMING'
+      form.decision = 'HOLD'
     }
   })
 </script>

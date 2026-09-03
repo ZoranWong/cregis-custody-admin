@@ -26,7 +26,7 @@
         <h2 class="text-lg font-semibold text-g-900">{{ currentRule.name }}</h2>
         <div class="flex items-center gap-2">
           <el-tag :type="statusTag(currentRule.status)" size="default" effect="light">
-            {{ currentRule.status }}
+            {{ statusLabel(currentRule.status) }}
           </el-tag>
           <el-button
             v-if="currentRule.status === 'Active'"
@@ -79,7 +79,7 @@
             <div
               class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
             >
-              {{ currentRule.direction }}
+              {{ directionLabel(currentRule.direction) }}
             </div>
           </div>
           <div>
@@ -99,7 +99,7 @@
             <div
               class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
             >
-              {{ currentRule.severity }}
+              {{ severityLabel(currentRule.severity) }}
             </div>
           </div>
         </div>
@@ -113,7 +113,7 @@
             <div
               class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
             >
-              {{ currentRule.stage }}
+              {{ stageLabel(currentRule.stage) }}
             </div>
           </div>
           <div>
@@ -123,7 +123,7 @@
             <div
               class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
             >
-              {{ currentRule.decision }}
+              {{ decisionLabel(currentRule.decision) }}
             </div>
           </div>
           <div>
@@ -133,7 +133,7 @@
             <div
               class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
             >
-              {{ currentRule.scope }}
+              {{ scopeLabel(currentRule.scope) }}
             </div>
           </div>
         </div>
@@ -184,11 +184,21 @@
 
 <script setup lang="ts">
   import { useRoute, useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
+  import {
+    decisionLabelKey,
+    scopeLabelKey,
+    severityLabelKey,
+    ruleStatusLabelKey,
+    directionLabelKey,
+    stageLabelKey
+  } from './dictionaries'
 
   defineOptions({ name: 'ComplianceRuleDetail' })
 
   const route = useRoute()
   const router = useRouter()
+  const { t } = useI18n()
 
   // Mock rule data (in real app, fetch by route.params.id)
   const rulesMap: Record<string, any> = {
@@ -247,6 +257,70 @@
       factors: {}
     }
   )
+
+  // ─── 字典翻译（与列表页相同的 fallback 兼容）───
+  const DECISION_FALLBACK: Record<string, string> = {
+    'Auto Reject': 'rules.decisions.autoReject',
+    'Submit for Review': 'rules.decisions.submitReview',
+    Hold: 'rules.decisions.hold'
+  }
+  const SCOPE_FALLBACK: Record<string, string> = {
+    Global: 'rules.scopes.global',
+    'Merchant Specific': 'rules.scopes.merchantSpecific'
+  }
+  const SEVERITY_FALLBACK: Record<string, string> = {
+    Routine: 'rules.severities.routine',
+    Medium: 'rules.severities.medium',
+    Critical: 'rules.severities.critical'
+  }
+  const STATUS_FALLBACK: Record<string, string> = {
+    Active: 'rules.statuses.active',
+    Pending: 'rules.statuses.pending',
+    Cancelled: 'rules.statuses.cancelled'
+  }
+  const DIRECTION_FALLBACK: Record<string, string> = {
+    Outgoing: 'rules.outgoing',
+    Incoming: 'rules.incoming'
+  }
+  const STAGE_FALLBACK: Record<string, string> = {
+    'Due Diligence': 'rules.stages.dueDiligence',
+    'Mismatch Hold': 'rules.stages.mismatchHold'
+  }
+
+  function dictLabel(
+    lookup: (value: string) => string | undefined,
+    value: string,
+    fallbackMap?: Record<string, string>
+  ): string {
+    const key = lookup(value)
+    if (key) return t(key)
+    if (fallbackMap?.[value]) return t(fallbackMap[value])
+    return value
+  }
+
+  function severityLabel(value: string): string {
+    return dictLabel(severityLabelKey, value, SEVERITY_FALLBACK)
+  }
+
+  function statusLabel(value: string): string {
+    return dictLabel(ruleStatusLabelKey, value, STATUS_FALLBACK)
+  }
+
+  function decisionLabel(value: string): string {
+    return dictLabel(decisionLabelKey, value, DECISION_FALLBACK)
+  }
+
+  function scopeLabel(value: string): string {
+    return dictLabel(scopeLabelKey, value, SCOPE_FALLBACK)
+  }
+
+  function directionLabel(value: string): string {
+    return dictLabel(directionLabelKey, value, DIRECTION_FALLBACK)
+  }
+
+  function stageLabel(stage: string): string {
+    return dictLabel(stageLabelKey, stage, STAGE_FALLBACK)
+  }
 
   const activeFactors = computed(() => {
     const result: Array<{ domain: string; label: string; values: string[] }> = []

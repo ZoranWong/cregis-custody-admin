@@ -45,6 +45,33 @@ export const DIRECTION_DICT: DictItem[] = [
   { value: 'INCOMING', labelKey: 'rules.incoming' }
 ]
 
+/**
+ * 规则阶段 — 全局固定配置
+ * value 即 stage 编号（后端枚举），各页面只传编号，不传文字。
+ * labelKey / descriptionKey 按 direction 区分出金/入金描述。
+ */
+export interface StageItem {
+  value: string
+  labelKey: string
+  outgoingDescKey: string
+  incomingDescKey: string
+}
+
+export const STAGE_DICT: StageItem[] = [
+  {
+    value: 'DUE_DILIGENCE',
+    labelKey: 'rules.stages.dueDiligence',
+    outgoingDescKey: 'rules.stages.outgoingDueDiligenceDesc',
+    incomingDescKey: 'rules.stages.incomingDueDiligenceDesc'
+  },
+  {
+    value: 'MISMATCH_HOLD',
+    labelKey: 'rules.stages.mismatchHold',
+    outgoingDescKey: 'rules.stages.mismatchHoldDesc',
+    incomingDescKey: 'rules.stages.mismatchHoldDesc'
+  }
+]
+
 function lookupLabel(dict: DictItem[], value: string): string | undefined {
   return dict.find((d) => d.value === value)?.labelKey
 }
@@ -72,4 +99,19 @@ export function ruleStatusLabelKey(value: string): string | undefined {
 /** 方向 value → i18n key */
 export function directionLabelKey(value: string): string | undefined {
   return lookupLabel(DIRECTION_DICT, value)
+}
+
+/** 阶段编号 → i18n key（label） */
+export function stageLabelKey(value: string): string | undefined {
+  return STAGE_DICT.find((s) => s.value === value)?.labelKey
+}
+
+/** 阶段编号 + 方向 → i18n key（description） */
+export function stageDescKey(
+  value: string,
+  direction: 'OUTGOING' | 'INCOMING' | string
+): string | undefined {
+  const stage = STAGE_DICT.find((s) => s.value === value)
+  if (!stage) return undefined
+  return direction === 'OUTGOING' ? stage.outgoingDescKey : stage.incomingDescKey
 }
