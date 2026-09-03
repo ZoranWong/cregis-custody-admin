@@ -89,7 +89,7 @@
             <div
               class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
             >
-              {{ currentRule.minAmount || $t('rules.anyAmount') }}
+              {{ minAmountLabel(currentRule.minAmount) }}
             </div>
           </div>
           <div>
@@ -320,6 +320,12 @@
 
   function stageLabel(stage: string): string {
     return dictLabel(stageLabelKey, stage, STAGE_FALLBACK)
+  }
+
+  /** 最小金额：空值 / ANY / 旧英文 'Any amount' 均显示本地化"任意金额" */
+  function minAmountLabel(value: string): string {
+    if (!value || value === 'ANY' || value === 'Any amount') return t('rules.anyAmount')
+    return value
   }
 
   const activeFactors = computed(() => {
