@@ -59,27 +59,26 @@ export async function setupTotp(mfaToken: string, email: string): Promise<TotpSe
 }
 
 // --- TOTP 启用（验证 6 位码，完成绑定） ---
+// enable 只返回 recoveryCode（逗号分隔）；session 需随后通过 totp/verify 获取
 
 export interface TotpEnableResponse {
-  token: string
-  refreshToken: string
-  user: Partial<AuthenticatedUser>
-  recoveryCode?: string
+  recoveryCodes: string[]
 }
 
 export async function enableTotpCode(mfaToken: string, code: string): Promise<TotpEnableResponse> {
-  const response = (await apiRequest<Record<string, unknown>>('/v1/auth/mfa/settings/totp/enable', {
+  const raw = (await apiRequest<Record<string, unknown>>('/v1/auth/mfa/settings/totp/enable', {
     method: 'POST',
     auth: false,
-    body: { mfaToken, code },
-    includeMeta: true
-  })) as { data: Record<string, unknown>; headers: Headers }
-  const data = response.data || {}
+    body: { mfaToken, code }
+  })) as Record<string, unknown>
+  const recoveryCode = readStr(raw, 'recoveryCode')
   return {
-    token: readRequired(data, 'token'),
-    refreshToken: readStr(data, 'refreshToken'),
-    user: readUser(data),
-    recoveryCode: readStr(data, 'recoveryCode') || undefined
+    recoveryCodes: recoveryCode
+      ? recoveryCode
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean)
+      : []
   }
 }
 

@@ -74,26 +74,17 @@ export function useStrongAuthGate() {
     busy.value = true
     try {
       const result = await enableTotpCode(sa.mfaToken, code.value.trim())
-      const recoveryCode = result.recoveryCode
+      // enable 只返回恢复码，不含 session；展示备份码后需重新走 Challenge 验证
       authBootstrapStore.updateStrongAuthSetup({
         totpSetupComplete: true,
-        recoveryCodes: recoveryCode ? [recoveryCode] : [],
+        recoveryCodes: result.recoveryCodes,
         recoveryAcknowledged: false,
         inlineErrorMessage: '',
         totpChallengeState: 'ready',
         recoveryModeState: 'totp_primary'
       })
-      const session = {
-        token: result.token,
-        refreshToken: result.refreshToken,
-        user: result.user
-      } as any
-      sessionStore.setSession(session)
-      authBootstrapStore.setPostAuthRoute(mergeWorkbenchPostAuthRoute(null, session.user.roles))
-      authBootstrapStore.clearStrongAuth()
-      uiStore.showToast('success', 'TOTP enabled', 'Authentication completed.')
+      uiStore.showToast('success', 'TOTP enabled', 'Authenticator bound successfully.')
       code.value = ''
-      await router.push({ name: 'home' })
     } catch (caught) {
       if (await handleTerminalStrongAuthError(caught, 'Security session expired')) return
       const mapped = mapTotpError(caught, 'Unable to activate TOTP.')
@@ -181,10 +172,13 @@ export function useStrongAuthGate() {
       await router.push({ name: 'home' })
       return
     }
+    // enable 已完成绑定：切换到 Challenge 模式（totpEnrolled=true），清掉已展示的恢复码
     authBootstrapStore.setStrongAuth({
       ...sa,
       totpEnrolled: true,
       totpSetupComplete: true,
+      recoveryCodes: [],
+      recoveryAcknowledged: false,
       inlineErrorMessage: '',
       totpChallengeState: 'ready',
       recoveryModeState: 'totp_primary'
