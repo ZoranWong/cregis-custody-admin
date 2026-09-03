@@ -20,24 +20,36 @@ export function useLoginForm() {
 
   async function submit(): Promise<void> {
     error.value = ''
+
+    const email = form.email.trim()
+    const password = form.password.trim()
+    if (!email || !password) {
+      error.value = 'Please enter account and password.'
+      return
+    }
+
     busy.value = true
     try {
-      const result = await firstAuthenticate(form.email.trim(), form.password.trim())
+      const result = await firstAuthenticate(email, password)
       sessionStore.clearSession()
       authBootstrapStore.clearStrongAuth()
+
+      // mfaRequired=false：无需 MFA，登录直接完成
+      if (!result.mfaRequired) {
+        uiStore.showToast('success', 'Signed in', 'Login completed.')
+        await router.push({ name: 'home' })
+        return
+      }
+
+      // mfaRequired=true：进入 MFA 门禁（totp=false 自动进入 Setup 模式）
       authBootstrapStore.setStrongAuth({
         mfaToken: result.mfaToken,
         totpEnrolled: result.totp,
-        displayNameOrEmail: form.email.trim(),
-        identifiedEmail: form.email.trim(),
+        displayNameOrEmail: email,
+        identifiedEmail: email,
         totpChallengeState: 'ready',
         recoveryModeState: 'totp_primary'
       })
-      uiStore.showToast(
-        'info',
-        'Security verification required',
-        'Complete verification to continue.'
-      )
       await router.push({ name: 'strong-auth-gate' })
     } catch (caught) {
       error.value = mapLoginError(caught)

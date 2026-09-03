@@ -1,7 +1,7 @@
 <!-- 系统logo -->
 <template>
   <div class="flex-cc">
-    <img :style="logoStyle" src="@imgs/common/logo.webp" alt="logo" class="w-full h-full" />
+    <img :style="logoStyle" src="/logo.svg" alt="logo" class="h-auto" />
   </div>
 </template>
 
@@ -9,13 +9,17 @@
   defineOptions({ name: 'ArtLogo' })
 
   interface Props {
-    /** logo 大小 */
+    /** logo 大小（高度，px） */
     size?: number | string
   }
 
   const props = withDefaults(defineProps<Props>(), {
-    size: 36
+    size: 24
   })
 
-  const logoStyle = computed(() => ({ width: `${props.size}px` }))
+  // logo.svg 是 32:32 的图标，按正方形等比缩放
+  const logoStyle = computed(() => ({
+    height: `${props.size}px`,
+    width: `${props.size}px`
+  }))
 </script>
