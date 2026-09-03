@@ -154,7 +154,7 @@
               <div
                 class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-2 border-b border-[var(--default-border)]"
               >
-                {{ domain.domain }}
+                {{ domainLabel(domain.domain) }}
               </div>
               <div class="flex flex-col gap-2">
                 <div
@@ -167,10 +167,10 @@
                     >✓</span
                   >
                   <span class="text-sm font-medium text-g-800 min-w-[140px]">{{
-                    factor.label
+                    factorLabel(factor.label)
                   }}</span>
                   <span class="text-xs text-[var(--el-color-primary)] font-medium ml-auto">{{
-                    factor.values.join(', ')
+                    factor.values.map(factorOptionLabel).join(', ')
                   }}</span>
                 </div>
               </div>
@@ -326,6 +326,63 @@
   function minAmountLabel(value: string): string {
     if (!value || value === 'ANY' || value === 'Any amount') return t('rules.anyAmount')
     return value
+  }
+
+  // ─── 风险因子翻译（域 / 因子 / 选项值均走 i18n）───
+  const DOMAIN_FALLBACK: Record<string, string> = {
+    Screening: 'rules.factorDomains.screening',
+    'Customer Due Diligence': 'rules.factorDomains.customerDueDiligence',
+    'Counterparty VASP': 'rules.factorDomains.counterpartyVasp'
+  }
+  const FACTOR_FALLBACK: Record<string, string> = {
+    'Onboarding Status': 'rules.factors.onboardingStatus',
+    'Customer Risk Level': 'rules.factors.customerRiskLevel',
+    'Counterparty VASP': 'rules.factors.counterpartyVasp',
+    Beneficiary: 'rules.factors.beneficiary',
+    'Originator Address': 'rules.factors.originatorAddress',
+    'Beneficiary Address': 'rules.factors.beneficiaryAddress',
+    Jurisdiction: 'rules.factors.jurisdiction',
+    'VASP Status': 'rules.factors.vaspStatus',
+    Regulatory: 'rules.factors.regulatory',
+    'Travel Rule Capable': 'rules.factors.trCapable',
+    'IVMS101 PII': 'rules.factors.ivms101Valid'
+  }
+  const OPTION_FALLBACK: Record<string, string> = {
+    'OFAC SDN': 'rules.factorOptions.ofacSdn',
+    'EU List': 'rules.factorOptions.euList',
+    'UN Security': 'rules.factorOptions.unSecurity',
+    PEP: 'rules.factorOptions.pep',
+    'Adverse Media': 'rules.factorOptions.adverseMedia',
+    Criminal: 'rules.factorOptions.criminal',
+    Mixer: 'rules.factorOptions.mixer',
+    Darknet: 'rules.factorOptions.darknet',
+    Ransomware: 'rules.factorOptions.ransomware',
+    'Sanctions Addr': 'rules.factorOptions.sanctionsAddr',
+    'Theft/Scam': 'rules.factorOptions.theftScam',
+    Structuring: 'rules.factorOptions.structuring',
+    Registered: 'rules.factorOptions.registered',
+    Exempt: 'rules.factorOptions.exempt',
+    Unlicensed: 'rules.factorOptions.unlicensed',
+    Verified: 'rules.factorOptions.verified',
+    Unverified: 'rules.factorOptions.unverified',
+    Yes: 'rules.factorOptions.yes',
+    No: 'rules.factorOptions.no',
+    Valid: 'rules.factorOptions.valid',
+    Invalid: 'rules.factorOptions.invalid'
+  }
+
+  function domainLabel(value: string): string {
+    return DOMAIN_FALLBACK[value] ? t(DOMAIN_FALLBACK[value]) : value
+  }
+
+  function factorLabel(value: string): string {
+    return FACTOR_FALLBACK[value] ? t(FACTOR_FALLBACK[value]) : value
+  }
+
+  /** 国家选项（含 ' — '）原样返回，其余按 i18n 翻译 */
+  function factorOptionLabel(value: string): string {
+    if (value.includes(' — ')) return value
+    return OPTION_FALLBACK[value] ? t(OPTION_FALLBACK[value]) : value
   }
 
   const activeFactors = computed(() => {
