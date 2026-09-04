@@ -273,7 +273,7 @@
                 $t('txLens.detail.currentStatus')
               }}</span>
               <span class="text-sm font-bold" :class="fundStatus.statusColor">{{
-                fundStatus.status
+                $t('txLens.' + fundStatus.statusKey)
               }}</span>
             </div>
           </div>
@@ -442,7 +442,7 @@
   const fundStatus = reactive({
     receivedAmount: '50,000 USDT',
     heldSince: '2026-07-28 10:35 UTC',
-    status: 'Held',
+    statusKey: 'fdHeld',
     statusColor: 'text-warning'
   })
 
@@ -452,9 +452,9 @@
       return
     }
     showForfeitAddress.value = false
-    const labels: Record<string, string> = { released: 'Released', held: 'Held' }
+    const keys: Record<string, string> = { released: 'fdReleased', held: 'fdHeld' }
     const colors: Record<string, string> = { released: 'text-success', held: 'text-warning' }
-    fundStatus.status = labels[action] || 'Held'
+    fundStatus.statusKey = keys[action] || 'fdHeld'
     fundStatus.statusColor = colors[action] || 'text-warning'
   }
 

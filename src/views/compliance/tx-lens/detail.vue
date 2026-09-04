@@ -24,10 +24,12 @@
           <div class="text-[10px] text-g-500 mt-1">{{ txData.time }}</div>
           <div class="flex gap-1 justify-end mt-1">
             <el-tag :type="statusType(txData.status)" size="small" effect="dark">{{
-              txData.status
+              onChainLabel(txData.status)
             }}</el-tag>
-            <el-tag type="success" size="small" effect="dark">{{ txData.compliance }}</el-tag>
-            <el-tag type="success" size="small" effect="dark">TR {{ txData.travelRule }}</el-tag>
+            <el-tag type="success" size="small" effect="dark">{{ $t('txLens.clear') }}</el-tag>
+            <el-tag type="success" size="small" effect="dark"
+              >TR {{ $t('txLens.trComplete') }}</el-tag
+            >
           </div>
         </div>
       </div>
@@ -174,13 +176,13 @@
         {
           key: 'compliance',
           label: t('txLens.detail.tabCompliance'),
-          state: txData.compliance,
+          state: complianceLabel(txData.compliance),
           stepStatus: 'success'
         },
         {
           key: 'travel-rule',
           label: t('txLens.detail.tabTravelRule'),
-          state: txData.travelRule,
+          state: trLabel(txData.travelRule),
           stepStatus: 'success'
         }
       ]
@@ -188,7 +190,7 @@
       allSteps.push({
         key: 'signoff',
         label: t('txLens.detail.tabSignOff'),
-        state: txData.signOff,
+        state: signOffLabel(txData.signOff),
         stepStatus:
           txData.signOff === 'Approved' ? 'success' : txData.signOff ? 'progress' : 'pending'
       })
@@ -196,7 +198,7 @@
     allSteps.push({
       key: 'onchain',
       label: t('txLens.detail.tabOnChain'),
-      state: txData.status,
+      state: onChainLabel(txData.status),
       stepStatus:
         txData.status === 'Settled' || txData.status === 'Confirmed'
           ? 'success'
@@ -234,6 +236,35 @@
       Failed: 'danger'
     }
     return map[status]
+  }
+
+  // 枚举值 → i18n 显示（stepper state / header badge 共用）
+  function onChainLabel(status: string): string {
+    if (status === 'Settled') return t('txLens.settled')
+    if (status === 'Broadcasted') return t('txLens.broadcasted')
+    if (status === 'Confirmed') return t('txLens.confirmed')
+    if (status === 'Failed') return t('txLens.failed')
+    return status
+  }
+
+  function trLabel(state: string): string {
+    if (state === 'Complete') return t('txLens.trComplete')
+    if (state === 'Pending') return t('txLens.trPending')
+    if (state === 'Mismatch') return t('txLens.trMismatch')
+    return state
+  }
+
+  function complianceLabel(state: string): string {
+    if (state === 'Clear') return t('txLens.clear')
+    if (state === 'Flagged') return t('txLens.flagged')
+    if (state === 'In Review') return t('txLens.inReview')
+    return state
+  }
+
+  function signOffLabel(state: string): string {
+    if (state === 'Approved') return t('txLens.soApproved')
+    if (state === 'Pending') return t('txLens.soPending')
+    return state
   }
 
   function handleDecision(decision: string) {
