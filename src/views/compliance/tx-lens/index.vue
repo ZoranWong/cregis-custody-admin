@@ -17,15 +17,19 @@
         :start-placeholder="$t('txLens.startDate')"
         :end-placeholder="$t('txLens.endDate')"
         class="!w-64"
+        @change="loadList"
       />
       <el-input
         v-model="filters.keyword"
         :placeholder="$t('txLens.searchPlaceholder')"
         clearable
         class="!w-64"
+        @keyup.enter="loadList"
+        @clear="loadList"
       >
         <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
       </el-input>
+      <el-button type="primary" @click="loadList">{{ $t('console.refresh') }}</el-button>
     </div>
 
     <!-- ═══ 摘要卡片 ═══ -->
@@ -70,186 +74,222 @@
             :placeholder="$t('txLens.direction')"
             clearable
             class="!w-36"
+            @change="loadList"
           >
-            <el-option :label="$t('txLens.outgoing')" value="Outgoing" />
-            <el-option :label="$t('txLens.incoming')" value="Incoming" />
+            <el-option :label="$t('txLens.outgoing')" value="outgoing" />
+            <el-option :label="$t('txLens.incoming')" value="incoming" />
           </el-select>
           <el-select
             v-model="filters.compliance"
             :placeholder="$t('txLens.compliance')"
             clearable
             class="!w-36"
+            @change="loadList"
           >
-            <el-option :label="$t('txLens.clear')" value="Clear" />
-            <el-option :label="$t('txLens.flagged')" value="Flagged" />
-            <el-option :label="$t('txLens.inReview')" value="In Review" />
+            <el-option :label="$t('txLens.clear')" value="clear" />
+            <el-option :label="$t('txLens.flagged')" value="flagged" />
+            <el-option :label="$t('txLens.inReview')" value="review" />
           </el-select>
           <el-select
             v-model="filters.travelRule"
             :placeholder="$t('txLens.travelRule')"
             clearable
             class="!w-36"
+            @change="loadList"
           >
-            <el-option :label="$t('txLens.trComplete')" value="Complete" />
-            <el-option :label="$t('txLens.trPending')" value="Pending" />
-            <el-option :label="$t('txLens.trMismatch')" value="Mismatch" />
-            <el-option :label="$t('txLens.trNa')" value="N/A" />
+            <el-option :label="$t('txLens.trComplete')" value="complete" />
+            <el-option :label="$t('txLens.trPending')" value="pending" />
+            <el-option :label="$t('txLens.trMismatch')" value="mismatch" />
+            <el-option :label="$t('txLens.trNa')" value="na" />
           </el-select>
           <el-select
             v-model="filters.signOff"
             :placeholder="$t('txLens.signOff')"
             clearable
             class="!w-36"
+            @change="loadList"
           >
-            <el-option :label="$t('txLens.soApproved')" value="Approved" />
-            <el-option :label="$t('txLens.soPending')" value="Pending" />
+            <el-option :label="$t('txLens.soApproved')" value="approved" />
+            <el-option :label="$t('txLens.soRejected')" value="rejected" />
+            <el-option :label="$t('txLens.soPending')" value="pending" />
+            <el-option :label="$t('txLens.trNa')" value="na" />
           </el-select>
           <el-select
             v-model="filters.onChain"
             :placeholder="$t('txLens.onChain')"
             clearable
             class="!w-36"
+            @change="loadList"
           >
-            <el-option :label="$t('txLens.broadcasted')" value="Broadcasted" />
-            <el-option :label="$t('txLens.confirmed')" value="Confirmed" />
-            <el-option :label="$t('txLens.settled')" value="Settled" />
-            <el-option :label="$t('txLens.failed')" value="Failed" />
+            <el-option :label="$t('txLens.broadcasted')" value="broadcasted" />
+            <el-option :label="$t('txLens.confirmed')" value="confirmed" />
+            <el-option :label="$t('txLens.settled')" value="settled" />
+            <el-option :label="$t('txLens.failed')" value="failed" />
           </el-select>
           <el-select
             v-model="filters.fundDisposition"
             :placeholder="$t('txLens.fundDisposition')"
             clearable
             class="!w-36"
+            @change="loadList"
           >
-            <el-option :label="$t('txLens.fdReleased')" value="Released" />
-            <el-option :label="$t('txLens.fdHeld')" value="Held" />
-            <el-option :label="$t('txLens.fdForfeited')" value="Forfeited" />
-            <el-option :label="$t('txLens.trNa')" value="N/A" />
+            <el-option :label="$t('txLens.fdReleased')" value="released" />
+            <el-option :label="$t('txLens.fdHeld')" value="held" />
+            <el-option :label="$t('txLens.fdForfeited')" value="forfeited" />
+            <el-option :label="$t('txLens.trNa')" value="na" />
           </el-select>
           <el-select
             v-model="filters.reviewResult"
             :placeholder="$t('txLens.reviewResult')"
             clearable
             class="!w-36"
+            @change="loadList"
           >
-            <el-option :label="$t('txLens.rrNone')" value="None" />
-            <el-option :label="$t('txLens.truePositive')" value="True Positive" />
-            <el-option :label="$t('txLens.falsePositive')" value="False Positive" />
-            <el-option :label="$t('txLens.falseNegative')" value="False Negative" />
+            <el-option :label="$t('txLens.rrNone')" value="none" />
+            <el-option :label="$t('txLens.truePositive')" value="tp" />
+            <el-option :label="$t('txLens.falsePositive')" value="fp" />
+            <el-option :label="$t('txLens.falseNegative')" value="fn" />
           </el-select>
         </div>
       </div>
       <div class="p-4">
-        <div v-for="tx in filteredTransactions" :key="tx.orderId" class="tx-card mb-4 last:mb-0">
-          <!-- 顶部：金额 + 方向 + 结果 -->
-          <div class="flex items-start justify-between mb-3">
-            <div>
-              <div class="flex items-center gap-2 mb-1">
+        <template v-if="loading">
+          <el-skeleton :rows="6" animated />
+        </template>
+        <template v-else>
+          <div v-for="tx in displayTransactions" :key="tx.orderId" class="tx-card mb-4 last:mb-0">
+            <!-- 顶部：金额 + 方向 + 结果 -->
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <ArtSvgIcon
+                    :icon="tx.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
+                    :class="
+                      tx.direction === 'outgoing'
+                        ? 'text-[var(--el-color-primary)]'
+                        : 'text-[var(--el-color-success)]'
+                    "
+                    class="text-lg"
+                  />
+                  <span class="text-lg font-semibold text-g-900">{{ tx.amountDisplay }}</span>
+                  <span class="text-sm text-g-400">{{ tx.fiatDisplay }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-g-500">{{ tx.orderId }}</span>
+                  <span class="text-xs text-g-400">· {{ tx.createTime }}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <el-tag :type="tx.direction === 'outgoing' ? 'warning' : 'success'" size="small">{{
+                  directionLabel(tx.direction)
+                }}</el-tag>
+                <el-tag
+                  v-if="tx.reviewResult !== 'none'"
+                  :type="reviewTag(tx.reviewResult)"
+                  size="small"
+                  effect="light"
+                  >{{ reviewResultLabel(tx.reviewResult) }}</el-tag
+                >
+              </div>
+            </div>
+
+            <!-- parties 两侧 -->
+            <div class="flex items-stretch gap-3 mb-3 py-3">
+              <div
+                class="flex-1 min-w-0 rounded-lg p-3"
+                :class="
+                  tx.direction === 'outgoing'
+                    ? 'bg-[var(--el-color-primary-light-9)]'
+                    : 'bg-[var(--el-color-success-light-9)]'
+                "
+              >
+                <div class="text-xs text-g-600 mb-1.5 font-medium">{{
+                  partyLabel(tx.direction, 'originator')
+                }}</div>
+                <div class="text-sm font-semibold text-g-900 truncate">{{ tx.originatorName }}</div>
+                <div class="text-xs text-g-700 mt-1.5">{{ tx.originator.detail || '--' }}</div>
+                <div class="text-xs text-g-600 font-mono truncate mt-1">{{
+                  tx.originator.address || '--'
+                }}</div>
+              </div>
+              <div class="flex items-center px-2">
                 <ArtSvgIcon
-                  :icon="tx.direction === 'Outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
+                  icon="ri:arrow-right-long-line"
                   :class="
-                    tx.direction === 'Outgoing'
+                    tx.direction === 'outgoing'
                       ? 'text-[var(--el-color-primary)]'
                       : 'text-[var(--el-color-success)]'
                   "
-                  class="text-lg"
+                  class="text-2xl"
                 />
-                <span class="text-lg font-semibold text-g-900">{{ tx.amount }}</span>
-                <span class="text-sm text-g-400">≈ {{ tx.fiatAmount }}</span>
               </div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-g-500">{{ tx.orderId }}</span>
-                <span class="text-xs text-g-400">· {{ tx.time }}</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <el-tag :type="tx.direction === 'Outgoing' ? 'warning' : 'success'" size="small">{{
-                tx.direction
-              }}</el-tag>
-              <el-tag
-                v-if="tx.reviewResult !== 'None'"
-                :type="reviewTag(tx.reviewResult)"
-                size="small"
-                effect="light"
-                >{{ tx.reviewResult }}</el-tag
-              >
-            </div>
-          </div>
-
-          <!-- parties 两侧 -->
-          <div class="flex items-stretch gap-3 mb-3 py-3">
-            <div
-              class="flex-1 min-w-0 rounded-lg p-3"
-              :class="
-                tx.direction === 'Outgoing'
-                  ? 'bg-[var(--el-color-primary-light-9)]'
-                  : 'bg-[var(--el-color-success-light-9)]'
-              "
-            >
-              <div class="text-xs text-g-600 mb-1.5 font-medium">{{
-                partyLabel(tx.direction, 'originator')
-              }}</div>
-              <div class="text-sm font-semibold text-g-900 truncate">{{ tx.originator.name }}</div>
-              <div class="text-xs text-g-700 mt-1.5">{{ tx.originator.unit }}</div>
-              <div class="text-xs text-g-600 font-mono truncate mt-1">{{
-                tx.originator.address
-              }}</div>
-            </div>
-            <div class="flex items-center px-2">
-              <ArtSvgIcon
-                :icon="
-                  tx.direction === 'Outgoing'
-                    ? 'ri:arrow-right-long-line'
-                    : 'ri:arrow-left-long-line'
-                "
+              <div
+                class="flex-1 min-w-0 rounded-lg p-3"
                 :class="
-                  tx.direction === 'Outgoing'
-                    ? 'text-[var(--el-color-primary)]'
-                    : 'text-[var(--el-color-success)]'
+                  tx.direction === 'outgoing'
+                    ? 'bg-[var(--el-color-success-light-9)]'
+                    : 'bg-[var(--el-color-primary-light-9)]'
                 "
-                class="text-2xl"
-              />
+              >
+                <div class="text-xs text-g-600 mb-1.5 font-medium">{{
+                  partyLabel(tx.direction, 'beneficiary')
+                }}</div>
+                <div class="text-sm font-semibold text-g-900 truncate">{{
+                  tx.beneficiaryName
+                }}</div>
+                <div class="text-xs text-g-700 mt-1.5">{{ tx.beneficiary.detail || '--' }}</div>
+                <div class="text-xs text-g-600 font-mono truncate mt-1">{{
+                  tx.beneficiary.address || '--'
+                }}</div>
+              </div>
             </div>
-            <div
-              class="flex-1 min-w-0 rounded-lg p-3"
-              :class="
-                tx.direction === 'Outgoing'
-                  ? 'bg-[var(--el-color-success-light-9)]'
-                  : 'bg-[var(--el-color-primary-light-9)]'
-              "
-            >
-              <div class="text-xs text-g-600 mb-1.5 font-medium">{{
-                partyLabel(tx.direction, 'beneficiary')
-              }}</div>
-              <div class="text-sm font-semibold text-g-900 truncate">{{ tx.beneficiary.name }}</div>
-              <div class="text-xs text-g-700 mt-1.5">{{ tx.beneficiary.unit }}</div>
-              <div class="text-xs text-g-600 font-mono truncate mt-1">{{
-                tx.beneficiary.address
-              }}</div>
-            </div>
-          </div>
 
-          <!-- 5 步生命周期阶段条 -->
-          <div class="lc-stages">
-            <div v-for="stage in tx.stages" :key="stage.key" class="lc-stage">
-              <div class="lc-stage-dot" :class="stage.dotClass"></div>
-              <div class="lc-stage-label">{{ stage.label }}</div>
-              <div class="lc-stage-value">{{ stage.value }}</div>
+            <!-- 生命周期阶段条（阶段数随方向与对手方 name 变化） -->
+            <div class="lc-stages">
+              <template v-for="(stage, i) in tx.stages" :key="stage.key">
+                <div v-if="i > 0" class="lc-sep"></div>
+                <div class="lc-stage">
+                  <div class="lc-stage-dot" :style="toneDotStyle(stage.tone)"></div>
+                  <div class="lc-stage-content">
+                    <div class="lc-stage-label">{{ $t(stage.labelKey) }}</div>
+                    <div class="lc-stage-state" :style="toneTextStyle(stage.tone)">
+                      {{ stage.value }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <!-- 操作 -->
+            <div class="flex justify-end mt-3 pt-3 border-t border-[var(--default-border)]">
+              <el-button size="small" type="primary" @click="inspect(tx.orderId)">{{
+                $t('txLens.inspect')
+              }}</el-button>
             </div>
           </div>
+          <div
+            v-if="displayTransactions.length === 0"
+            class="py-10 text-center text-g-400 text-sm"
+            >{{ $t('txLens.noResults') }}</div
+          >
+        </template>
+      </div>
 
-          <!-- 操作 -->
-          <div class="flex justify-end mt-3 pt-3 border-t border-[var(--default-border)]">
-            <el-button size="small" type="primary" @click="inspect(tx.orderId)">{{
-              $t('txLens.inspect')
-            }}</el-button>
-          </div>
-        </div>
-        <div
-          v-if="filteredTransactions.length === 0"
-          class="py-10 text-center text-g-400 text-sm"
-          >{{ $t('txLens.noResults') }}</div
-        >
+      <!-- 分页 -->
+      <div
+        v-if="pagination.total > 0"
+        class="flex justify-end items-center px-5 py-3 border-t border-[var(--default-border)]"
+      >
+        <el-pagination
+          v-model:current-page="pagination.pageNum"
+          :total="pagination.total"
+          :page-size="pagination.pageSize"
+          :page-sizes="[10, 20, 50]"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @current-change="loadList"
+          @size-change="handleSizeChange"
+        />
       </div>
     </div>
   </div>
@@ -257,10 +297,46 @@
 
 <script setup lang="ts">
   import { useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
+  import {
+    fetchTransactionLensList,
+    fetchTransactionLensSummary,
+    fetchTravelRuleCoinRates
+  } from '@/api/compliance'
+  import { fetchCoinList } from '@/api/coin'
+  import type {
+    TransactionLensItemView,
+    TransactionLensSummaryView
+  } from '@/features/compliance/types'
+  import {
+    COMPLIANCE_DICT,
+    DISPOSITION_DICT,
+    ONCHAIN_DICT,
+    REVIEW_RESULT_DICT,
+    SIGNOFF_DICT,
+    TRAVEL_RULE_DICT,
+    reviewResultTagType,
+    toneDotStyle,
+    toneOf,
+    toneTextStyle,
+    txStateLabel,
+    type TagType,
+    type Tone
+  } from '@/features/compliance/txState'
+  import { STAGE_LABEL_KEYS, buildStages, type StageKey } from '@/features/compliance/txStages'
+  import { formatCoinBalance, formatTime } from '@/utils/format'
 
   defineOptions({ name: 'TransactionLens' })
 
   const router = useRouter()
+  const { t } = useI18n()
+
+  // ─── State ───
+  const loading = ref(false)
+  const transactions = ref<TransactionLensItemView[]>([])
+  const summary = ref<TransactionLensSummaryView | null>(null)
+  const coinDecimals = ref<Record<string, number>>({})
+  const coinUsdRate = ref<Record<string, number>>({})
 
   const filters = reactive({
     merchant: '',
@@ -275,254 +351,240 @@
     reviewResult: ''
   })
 
+  const pagination = reactive({
+    pageNum: 1,
+    pageSize: 10,
+    total: 0
+  })
+
   const merchants = ['CryptoVault', 'PayFlow', 'ChainBridge', 'TokenGuard', 'BlockSafe']
 
-  const summaryCards = [
-    {
-      key: 'total',
-      labelKey: 'txLens.totalTransactions',
-      value: '1,247',
-      valueClass: 'text-g-900',
-      subKey: 'txLens.subLast30Days'
-    },
-    {
-      key: 'settled',
-      labelKey: 'txLens.settled',
-      value: '1,189',
-      valueClass: 'text-success',
-      subKey: 'txLens.subSettlementRate'
-    },
-    {
-      key: 'rejected',
-      labelKey: 'txLens.rejected',
-      value: '8',
-      valueClass: 'text-[var(--el-color-danger)]',
-      subKey: 'txLens.subRejectionRate'
-    },
-    {
-      key: 'pending',
-      labelKey: 'txLens.pendingReview',
-      value: '24',
-      valueClass: 'text-[var(--el-color-warning)]',
-      subKey: 'txLens.subPendingDetail'
-    }
-  ]
+  // ─── 摘要卡片 ───
+  const summaryCards = computed(() => {
+    const op = summary.value?.operational
+    return [
+      {
+        key: 'total',
+        labelKey: 'txLens.totalTransactions',
+        value: op?.totalTransactions ?? 0,
+        valueClass: 'text-g-900',
+        subKey: 'txLens.subLast30Days'
+      },
+      {
+        key: 'settled',
+        labelKey: 'txLens.settled',
+        value: op?.settled ?? 0,
+        valueClass: 'text-success',
+        subKey: 'txLens.subSettlementRate'
+      },
+      {
+        key: 'rejected',
+        labelKey: 'txLens.rejected',
+        value: op?.rejected ?? 0,
+        valueClass: 'text-[var(--el-color-danger)]',
+        subKey: 'txLens.subRejectionRate'
+      },
+      {
+        key: 'pending',
+        labelKey: 'txLens.pendingReview',
+        value: op?.pendingReview ?? 0,
+        valueClass: 'text-[var(--el-color-warning)]',
+        subKey: 'txLens.subPendingDetail'
+      }
+    ]
+  })
 
-  const reviewCards = [
-    {
-      key: 'tp',
-      labelKey: 'txLens.truePositive',
-      value: 22,
-      valueClass: 'text-success',
-      subKey: 'txLens.subCorrectlyFlagged'
-    },
-    {
-      key: 'tn',
-      labelKey: 'txLens.trueNegative',
-      value: 1194,
-      valueClass: 'text-success',
-      subKey: 'txLens.subCorrectlyCleared'
-    },
-    {
-      key: 'fp',
-      labelKey: 'txLens.falsePositive',
-      value: 12,
-      valueClass: 'text-warning',
-      subKey: 'txLens.subWronglyFlagged'
-    },
-    {
-      key: 'fn',
-      labelKey: 'txLens.falseNegative',
-      value: 3,
-      valueClass: 'text-purple-600',
-      subKey: 'txLens.subWronglyCleared'
-    }
-  ]
+  const reviewCards = computed(() => {
+    const rr = summary.value?.reviewResult
+    return [
+      {
+        key: 'tp',
+        labelKey: 'txLens.truePositive',
+        value: rr?.truePositive ?? 0,
+        valueClass: 'text-success',
+        subKey: 'txLens.subCorrectlyFlagged'
+      },
+      {
+        key: 'tn',
+        labelKey: 'txLens.trueNegative',
+        value: rr?.trueNegative ?? 0,
+        valueClass: 'text-success',
+        subKey: 'txLens.subCorrectlyCleared'
+      },
+      {
+        key: 'fp',
+        labelKey: 'txLens.falsePositive',
+        value: rr?.falsePositive ?? 0,
+        valueClass: 'text-warning',
+        subKey: 'txLens.subWronglyFlagged'
+      },
+      {
+        key: 'fn',
+        labelKey: 'txLens.falseNegative',
+        value: rr?.falseNegative ?? 0,
+        valueClass: 'text-purple-600',
+        subKey: 'txLens.subWronglyCleared'
+      }
+    ]
+  })
 
-  interface Party {
-    name: string
-    unit: string
-    address: string
+  // ─── 枚举 → i18n 标签（统一走 features/compliance/txState）───
+  function directionLabel(v: string): string {
+    return v === 'outgoing'
+      ? t('txLens.outgoing')
+      : v === 'incoming'
+        ? t('txLens.incoming')
+        : v || '--'
   }
+  function complianceLabel(v: string): string {
+    return txStateLabel(COMPLIANCE_DICT, v, t)
+  }
+  function travelRuleLabel(v: string): string {
+    return txStateLabel(TRAVEL_RULE_DICT, v, t)
+  }
+  function signoffLabel(v: string): string {
+    return txStateLabel(SIGNOFF_DICT, v, t)
+  }
+  function onchainLabel(v: string): string {
+    return txStateLabel(ONCHAIN_DICT, v, t)
+  }
+  function dispositionLabel(v: string): string {
+    return txStateLabel(DISPOSITION_DICT, v, t)
+  }
+  function reviewResultLabel(v: string): string {
+    return txStateLabel(REVIEW_RESULT_DICT, v, t)
+  }
+
+  // ─── 展示对象 ───
   interface Stage {
-    key: string
-    label: string
+    key: StageKey
+    labelKey: string
     value: string
-    dotClass: string
-  }
-  interface Tx {
-    orderId: string
-    amount: string
-    fiatAmount: string
-    direction: string
-    reviewResult: string
-    time: string
-    originator: Party
-    beneficiary: Party
-    stages: Stage[]
+    tone: Tone
   }
 
-  const mockTransactions: Tx[] = [
-    {
-      orderId: 'ORDER-2026-08-25-001',
-      amount: '3,500 USDT',
-      fiatAmount: '12,950 AED',
-      direction: 'Outgoing',
-      reviewResult: 'None',
-      time: '2026-08-25 10:30',
-      originator: {
-        name: 'CryptoVault Ltd',
-        unit: 'Unit: Treasury · Account: Primary Pay-Out',
-        address: '0xCA79D8bcF574956736E5B1C0F0f73ABF458F2d26'
-      },
-      beneficiary: {
-        name: 'John Doe',
-        unit: 'Counterparty',
-        address: '0xb20BED6c015a8e9579eae17762aA65d78d2E0b75'
-      },
-      // Outgoing: Compliance → Travel Rule → Sign-off → On-Chain (no Fund Disposition)
-      stages: [
-        { key: 'compliance', label: 'Compliance', value: 'Clear', dotClass: 'done' },
-        { key: 'travelRule', label: 'Travel Rule', value: 'Complete', dotClass: 'done' },
-        { key: 'signOff', label: 'Sign-off', value: 'Approved', dotClass: 'done' },
-        { key: 'onChain', label: 'On-Chain', value: 'Settled', dotClass: 'done' }
-      ]
-    },
-    {
-      orderId: 'ORDER-2026-08-25-002',
-      amount: '50,000 USDT',
-      fiatAmount: '50,000 AED',
-      direction: 'Incoming',
-      reviewResult: 'False Negative',
-      time: '2026-08-25 09:15',
-      originator: {
-        name: 'Bybit',
-        unit: 'Counterparty',
-        address: '0x71C3E9...9A23'
-      },
-      beneficiary: {
-        name: 'NodeSphere',
-        unit: 'Unit: Treasury · Account: Inbound',
-        address: '0x89a42...B4c9'
-      },
-      // Incoming: Compliance → Travel Rule → On-Chain → Fund Disposition (no Sign-off)
-      stages: [
-        { key: 'compliance', label: 'Compliance', value: 'In Review', dotClass: 'active' },
-        { key: 'travelRule', label: 'Travel Rule', value: 'Mismatch', dotClass: 'rejected' },
-        { key: 'onChain', label: 'On-Chain', value: 'Confirmed', dotClass: 'done' },
-        { key: 'fund', label: 'Fund Disposition', value: 'Held', dotClass: 'held' }
-      ]
-    },
-    {
-      orderId: 'ORDER-2026-08-24-042',
-      amount: '5,000 USDT',
-      fiatAmount: '18,500 AED',
-      direction: 'Outgoing',
-      reviewResult: 'True Positive',
-      time: '2026-08-24 16:45',
-      originator: {
-        name: 'ChainBridge',
-        unit: 'Unit: C · Account: Bridge Ops',
-        address: '0x7b3c8D9e0F1a2B3c4D5e6F7a8B9c0D1e2F3a4B5'
-      },
-      beneficiary: {
-        name: 'Kraken Pro',
-        unit: 'Counterparty',
-        address: '0x1e6a7B8c9D0e1F2a3B4c5D6e7F8a9B0c1D2e3F4'
-      },
-      // Outgoing: in progress
-      stages: [
-        { key: 'compliance', label: 'Compliance', value: 'In Review', dotClass: 'active' },
-        { key: 'travelRule', label: 'Travel Rule', value: 'Pending', dotClass: 'pending' },
-        { key: 'signOff', label: 'Sign-off', value: 'Pending', dotClass: 'pending' },
-        { key: 'onChain', label: 'On-Chain', value: 'Broadcasted', dotClass: 'pending' }
-      ]
-    },
-    {
-      orderId: 'ORDER-2026-08-24-038',
-      amount: '800 USDT',
-      fiatAmount: '2,960 AED',
-      direction: 'Incoming',
-      reviewResult: 'None',
-      time: '2026-08-24 14:20',
-      originator: {
-        name: 'Binance Institutional',
-        unit: 'Counterparty',
-        address: '0x6c4d5E6f7A8b9C0d1E2f3A4b5C6d7E8f9A0b1C2'
-      },
-      beneficiary: {
-        name: 'TokenGuard',
-        unit: 'Unit: D · Account: Custody',
-        address: '0x3f9b0C1d2E3f4A5b6C7d8E9f0A1b2C3d4E5f6A7'
-      },
-      // Incoming: completed, released
-      stages: [
-        { key: 'compliance', label: 'Compliance', value: 'Clear', dotClass: 'done' },
-        { key: 'travelRule', label: 'Travel Rule', value: 'Complete', dotClass: 'done' },
-        { key: 'onChain', label: 'On-Chain', value: 'Confirmed', dotClass: 'done' },
-        { key: 'fund', label: 'Fund Disposition', value: 'Released', dotClass: 'done' }
-      ]
-    },
-    {
-      orderId: 'ORDER-2026-08-24-035',
-      amount: '2,100 USDT',
-      fiatAmount: '7,770 AED',
-      direction: 'Outgoing',
-      reviewResult: 'False Negative',
-      time: '2026-08-24 11:00',
-      originator: {
-        name: 'BlockSafe',
-        unit: 'Unit: E · Account: Safe Ops',
-        address: '0x8a2f3B4c5D6e7F8a9B0c1D2e3F4a5B6c7D8e9F0'
-      },
-      beneficiary: {
-        name: 'OKX',
-        unit: 'Counterparty',
-        address: '0x5b1c2D3e4F5a6B7c8D9e0F1a2B3c4D5e6F7a8B9'
-      },
-      stages: [
-        { key: 'compliance', label: 'Compliance', value: 'Clear', dotClass: 'done' },
-        { key: 'travelRule', label: 'Travel Rule', value: 'Complete', dotClass: 'done' },
-        { key: 'signOff', label: 'Sign-off', value: 'Approved', dotClass: 'done' },
-        { key: 'onChain', label: 'On-Chain', value: 'Failed', dotClass: 'rejected' },
-        { key: 'fund', label: 'Fund Disposition', value: 'N/A', dotClass: 'na' }
-      ]
-    }
-  ]
+  const displayTransactions = computed(() => {
+    return transactions.value.map((tx) => {
+      const decimals = coinDecimals.value[tx.coinId]
+      const amount = decimals ? formatCoinBalance(tx.amount, decimals) : tx.amount
+      const usdRate = coinUsdRate.value[tx.coinId]
+      const fiat = usdRate != null && decimals ? Number(amount) * usdRate : null
+      const fiatDisplay =
+        fiat != null ? `≈ $${fiat.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '--'
 
-  const filteredTransactions = computed(() => {
-    return mockTransactions.filter((t) => {
-      if (filters.direction && t.direction !== filters.direction) return false
-      if (filters.compliance && t.stages[0].value !== filters.compliance) return false
-      if (filters.travelRule && t.stages[1].value !== filters.travelRule) return false
-      if (filters.signOff && t.stages[2].value !== filters.signOff) return false
-      if (filters.onChain && t.stages[3].value !== filters.onChain) return false
-      if (filters.fundDisposition && t.stages[4].value !== filters.fundDisposition) return false
-      if (filters.reviewResult && t.reviewResult !== filters.reviewResult) return false
-      if (filters.keyword && !t.orderId.toLowerCase().includes(filters.keyword.toLowerCase()))
-        return false
-      return true
+      // 阶段序列由方向 + 对手方 name 决定；颜色由各自状态值决定
+      const stageOf: Record<StageKey, () => { value: string; tone: Tone }> = {
+        compliance: () => ({
+          value: complianceLabel(tx.compliance),
+          tone: toneOf(tx.compliance)
+        }),
+        travelRule: () => ({
+          value: travelRuleLabel(tx.travelRule),
+          tone: toneOf(tx.travelRule)
+        }),
+        signoff: () => ({ value: signoffLabel(tx.signoff), tone: toneOf(tx.signoff) }),
+        onchain: () => ({ value: onchainLabel(tx.onchain), tone: toneOf(tx.onchain) }),
+        disposition: () => ({
+          value: dispositionLabel(tx.disposition),
+          tone: toneOf(tx.disposition)
+        })
+      }
+      const stages: Stage[] = buildStages(tx).map((key) => ({
+        key,
+        labelKey: STAGE_LABEL_KEYS[key],
+        ...stageOf[key]()
+      }))
+
+      return {
+        ...tx,
+        amountDisplay: `${amount} ${tx.coinId}`,
+        fiatDisplay,
+        createTime: formatTime(tx.createTime),
+        originatorName: tx.originator?.name || tx.originator?.did || '--',
+        beneficiaryName: tx.beneficiary?.name || tx.beneficiary?.did || '--',
+        stages
+      }
     })
   })
 
-  function reviewTag(result: string) {
-    if (result === 'True Positive') return 'success'
-    if (result === 'False Positive') return 'warning'
-    if (result === 'False Negative') return 'danger'
-    return 'info'
+  function reviewTag(result: string): TagType {
+    return reviewResultTagType(result)
   }
 
   function partyLabel(direction: string, party: 'originator' | 'beneficiary'): string {
-    if (direction === 'Outgoing') {
+    if (direction === 'outgoing') {
       return party === 'originator' ? 'Originator (Our Customer)' : 'Beneficiary (Counterparty)'
     } else {
       return party === 'originator' ? 'Originator (Counterparty)' : 'Beneficiary (Our Customer)'
     }
   }
 
+  // ─── 数据加载 ───
+  async function loadCoinMeta() {
+    try {
+      const coins = await fetchCoinList()
+      const decimals: Record<string, number> = {}
+      for (const c of coins) decimals[c.coinId] = c.decimals
+      coinDecimals.value = decimals
+    } catch {
+      coinDecimals.value = {}
+    }
+    try {
+      const rates = await fetchTravelRuleCoinRates()
+      const rateMap: Record<string, number> = {}
+      for (const r of rates) rateMap[r.coinId] = r.usdRate
+      coinUsdRate.value = rateMap
+    } catch {
+      coinUsdRate.value = {}
+    }
+  }
+
+  async function loadSummary() {
+    try {
+      summary.value = await fetchTransactionLensSummary()
+    } catch {
+      summary.value = null
+    }
+  }
+
+  async function loadList() {
+    loading.value = true
+    try {
+      const result = await fetchTransactionLensList({
+        pageNum: pagination.pageNum,
+        pageSize: pagination.pageSize,
+        direction: filters.direction || undefined,
+        compliance: filters.compliance || undefined,
+        travelRule: filters.travelRule || undefined,
+        signoff: filters.signOff || undefined,
+        onchain: filters.onChain || undefined,
+        outcome: filters.fundDisposition || undefined,
+        keyword: filters.keyword || undefined
+      })
+      transactions.value = result.records || []
+      pagination.total = result.total || 0
+    } catch {
+      transactions.value = []
+      pagination.total = 0
+    } finally {
+      loading.value = false
+    }
+  }
+
+  function handleSizeChange() {
+    pagination.pageNum = 1
+    loadList()
+  }
+
   function inspect(orderId: string) {
     router.push({ name: 'TransactionLensDetail', params: { id: orderId } })
   }
+
+  onMounted(() => {
+    loadCoinMeta()
+    loadSummary()
+    loadList()
+  })
 </script>
 
 <style scoped>
@@ -537,88 +599,59 @@
     border-color: var(--el-color-primary-light-5);
   }
 
+  /* 阶段条：横向排布，圆点 + 标签/状态两行；阶段数随场景变化，自适应 */
   .lc-stages {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+    gap: 16px;
     align-items: center;
+    padding: 8px 12px;
+    background: var(--art-gray-100);
+    border-radius: 8px;
   }
 
   .lc-stage {
-    position: relative;
     display: flex;
     flex: 1;
-    flex-direction: column;
+    gap: 6px;
     align-items: center;
-    min-width: 120px;
-    text-align: center;
-  }
-
-  .lc-stage:not(:last-child)::after {
-    position: absolute;
-    top: 6px;
-    right: -50%;
-    z-index: 0;
-    width: 100%;
-    height: 2px;
-    content: '';
-    background: var(--default-border);
+    min-width: 0;
   }
 
   .lc-stage-dot {
-    z-index: 1;
-    width: 12px;
-    height: 12px;
-    margin-bottom: 4px;
-    background: var(--art-bg-color);
-    border: 2px solid var(--default-border);
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
   }
 
-  .lc-stage-dot.done {
-    background: var(--el-color-success);
-    border-color: var(--el-color-success);
+  /* 圆点与状态文字颜色由 toneDotStyle / toneTextStyle 内联注入 */
+
+  .lc-stage-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
   }
 
-  .lc-stage-dot.active {
-    background: var(--el-color-primary);
-    border-color: var(--el-color-primary);
-  }
-
-  .lc-stage-dot.held {
-    background: var(--el-color-warning);
-    border-color: var(--el-color-warning);
-  }
-
-  .lc-stage-dot.pending {
-    background: var(--el-color-info-light-5);
-    border-color: var(--el-color-info);
-  }
-
-  .lc-stage-dot.rejected {
-    background: var(--el-color-danger);
-    border-color: var(--el-color-danger);
-  }
-
-  .lc-stage-dot.released {
-    background: var(--el-color-success-light-5);
-    border-color: var(--el-color-success);
-  }
-
-  .lc-stage-dot.na {
-    background: var(--art-bg-color);
-    border-color: var(--default-border);
+  .lc-sep {
+    flex-shrink: 0;
+    width: 1px;
+    height: 20px;
+    background: var(--default-border);
   }
 
   .lc-stage-label {
-    margin-bottom: 2px;
-    font-size: 11px;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
     color: var(--el-text-color-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
-  .lc-stage-value {
-    font-size: 12px;
-    font-weight: 500;
+  .lc-stage-state {
+    font-size: 11px;
+    font-weight: 600;
     color: var(--el-text-color-primary);
   }
 </style>

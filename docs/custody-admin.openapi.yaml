@@ -2622,58 +2622,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResult%3F'
+                $ref: '#/components/schemas/MessageResultPageMerchant'
       security: []
-  /merchant/audit:
+  /merchant/{ecode}/kyb/screening/approve:
     post:
-      summary: 审批商户注册信息
+      summary: 资格筛查通过
       deprecated: false
       description: |-
-        显示商户的详细信息
-        审批商户注册信息
-        审批商户注册信息，核查商户合规状态
+        资格筛查通过
+        资格筛查通过
+        通过资格筛查并注册 Sumsub applicant，进入待 WebSDK 阶段。
       tags: []
       parameters:
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /billing/getRechargeAddress:
-    get:
-      summary: 根据币种获取充值地址
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: coinId
-          in: query
-          description: ''
-          required: false
-          example: USDT
-          schema:
-            type: string
-        - name: network
-          in: query
-          description: ''
-          required: false
-          example: tron-nile
-          schema:
-            type: string
         - name: ecode
-          in: query
+          in: path
           description: ''
-          required: false
+          required: true
           schema:
             type: string
         - name: Authorization
@@ -2683,18 +2647,60 @@ paths:
           schema:
             type: string
             default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminKybCaseDecisionRequest'
+              description: ''
       responses:
         '200':
           description: ''
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-                description: 充值地址
+                $ref: '#/components/schemas/MessageResultKybCaseView'
+      security: []
+  /merchant/{ecode}/kyb/screening/reject:
+    post:
+      summary: 资格筛查拒绝
+      deprecated: false
+      description: |-
+        资格筛查拒绝
+        资格筛查拒绝
+        拒绝资格筛查，案件进入 REJECTED。
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminKybCaseDecisionRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultKybCaseView'
       security: []
   /merchant/detail/{ecode}:
     post:
-      summary: 展示商户的详细信息
+      summary: 展示商户的详情含kyb问卷
       deprecated: false
       description: |-
         显示商户的详细信息
@@ -2721,7 +2727,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResult%3F'
+                $ref: '#/components/schemas/MessageResultAdminMerchantKybDetailView'
       security: []
   /api/v1/admin/system-monitor/overview:
     get:
@@ -4742,1184 +4748,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessageResult%3F'
       security: []
-  /api/v1/operations/notifications:
-    get:
-      summary: List merchant notifications
-      deprecated: false
-      description: |-
-        List merchant notifications
-        返回商户消息通知历史。
-      tags: []
-      parameters:
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/merchants:
-    get:
-      summary: List onboarded merchants
-      deprecated: false
-      description: |-
-        List onboarded merchants
-        返回仅包含已入驻成功商户的运营管理列表。
-      tags: []
-      parameters:
-        - name: search
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: tier
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: expiryRange
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: sort
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: page
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: pageSize
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/merchants/{merchantId}:
-    get:
-      summary: Get onboarded merchant detail
-      deprecated: false
-      description: |-
-        Get onboarded merchant detail
-        返回已入驻商户详情、运营留痕、群聊记录与通知记录。
-      tags: []
-      parameters:
-        - name: merchantId
-          in: path
-          description: Merchant ID
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/merchants/{merchantId}/notifications:
-    post:
-      summary: Send merchant notification
-      deprecated: false
-      description: |-
-        Send merchant notification
-        发送商户通知并写入商户级运营留痕。
-      tags: []
-      parameters:
-        - name: merchantId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NotificationRequest'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/home/surface:
-    get:
-      summary: Get ops home surface
-      deprecated: false
-      description: |-
-        Get ops home surface
-        返回商户生命周期 P0 摘要、待办、快捷入口与数据源状态。
-      tags: []
-      parameters:
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/applications:
-    get:
-      summary: List onboarding applications
-      deprecated: false
-      description: |-
-        List onboarding applications
-        返回商户入驻 consumer surface 列表。
-      tags: []
-      parameters:
-        - name: search
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: stage
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: providerNeutralState
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: provider_neutral_state
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: responsibilityParty
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: responsibility_party
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: slaState
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: sla_state
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: assignee
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: reviewer
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: includeTerminal
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: include_terminal
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: includeHandedOff
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: include_handed_off
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: blockingOnly
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: page
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: pageSize
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: page_size
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/applications:
-    get:
-      summary: List onboarding applications
-      deprecated: false
-      description: |-
-        List onboarding applications
-        返回商户入驻 consumer surface 列表。
-      tags: []
-      parameters:
-        - name: search
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: stage
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: providerNeutralState
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: provider_neutral_state
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: responsibilityParty
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: responsibility_party
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: slaState
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: sla_state
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: assignee
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: reviewer
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: includeTerminal
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: include_terminal
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: includeHandedOff
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: include_handed_off
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: blockingOnly
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: page
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: pageSize
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: page_size
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/cases:
-    get:
-      summary: List provider-neutral onboarding cases
-      deprecated: false
-      description: |-
-        List provider-neutral onboarding cases
-        返回 ML-005 provider-neutral 商户入驻队列。
-      tags: []
-      parameters:
-        - name: search
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: stage
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: providerNeutralState
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: provider_neutral_state
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: responsibilityParty
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: responsibility_party
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: slaState
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: sla_state
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: assignee
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: reviewer
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: includeTerminal
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: include_terminal
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: includeHandedOff
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: include_handed_off
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: blockingOnly
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: page
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: pageSize
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: page_size
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/cases:
-    get:
-      summary: List provider-neutral onboarding cases
-      deprecated: false
-      description: |-
-        List provider-neutral onboarding cases
-        返回 ML-005 provider-neutral 商户入驻队列。
-      tags: []
-      parameters:
-        - name: search
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: stage
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: providerNeutralState
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: provider_neutral_state
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: responsibilityParty
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: responsibility_party
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: slaState
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: sla_state
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: assignee
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: reviewer
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: string
-        - name: includeTerminal
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: include_terminal
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: includeHandedOff
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: include_handed_off
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: blockingOnly
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: boolean
-        - name: page
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: pageSize
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: page_size
-          in: query
-          description: ''
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/applications/{applicationId}:
-    get:
-      summary: Get onboarding application detail
-      deprecated: false
-      description: |-
-        Get onboarding application detail
-        返回入驻详情、阻塞信号、工单上下文与 handoff trace。
-      tags: []
-      parameters:
-        - name: applicationId
-          in: path
-          description: Application ID
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/applications/{applicationId}:
-    get:
-      summary: Get onboarding application detail
-      deprecated: false
-      description: |-
-        Get onboarding application detail
-        返回入驻详情、阻塞信号、工单上下文与 handoff trace。
-      tags: []
-      parameters:
-        - name: applicationId
-          in: path
-          description: Application ID
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/cases/{caseKey}:
-    get:
-      summary: Get provider-neutral onboarding case detail
-      deprecated: false
-      description: |-
-        Get provider-neutral onboarding case detail
-        返回商户入驻详情与 KYB 协同上下文。
-      tags: []
-      parameters:
-        - name: caseKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/cases/{caseKey}:
-    get:
-      summary: Get provider-neutral onboarding case detail
-      deprecated: false
-      description: |-
-        Get provider-neutral onboarding case detail
-        返回商户入驻详情与 KYB 协同上下文。
-      tags: []
-      parameters:
-        - name: caseKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/cases/{caseKey}/refresh:
-    post:
-      summary: Refresh provider-neutral onboarding state
-      deprecated: false
-      description: |-
-        Refresh provider-neutral onboarding state
-        请求 provider-neutral 状态刷新，不执行 provider sync 或最终决策。
-      tags: []
-      parameters:
-        - name: caseKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/cases/{caseKey}/refresh:
-    post:
-      summary: Refresh provider-neutral onboarding state
-      deprecated: false
-      description: |-
-        Refresh provider-neutral onboarding state
-        请求 provider-neutral 状态刷新，不执行 provider sync 或最终决策。
-      tags: []
-      parameters:
-        - name: caseKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/cases/{caseKey}/tickets/{ticketKey}/link:
-    get:
-      summary: Get onboarding ticket link
-      deprecated: false
-      description: |-
-        Get onboarding ticket link
-        返回 TK-001 工单安全路由引用，不开放工单生命周期操作。
-      tags: []
-      parameters:
-        - name: caseKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: ticketKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/cases/{caseKey}/tickets/{ticketKey}/link:
-    get:
-      summary: Get onboarding ticket link
-      deprecated: false
-      description: |-
-        Get onboarding ticket link
-        返回 TK-001 工单安全路由引用，不开放工单生命周期操作。
-      tags: []
-      parameters:
-        - name: caseKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: ticketKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/cases/{caseKey}/merchant-management-link:
-    get:
-      summary: Get Merchant Management link
-      deprecated: false
-      description: |-
-        Get Merchant Management link
-        仅在 handoff completed 时返回 Merchant Management 只读跳转引用。
-      tags: []
-      parameters:
-        - name: caseKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/cases/{caseKey}/merchant-management-link:
-    get:
-      summary: Get Merchant Management link
-      deprecated: false
-      description: |-
-        Get Merchant Management link
-        仅在 handoff completed 时返回 Merchant Management 只读跳转引用。
-      tags: []
-      parameters:
-        - name: caseKey
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/applications/{applicationId}/supplement-reminders:
-    post:
-      summary: Send supplement reminder
-      deprecated: false
-      description: |-
-        Send supplement reminder
-        记录补件跟催，不修改 KYB canonical state。
-      tags: []
-      parameters:
-        - name: applicationId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SupplementReminderRequest'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/applications/{applicationId}/supplement-reminders:
-    post:
-      summary: Send supplement reminder
-      deprecated: false
-      description: |-
-        Send supplement reminder
-        记录补件跟催，不修改 KYB canonical state。
-      tags: []
-      parameters:
-        - name: applicationId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SupplementReminderRequest'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/operations/onboarding/applications/{applicationId}/communications:
-    post:
-      summary: Create onboarding communication
-      deprecated: false
-      description: |-
-        Create onboarding communication
-        追加入驻沟通记录，不修改 KYB canonical state。
-      tags: []
-      parameters:
-        - name: applicationId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CommunicationCreateRequest'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /api/v1/ops/onboarding/applications/{applicationId}/communications:
-    post:
-      summary: Create onboarding communication
-      deprecated: false
-      description: |-
-        Create onboarding communication
-        追加入驻沟通记录，不修改 KYB canonical state。
-      tags: []
-      parameters:
-        - name: applicationId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CommunicationCreateRequest'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
   /api/v1/messages/{messageId}:
     get:
       summary: 消息详情
@@ -6404,6 +5232,1056 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessageResult%3F'
       security: []
+  /compliance/transactions/{orderId}/travel-rule/pii-validation:
+    get:
+      summary: 查询 PII 校验状态与补件轮次。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultPiiValidationView'
+      security: []
+  /compliance/transactions/{orderId}/travel-rule/pii-request:
+    post:
+      summary: 发起 PII 补件请求。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PiiRequestRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultPiiValidationView'
+      security: []
+  /compliance/rules/list:
+    post:
+      summary: 分页查询规则（含条件）。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryParamRiskRule'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultPageRiskRule'
+      security: []
+  /compliance/rules/{id}:
+    get:
+      summary: 查询单条规则详情（含条件）。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultRuleView'
+      security: []
+    put:
+      summary: 修改规则。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultRuleView'
+      security: []
+    delete:
+      summary: 删除规则（内置规则不可删除）。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResult%3F'
+      security: []
+  /compliance/rules:
+    post:
+      summary: 新增规则。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultRuleView'
+      security: []
+  /compliance/rules/{id}/enabled:
+    put:
+      summary: 启用/停用规则。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultRuleView'
+      security: []
+  /compliance/travel-rule/coins/list:
+    get:
+      summary: 查询全部币种门槛与汇率配置。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListTravelRuleCoin'
+      security: []
+  /compliance/travel-rule/coins/{coinId}:
+    put:
+      summary: 新增或更新某个币种的汇率/门槛（按 coinId upsert）。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: coinId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TravelRuleCoin'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultTravelRuleCoin'
+      security: []
+  /compliance/alerts/list:
+    post:
+      summary: 分页查询告警列表。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryParamRiskEvaluation'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultPageRiskEvaluation'
+      security: []
+  /compliance/alerts/{id}:
+    get:
+      summary: 查询单条告警详情。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultAlertView'
+      security: []
+  /compliance/alerts/{id}/approve:
+    post:
+      summary: 放行告警对应的交易。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: operator
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: note
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultAlertView'
+      security: []
+  /compliance/alerts/{id}/reject:
+    post:
+      summary: 拒绝告警对应的交易。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: operator
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: note
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultAlertView'
+      security: []
+  /compliance/transactions/list:
+    post:
+      summary: 分页查询交易流水
+      deprecated: false
+      description: |-
+        分页查询交易流水。
+        分页查询交易流水
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionLensQuery'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultPageTransactionLensItemView'
+      security: []
+  /compliance/transactions/summary:
+    get:
+      summary: 查询交易透镜统计
+      deprecated: false
+      description: |-
+        查询统计（运营概览 + 审核结果混淆矩阵）。
+        查询交易透镜统计
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultTransactionLensSummaryView'
+      security: []
+  /compliance/transactions/{orderId}/overview:
+    get:
+      summary: 查询交易详情头卡
+      deprecated: false
+      description: |-
+        查询详情头卡（生命周期 + 双方 + 审核结果）。
+        查询交易详情头卡
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultTransactionLensItemView'
+      security: []
+  /compliance/transactions/{orderId}/compliance:
+    get:
+      summary: 查询交易合规详情
+      deprecated: false
+      description: |-
+        查询合规 Tab（规则触发 / 尽调 / 筛查 / 沟通 / 时间线）。
+        查询交易合规详情
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultComplianceTabView'
+      security: []
+  /compliance/transactions/{orderId}/travel-rule:
+    get:
+      summary: 查询交易 Travel Rule 详情
+      deprecated: false
+      description: |-
+        查询 Travel Rule Tab（VASP 身份 + IVMS101 PII + 轨迹）。
+        查询交易 Travel Rule 详情
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultTravelRuleTabView'
+      security: []
+  /compliance/transactions/{orderId}/signoff:
+    get:
+      summary: 查询交易 Sign-off 详情
+      deprecated: false
+      description: |-
+        查询 Sign-off Tab（审批流 + 多签审批人）。
+        查询交易 Sign-off 详情
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultSignoffTabView'
+      security: []
+  /compliance/transactions/{orderId}/disposition:
+    get:
+      summary: 查询交易资金处置详情
+      deprecated: false
+      description: |-
+        查询 Fund Disposition Tab（入金隔离资金处置）。
+        查询交易资金处置详情
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultDispositionTabView'
+      security: []
+  /compliance/transactions/{orderId}/onchain:
+    get:
+      summary: 查询交易链上详情
+      deprecated: false
+      description: |-
+        查询 On-Chain Tab（链上交易详情与时间线）。
+        查询交易链上详情
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultOnChainTabView'
+      security: []
+  /compliance/transactions/{orderId}/approve:
+    post:
+      summary: 放行交易
+      deprecated: false
+      description: |-
+        放行交易。
+        放行交易
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: operator
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: note
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultBoolean'
+      security: []
+  /compliance/transactions/{orderId}/reject:
+    post:
+      summary: 拒绝交易
+      deprecated: false
+      description: |-
+        拒绝交易。
+        拒绝交易
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: operator
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: note
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultBoolean'
+      security: []
+  /compliance/transactions/{orderId}/resume:
+    post:
+      summary: 恢复挂起出金订单
+      deprecated: false
+      description: |-
+        恢复 Travel Rule 挂起的出金订单。
+        恢复挂起出金订单
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultBoolean'
+      security: []
+  /compliance/transactions/{orderId}/cancel:
+    post:
+      summary: 取消挂起出金订单
+      deprecated: false
+      description: |-
+        取消 Travel Rule 挂起的出金订单。
+        取消挂起出金订单
+      tags: []
+      parameters:
+        - name: orderId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: reason
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultBoolean'
+      security: []
+  /compliance/factors:
+    get:
+      summary: 列出因子目录；enabled=true 时仅返回启用中的因子。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: enabled
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: boolean
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListFactorView'
+      security: []
+  /compliance/factors/{code}/enabled:
+    put:
+      summary: 启用/停用因子（停用前校验是否仍被启用中的规则引用）。
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: code
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultFactorView'
+      security: []
+  /compliance/notifications:
+    get:
+      summary: 分页查询 Travel Rule 通知（双向）
+      deprecated: false
+      description: >-
+        分页查询 Travel Rule 通知（双向）
+        
+        分页查询 Travel Rule 通知，direction 不传或 ALL 查全部，可传 INBOUND/OUTBOUND；支持按状态、商户ecode、创建时间区间、关键词（订单号/Notabene交易ID/地址）过滤。
+      tags: []
+      parameters:
+        - name: direction
+          in: query
+          description: 方向：INBOUND-入金 / OUTBOUND-出金 / ALL-全部，空=全部
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: >-
+            内部状态：CREATED/PII_APPENDED/UNMATCHED/AUTHORIZED/ACCEPTED/REJECTED/SETTLING/SETTLED/REVERTED
+          required: false
+          schema:
+            type: string
+        - name: ecode
+          in: query
+          description: 商户ecode，精确匹配
+          required: false
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: 创建时间起（含），格式 yyyy-MM-dd HH:mm:ss
+          required: false
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          description: 创建时间止（含），格式 yyyy-MM-dd HH:mm:ss
+          required: false
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          description: 关键词，模糊匹配内部订单号/Notabene交易ID/付款地址/收款地址
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: 页码，从1开始
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          description: 每页条数
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListResponse'
+      security: []
+  /compliance/notifications/{id}:
+    get:
+      summary: 查看通知详情
+      deprecated: false
+      description: |-
+        查看通知详情
+        查看 Travel Rule 通知详情（入金/出金），含对手方 DID、地址、金额与 IVMS101 PII。
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: Travel Rule 通知记录 ID
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultDetailView'
+      security: []
+  /compliance/notifications/{id}/accept:
+    post:
+      summary: 接受通知
+      deprecated: false
+      description: |-
+        接受通知
+        入金：触发 Notabene EB 侧授权；出金：触发 Notabene EA 侧人工授权（自动授权兜底）。
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: Travel Rule 通知记录 ID
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResult%3F'
+      security: []
+  /compliance/notifications/{id}/reject:
+    post:
+      summary: 拒绝通知
+      deprecated: false
+      description: |-
+        拒绝通知
+        入金：触发 Notabene EB 侧拒绝；出金：触发 Notabene EA 侧人工拒绝。
+      tags: []
+      parameters:
+        - name: id
+          in: path
+          description: Travel Rule 通知记录 ID
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResult%3F'
+      security: []
 components:
   schemas:
     FeeMonitorOverviewResponse:
@@ -6861,11 +6739,148 @@ components:
         data:
           type: boolean
           description: ''
-    MapObject:
+    Merchant:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 商户ID
+          format: int64
+        code:
+          type: string
+          description: 商户识别码
+          default: '##default'
+        merchantName:
+          type: string
+          description: 商户名称
+          default: '##default'
+        status:
+          type: string
+          description: 商户状态
+          enum:
+            - PENDING
+            - ACTIVE
+            - FROZEN
+            - CANCELLED
+          default: '##default'
+        kybStatus:
+          type: string
+          description: KYB状态（来自合规案件，非表字段）
+          enum:
+            - DRAFT
+            - PENDING_SCREENING
+            - SUBMITTED
+            - NEED_SUPPLEMENT
+            - APPROVED
+            - REJECTED
+            - ADMIN_REJECTED
+            - CANCELLED
+          default: '##default'
+        email:
+          type: string
+          description: 所属邮箱
+          default: '##default'
+        sumsubApplicantId:
+          type: string
+          description: Sumsub applicant ID
+          default: '##default'
+        jurisdiction:
+          type: string
+          description: 注册国家 ISO3166-1
+          default: '##default'
+        registrationNumber:
+          type: string
+          description: 注册号
+          default: '##default'
+        dateOfIncorporation:
+          type: string
+          description: 注册日期
+          default: '##default'
+        taxId:
+          type: string
+          description: 税号(TIN/EIN)
+          default: '##default'
+        entityType:
+          type: string
+          description: 实体类型
+          default: '##default'
+        dbaName:
+          type: string
+          description: DBA/商号
+          default: '##default'
+        creatorId:
+          type: integer
+          description: 创建人
+          format: int64
+        createTime:
+          type: string
+          description: 创建时间
+          default: '##default'
+        updateTime:
+          type: string
+          description: 更新时间
+          default: '##default'
+    PiiFieldView:
       type: object
       properties:
         key:
-          $ref: '#/components/schemas/key'
+          type: string
+          description: ''
+        label:
+          type: string
+          description: ''
+        required:
+          type: boolean
+          description: ''
+    ItemView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ''
+          format: int64
+        direction:
+          type: string
+          description: ''
+        ecode:
+          type: string
+          description: ''
+        notabeneTxId:
+          type: string
+          description: ''
+        transferId:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        notabeneStatus:
+          type: string
+          description: ''
+        originatorDid:
+          type: string
+          description: ''
+        beneficiaryDid:
+          type: string
+          description: ''
+        sourceAddress:
+          type: string
+          description: ''
+        settlementAddress:
+          type: string
+          description: ''
+        assetCode:
+          type: string
+          description: ''
+        assetAmount:
+          type: number
+          description: ''
+        createTime:
+          type: string
+          description: ''
+        updateTime:
+          type: string
+          description: ''
     QueryCondition:
       type: object
       properties:
@@ -7005,6 +7020,65 @@ components:
             - RECOVERY_CODE
         code:
           type: string
+          description: ''
+    TravelRulePayload:
+      type: object
+      properties:
+        beneficiaryType:
+          type: string
+          description: '受益人类型: NATURAL(个人) / LEGAL(企业)'
+          default: '##default'
+        beneficiaryName:
+          type: string
+          description: 受益人姓名(Full Name), 仅 NATURAL 类型, 如 John Doe
+          default: '##default'
+        beneficiaryDob:
+          type: string
+          description: 受益人出生日期(YYYY-MM-DD), 仅 NATURAL 类型
+          default: '##default'
+        beneficiaryIdNumber:
+          type: string
+          description: 受益人证件号, 仅 NATURAL 类型
+          default: '##default'
+        beneficiaryIdType:
+          type: string
+          description: '受益人证件类型: PASSPORT/NATIONAL_ID/RESIDENCE_PERMIT, 仅 NATURAL 类型'
+          default: '##default'
+        beneficiaryNationality:
+          type: string
+          description: 受益人国籍/国家代码, 仅 NATURAL 类型
+          default: '##default'
+        beneficiaryLegalName:
+          type: string
+          description: 受益企业名称, 仅 LEGAL 类型
+          default: '##default'
+        beneficiaryLegalRegistrationNo:
+          type: string
+          description: 受益企业注册号, 仅 LEGAL 类型
+          default: '##default'
+        beneficiaryLegalCountry:
+          type: string
+          description: 受益企业国家代码, 仅 LEGAL 类型
+          default: '##default'
+    ListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.InboundTravelRuleReviewDto.ItemView
+          description: ''
+        total:
+          type: integer
+          description: ''
+          format: int64
+        page:
+          type: integer
+          description: ''
+        pageSize:
+          type: integer
           description: ''
     MessageResult?:
       type: object
@@ -7354,6 +7428,89 @@ components:
         code:
           type: string
           description: ''
+    PageMerchant:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Merchant'
+            description: com.cregis.custody.common.entity.merchant.Merchant
+          description: ''
+        total:
+          type: integer
+          description: ''
+          format: int64
+        size:
+          type: integer
+          description: ''
+          format: int64
+        current:
+          type: integer
+          description: ''
+          format: int64
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+            description: com.baomidou.mybatisplus.core.metadata.OrderItem
+          description: ''
+        optimizeCountSql:
+          type: boolean
+          description: ''
+        searchCount:
+          type: boolean
+          description: ''
+        optimizeJoinOfCountSql:
+          type: boolean
+          description: ''
+        maxLimit:
+          type: integer
+          description: ''
+          format: int64
+        countId:
+          type: string
+          description: ''
+    PiiRoundView:
+      type: object
+      properties:
+        roundNo:
+          type: integer
+          description: ''
+        type:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        requestedAt:
+          type: string
+          description: ''
+        resubmittedAt:
+          type: string
+          description: ''
+        missingAtRequest:
+          type: array
+          items:
+            $ref: '#/components/schemas/PiiFieldView'
+            description: >-
+              com.cregis.custody.common.dto.compliance.TravelRulePiiDtos.PiiFieldView
+          description: ''
+        payload:
+          $ref: '#/components/schemas/TravelRulePayload'
+          description: ''
+    MessageResultListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/ListResponse'
+          description: ''
     PasskeyAssertionCompleteRequest:
       type: object
       properties:
@@ -7478,6 +7635,52 @@ components:
         data:
           $ref: '#/components/schemas/PageMerchantBillingRecord'
           description: ''
+    MessageResultPageMerchant:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/PageMerchant'
+          description: ''
+    PiiValidationView:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: ''
+        notabeneTxId:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        missingFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/PiiFieldView'
+            description: >-
+              com.cregis.custody.common.dto.compliance.TravelRulePiiDtos.PiiFieldView
+          description: ''
+        resubmitCount:
+          type: integer
+          description: ''
+        rounds:
+          type: array
+          items:
+            $ref: '#/components/schemas/PiiRoundView'
+            description: >-
+              com.cregis.custody.common.dto.compliance.TravelRulePiiDtos.PiiRoundView
+          description: ''
+    MapObject:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/key'
     GasOperationsFilterOptionsView:
       type: object
       properties:
@@ -7616,6 +7819,18 @@ components:
         deviceName:
           type: string
           description: 设备名称
+    MessageResultPiiValidationView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/PiiValidationView'
+          description: ''
     GasOperationsCapabilityView:
       type: object
       properties:
@@ -7689,6 +7904,17 @@ components:
           $ref: '#/components/schemas/PageFeeMonitorMerchantRankingItem'
           description: ''
     QueryParamMessage: *ref_0
+    PiiRequestRequest:
+      type: object
+      properties:
+        fields:
+          type: array
+          items:
+            type: string
+          description: ''
+        note:
+          type: string
+          description: ''
     GasAccountDetailView:
       type: object
       properties:
@@ -7719,6 +7945,241 @@ components:
           format: int64
         avgFeePerTxUsdt:
           type: number
+          description: ''
+    KybQuestionnaire:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键ID
+          format: int64
+        caseId:
+          type: integer
+          description: 关联 cus_compliance_case.id
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码(merchant.code，问卷与企业关联键)
+          default: '##default'
+        legalName:
+          type: string
+          description: 法定名称
+          default: '##default'
+        dbaName:
+          type: string
+          description: DBA/商号
+          default: '##default'
+        jurisdiction:
+          type: string
+          description: 注册司法辖区 ISO3166-1
+          default: '##default'
+        countryCode:
+          type: string
+          description: 国家代码
+          default: '##default'
+        dateOfIncorporation:
+          type: string
+          description: 注册日期
+          default: '##default'
+        registrationNumber:
+          type: string
+          description: 注册号
+          default: '##default'
+        taxId:
+          type: string
+          description: 税号(TIN/EIN)
+          default: '##default'
+        entityType:
+          type: string
+          description: 实体类型
+          default: '##default'
+        publiclyTraded:
+          type: boolean
+          description: 是否上市 1/0
+          default: false
+        employeeCount:
+          type: string
+          description: 员工数区间
+          default: '##default'
+        primaryActivity:
+          type: string
+          description: 主营业务
+          default: '##default'
+        website:
+          type: string
+          description: 官网
+          default: '##default'
+        businessDescription:
+          type: string
+          description: 业务描述
+          default: '##default'
+        beneficiaryCount:
+          type: integer
+          description: UBO数量(≥25%)
+        pepStatus:
+          type: string
+          description: '是否PEP: YES/NO/UNSURE'
+          default: '##default'
+        annualVolumeUsd:
+          type: string
+          description: 年交易量区间
+          default: '##default'
+        sourceOfFunds:
+          type: string
+          description: 资金来源
+          default: '##default'
+        useCase:
+          type: string
+          description: 用途
+          default: '##default'
+        regulated:
+          type: boolean
+          description: 是否持牌 1/0
+          default: false
+        regulatoryAction:
+          type: boolean
+          description: 是否有监管处罚 1/0
+          default: false
+        screeningStatus:
+          type: string
+          description: '筛查状态: PENDING/APPROVED/REJECTED'
+          default: '##default'
+        screeningReason:
+          type: string
+          description: 筛查驳回原因
+          default: '##default'
+        screeningNote:
+          type: string
+          description: 筛查备注
+          default: '##default'
+        reviewedBy:
+          type: integer
+          description: 审核人 userId
+          format: int64
+        reviewedAt:
+          type: string
+          description: 审核时间
+          default: '##default'
+        version:
+          type: integer
+          description: 版本号（驳回重填递增）
+        createTime:
+          type: string
+          description: 创建时间
+          default: '##default'
+        updateTime:
+          type: string
+          description: 更新时间
+          default: '##default'
+    RiskRule:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键ID
+          format: int64
+        ruleCode:
+          type: string
+          description: 规则编码，唯一
+        ruleName:
+          type: string
+          description: 规则名称
+        description:
+          type: string
+          description: 规则描述
+        direction:
+          type: string
+          description: 方向：ALL / OUTGOING(出金) / INCOMING(入金)
+        scopeType:
+          type: string
+          description: 适用范围类型：GLOBAL(全局) / MERCHANT(商户级)
+        scopeValue:
+          type: string
+          description: MERCHANT 时的商户 code(ecode)，GLOBAL 时为 null
+        decision:
+          type: string
+          description: 命中后的决策：AUTO_REJECT(自动拒绝) / SUBMIT_FOR_REVIEW(提交人工复核) / HOLD(挂起)
+        severity:
+          type: string
+          description: 严重程度：ROUTINE(常规) / MEDIUM(中) / CRITICAL(严重)
+        minAmountUsd:
+          type: number
+          description: 金额门槛(USD)，交易金额达到门槛才校验；NULL=无门槛
+        enabled:
+          type: boolean
+          description: 是否启用（true 参与规则匹配，false 停用）
+        builtIn:
+          type: boolean
+          description: 是否内置规则（内置规则 v1 只读、不可删除）
+        createdBy:
+          type: string
+          description: 创建人
+        createdAt:
+          type: string
+          description: 创建时间
+        updatedAt:
+          type: string
+          description: 更新时间
+    DetailView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ''
+          format: int64
+        direction:
+          type: string
+          description: ''
+        ecode:
+          type: string
+          description: ''
+        notabeneTxId:
+          type: string
+          description: ''
+        transferId:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        notabeneStatus:
+          type: string
+          description: ''
+        originatorDid:
+          type: string
+          description: ''
+        beneficiaryDid:
+          type: string
+          description: ''
+        sourceAddress:
+          type: string
+          description: ''
+        settlementAddress:
+          type: string
+          description: ''
+        assetCode:
+          type: string
+          description: ''
+        assetAmount:
+          type: number
+          description: ''
+        createTime:
+          type: string
+          description: ''
+        updateTime:
+          type: string
+          description: ''
+        clientRef:
+          type: string
+          description: ''
+        pdUrl:
+          type: string
+          description: ''
+        ivms101Payload:
+          $ref: '#/components/schemas/MapObject'
+          description: ''
+        webhookEvents:
+          $ref: '#/components/schemas/MapObject'
           description: ''
     MessageResultGasAccountDetailView:
       type: object
@@ -7776,6 +8237,81 @@ components:
         countId:
           type: string
           description: ''
+    KybBeneficiary:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键ID
+          format: int64
+        caseId:
+          type: integer
+          description: 关联 cus_compliance_case.id
+          format: int64
+        questionnaireId:
+          type: integer
+          description: 关联 cus_kyb_questionnaire.id
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码
+          default: '##default'
+        name:
+          type: string
+          description: 姓名
+          default: '##default'
+        type:
+          type: string
+          description: '类型: ubo/director/shareholder'
+          default: '##default'
+        shareSize:
+          type: number
+          description: 持股比例%
+          default: '##default'
+        country:
+          type: string
+          description: 国籍 ISO3166-1 alpha-3
+          default: '##default'
+        dateOfBirth:
+          type: string
+          description: 出生日期
+          default: '##default'
+        email:
+          type: string
+          description: 邮箱
+          default: '##default'
+        phone:
+          type: string
+          description: 电话
+          default: '##default'
+        applicantId:
+          type: string
+          description: Sumsub individual applicantId（link 后回填）
+          default: '##default'
+        status:
+          type: string
+          description: '状态: PENDING/LINKED/KYC_PASSED'
+          default: '##default'
+        createTime:
+          type: string
+          description: 创建时间
+          default: '##default'
+        updateTime:
+          type: string
+          description: 更新时间
+          default: '##default'
+    MessageResultDetailView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/DetailView'
+          description: ''
     MessageResultPageFeeMonitorMerchantFeeDailyItem:
       type: object
       properties:
@@ -7787,6 +8323,129 @@ components:
           description: ''
         data:
           $ref: '#/components/schemas/PageFeeMonitorMerchantFeeDailyItem'
+          description: ''
+    AdminMerchantKybDetailView:
+      type: object
+      properties:
+        merchantId:
+          type: integer
+          description: 商户ID
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码
+        merchantName:
+          type: string
+          description: 商户名称
+        merchantStatus:
+          type: string
+          description: 商户状态
+          enum:
+            - PENDING
+            - ACTIVE
+            - FROZEN
+            - CANCELLED
+        merchantType:
+          type: string
+          description: 商户类型
+          enum:
+            - NON_FINANCIAL_CORPORATE
+            - REGULATED_VASP
+            - INTERNAL_SYSTEM
+        email:
+          type: string
+          description: 联系邮箱
+        industryType:
+          type: string
+          description: 行业类型
+        kybCaseId:
+          type: integer
+          description: KYB 案件ID
+          format: int64
+        kybCaseNo:
+          type: string
+          description: KYB 案件编号
+        kybStatus:
+          type: string
+          description: KYB 状态
+          enum:
+            - DRAFT
+            - PENDING_SCREENING
+            - SUBMITTED
+            - NEED_SUPPLEMENT
+            - APPROVED
+            - REJECTED
+            - CANCELLED
+        kybStageLabel:
+          type: string
+          description: KYB 当前阶段展示文案
+        appliedAt:
+          type: string
+          description: 问卷提交时间
+        questionnaire:
+          $ref: '#/components/schemas/KybQuestionnaire'
+          description: 资格筛查问卷
+        beneficiaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/KybBeneficiary'
+            description: |-
+              KYB 受益人（UBO/董事/股东）明细。
+
+              <p>对应表{@code cus_kyb_beneficiary}。admin 通过后 linkBeneficiary 时回填
+              {@link #applicantId}（Sumsub individual applicantId）并更新状态。</p>
+          description: 受益人明细
+    PageRiskRule:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskRule'
+            description: >-
+              风控规则主表实体。
+              
+              
+              <p>对应数据库表{@code cus_risk_rule}。</p>
+              
+              
+              <p>一条规则 = 出入金方向(direction) + 适用范围(scope) + 一组条件(见{@link RiskRuleCondition})
+              
+              + 命中后的处置决策(decision)。规则保存即生效，执行引擎只加载 enabled=true 的规则。</p>
+          description: ''
+        total:
+          type: integer
+          description: ''
+          format: int64
+        size:
+          type: integer
+          description: ''
+          format: int64
+        current:
+          type: integer
+          description: ''
+          format: int64
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+            description: com.baomidou.mybatisplus.core.metadata.OrderItem
+          description: ''
+        optimizeCountSql:
+          type: boolean
+          description: ''
+        searchCount:
+          type: boolean
+          description: ''
+        optimizeJoinOfCountSql:
+          type: boolean
+          description: ''
+        maxLimit:
+          type: integer
+          description: ''
+          format: int64
+        countId:
+          type: string
           description: ''
     FeeMonitorNativeCoinConsumptionItem:
       type: object
@@ -7807,6 +8466,39 @@ components:
         avgPerTx:
           type: string
           description: ''
+    MessageResultAdminMerchantKybDetailView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/AdminMerchantKybDetailView'
+          description: ''
+    MessageResultPageRiskRule:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/PageRiskRule'
+          description: ''
+    RejectRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: ''
+        comment:
+          type: string
+          description: ''
     MessageResultListFeeMonitorNativeCoinConsumptionItem:
       type: object
       properties:
@@ -7823,6 +8515,623 @@ components:
             description: >-
               com.cregis.custody.common.vo.feeCenter.FeeMonitorNativeCoinConsumptionItem
           description: ''
+    KybBeneficiaryInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 受益人姓名
+        type:
+          type: string
+          description: 受益人类型：ubo（实际控制人）/ director（董事）/ shareholder（股东）
+        shareSize:
+          type: number
+          description: 持股比例（百分比，如 60.0 表示 60%）
+        country:
+          type: string
+          description: 国籍（ISO 3166-1 alpha-3，如 CHN）
+        dateOfBirth:
+          type: string
+          description: 出生日期（ISO 8601 格式，如 1990-01-15）
+        email:
+          type: string
+          description: 联系邮箱
+        phone:
+          type: string
+          description: 联系电话
+        applicantId:
+          type: string
+          description: |-
+            已有 KYC applicant ID。
+            如果受益人已完成个人 KYC 并持有 Sumsub applicantId，可直接关联；
+            留空则 Sumsub 根据上述个人信息自动创建 individual applicant。
+    KybProfilePayload:
+      type: object
+      properties:
+        legalName:
+          type: string
+          description: 主体法定名称
+          default: '##default'
+          example: Acme Asset Management Ltd.
+        dbaName:
+          type: string
+          description: DBA/商号
+          default: '##default'
+          example: Acme
+        jurisdiction:
+          type: string
+          description: 注册司法辖区 ISO3166-1
+          default: '##default'
+          example: SG
+        dateOfIncorporation:
+          type: string
+          description: 注册日期
+          default: '##default'
+          example: '2021-03-15'
+        registrationNumber:
+          type: string
+          description: 注册号
+          default: '##default'
+          example: 202108152R
+        taxId:
+          type: string
+          description: 税号(TIN/EIN)
+          default: '##default'
+          example: SG-UEN-202108152R
+        entityType:
+          type: string
+          description: 实体类型
+          default: '##default'
+          example: llc
+        publiclyTraded:
+          type: boolean
+          description: 是否上市
+          default: false
+        employeeCount:
+          type: string
+          description: 员工数区间
+          default: '##default'
+          example: 11-50
+        primaryActivity:
+          type: string
+          description: 主营业务
+          default: '##default'
+          example: exchange
+        website:
+          type: string
+          description: 官网地址
+          default: '##default'
+          example: https://acme.example
+        businessDescription:
+          type: string
+          description: 业务描述
+          default: '##default'
+        beneficiaryCount:
+          type: integer
+          description: UBO数量(≥25%)
+        pepStatus:
+          type: string
+          description: 是否PEP
+          default: '##default'
+          example: 'NO'
+        annualVolumeUsd:
+          type: string
+          description: 年交易量区间
+          default: '##default'
+          example: 10m-100m
+        sourceOfFunds:
+          type: string
+          description: 资金来源
+          default: '##default'
+        useCase:
+          type: string
+          description: 用途
+          default: '##default'
+        regulated:
+          type: boolean
+          description: 是否持牌/受监管
+          default: false
+        regulatoryAction:
+          type: boolean
+          description: 是否有监管处罚
+          default: false
+        beneficiaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/KybBeneficiaryInfo'
+            description: |-
+              KYB 受益人信息。
+
+              <p>对应 Sumsub API 中{@code beneficiaries[]} 数组元素的结构。
+              支持两种关联模式：
+              <ul>
+                <li>已有 KYC applicant：填写{@link #applicantId} 直接关联</li>
+                <li>新受益人：填写姓名、国籍等个人信息，Sumsub 自动创建 individual applicant</li>
+              </ul>
+          description: 受益人明细
+          default: '##default'
+    QueryParamRiskRule: *ref_0
+    KybSessionSummaryView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 内部会话ID
+          format: int64
+        providerCode:
+          type: string
+          description: Provider 编码
+          default: '##default'
+        providerLabel:
+          type: string
+          description: Provider 展示文案
+          default: '##default'
+        providerApplicantId:
+          type: string
+          description: Provider applicant ID
+          default: '##default'
+        providerSessionId:
+          type: string
+          description: Provider session ID
+          default: '##default'
+        lastCallbackAt:
+          type: string
+          description: 最近回调时间
+          default: '##default'
+    ConditionItem:
+      type: object
+      properties:
+        field:
+          type: string
+          description: 条件字段：amount / risk_score / currency / direction / tag
+        operator:
+          type: string
+          description: 操作符：gt / lt / eq / gte / lte / neq / in / not_in / contains
+        value:
+          type: string
+          description: 条件值；in / not_in 用英文逗号分隔
+        enabled:
+          type: boolean
+          description: 该因子在本规则内是否启用（规则级开关，默认 true）
+        sortOrder:
+          type: integer
+          description: 排序号
+        factorName:
+          type: string
+          description: 因子展示名
+        valueType:
+          type: string
+          description: 因子值类型：NUMBER / STRING / TAG_LIST / ENUM
+        domain:
+          type: string
+          description: >-
+            因子域：customerDueDiligence / counterpartyVasp / screening / transaction
+        defaultOperator:
+          type: string
+          description: 默认操作符
+        allowedValues:
+          type: array
+          items:
+            type: string
+          description: 可选值列表（ENUM / TAG_LIST）
+    KybProgressEntryView:
+      type: object
+      properties:
+        type:
+          type: string
+          description: 进度条目类型
+          enum:
+            - DRAFT_CREATED
+            - SUBMITTED
+            - REVIEW_STARTED
+            - SUPPLEMENT_REQUESTED
+            - RESUBMITTED
+            - VERIFIED
+            - REJECTED
+          default: '##default'
+        typeLabel:
+          type: string
+          description: 进度条目类型展示文案
+          default: '##default'
+        title:
+          type: string
+          description: 进度标题
+          default: '##default'
+        summary:
+          type: string
+          description: 进度摘要
+          default: '##default'
+        actorLabel:
+          type: string
+          description: 操作方展示文案
+          default: '##default'
+        occurredAt:
+          type: string
+          description: 进度发生时间
+          default: '##default'
+    RuleView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 规则ID
+          format: int64
+        ruleCode:
+          type: string
+          description: 规则编码
+        ruleName:
+          type: string
+          description: 规则名称
+        description:
+          type: string
+          description: 规则描述
+        direction:
+          type: string
+          description: 方向
+        scopeType:
+          type: string
+          description: 适用范围类型
+        scopeValue:
+          type: string
+          description: 适用范围值
+        decision:
+          type: string
+          description: 命中决策
+        severity:
+          type: string
+          description: 严重程度
+        minAmountUsd:
+          type: number
+          description: 金额门槛(USD)
+        enabled:
+          type: boolean
+          description: 是否启用
+        builtIn:
+          type: boolean
+          description: 是否内置规则
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionItem'
+            description: 规则条件项（新增/修改规则时的入参，也用于详情回显）
+          description: 条件列表
+    KybCaseView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 内部 case ID
+          format: int64
+        caseNo:
+          type: string
+          description: case 编号
+          default: '##default'
+        providerCode:
+          type: string
+          description: Provider 编码
+          default: '##default'
+        providerLabel:
+          type: string
+          description: Provider 展示文案
+          default: '##default'
+        merchantId:
+          type: integer
+          description: 商户ID
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码
+          default: '##default'
+        subjectName:
+          type: string
+          description: 主体名称
+          default: '##default'
+        status:
+          type: string
+          description: KYB状态
+          enum:
+            - DRAFT
+            - PENDING_SCREENING
+            - SUBMITTED
+            - NEED_SUPPLEMENT
+            - APPROVED
+            - REJECTED
+            - CANCELLED
+          default: '##default'
+        statusLabel:
+          type: string
+          description: KYB状态展示文案
+          default: '##default'
+        levelName:
+          type: string
+          description: Provider level name
+          default: '##default'
+        primaryAction:
+          type: string
+          description: 主动作
+          enum:
+            - LAUNCH_SESSION
+            - WAIT_SCREENING
+            - RESUBMIT
+            - WAIT_REVIEW
+            - COMPLETED
+            - CONTACT_SUPPORT
+          default: '##default'
+        primaryActionLabel:
+          type: string
+          description: 主动作展示文案
+          default: '##default'
+        primaryActionTarget:
+          type: string
+          description: 主动作目标接口
+          default: '##default'
+        currentStage:
+          type: string
+          description: 当前阶段
+          enum:
+            - COLLECTING_INFORMATION
+            - SCREENING
+            - AWAITING_REVIEW
+            - SUPPLEMENT_REQUIRED
+            - VERIFIED
+            - REJECTED
+            - CANCELLED
+          default: '##default'
+        currentStageLabel:
+          type: string
+          description: 当前阶段展示文案
+          default: '##default'
+        bannerTitle:
+          type: string
+          description: 顶部状态标题
+          default: '##default'
+        bannerSubtitle:
+          type: string
+          description: 顶部状态摘要
+          default: '##default'
+        statusSummary:
+          type: string
+          description: 状态摘要
+          default: '##default'
+        nextActionHint:
+          type: string
+          description: 下一步动作提示
+          default: '##default'
+        submittedAt:
+          type: string
+          description: 首次提交时间
+          default: '##default'
+        resubmittedAt:
+          type: string
+          description: 最近补件重提时间
+          default: '##default'
+        supplementReason:
+          type: string
+          description: 最近补件原因
+          default: '##default'
+        lastResubmitNote:
+          type: string
+          description: 最近补件备注
+          default: '##default'
+        supplementSummary:
+          type: string
+          description: 补件摘要
+          default: '##default'
+        latestEventAt:
+          type: string
+          description: 最近事件时间
+          default: '##default'
+        closedAt:
+          type: string
+          description: 关闭时间
+          default: '##default'
+        payload:
+          $ref: '#/components/schemas/KybProfilePayload'
+          description: 最近提交 payload
+          default: '##default'
+        latestSession:
+          $ref: '#/components/schemas/KybSessionSummaryView'
+          description: 最近会话摘要
+          default: '##default'
+        progressEntries:
+          type: array
+          items:
+            $ref: '#/components/schemas/KybProgressEntryView'
+            description: 商户侧 KYB 进度时间线条目。
+          description: 进度时间线
+          default: '##default'
+    MessageResultRuleView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/RuleView'
+          description: ''
+    MessageResultKybCaseView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/KybCaseView'
+          description: ''
+    RuleRequest:
+      type: object
+      properties:
+        ruleCode:
+          type: string
+          description: 规则编码，不传则自动生成
+        ruleName:
+          type: string
+          description: 规则名称
+        description:
+          type: string
+          description: 规则描述
+        direction:
+          type: string
+          description: 方向：ALL / OUTGOING / INCOMING
+        scopeType:
+          type: string
+          description: 适用范围类型：GLOBAL / MERCHANT
+        scopeValue:
+          type: string
+          description: MERCHANT 时的商户 code(ecode)
+        decision:
+          type: string
+          description: 命中决策：AUTO_REJECT / SUBMIT_FOR_REVIEW / HOLD
+        severity:
+          type: string
+          description: 严重程度：ROUTINE / MEDIUM / CRITICAL
+        minAmountUsd:
+          type: number
+          description: 金额门槛(USD)，交易金额达到门槛才校验；null 表示无门槛
+        enabled:
+          type: boolean
+          description: 是否启用
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionItem'
+            description: 规则条件项（新增/修改规则时的入参，也用于详情回显）
+          description: 规则条件列表
+    EnableRequest:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: 是否启用
+    TravelRuleCoin:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键ID
+          format: int64
+        coinId:
+          type: string
+          description: 币种ID，与 cus_sys_coin_on_chain.coin_id 对齐，如 USDT / BTC
+        usdRate:
+          type: number
+          description: 1 coin = ? USD（汇率）
+        minAmountUsd:
+          type: number
+          description: 该币种 Travel Rule 门槛(USD)，0=不豁免
+        enabled:
+          type: boolean
+          description: 是否启用
+        updatedAt:
+          type: string
+          description: 更新时间
+    MessageResultListTravelRuleCoin:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TravelRuleCoin'
+            description: >-
+              Travel Rule 币种门槛与汇率配置实体。
+              
+              
+              <p>对应数据库表{@code cus_travel_rule_coin}。每个币种一行：</p>
+              
+              <ul>
+                <li>{@code usdRate}：1 coin = ? USD，汇率可随时更新；</li>
+                <li>{@code minAmountUsd}：该币种 Travel Rule 门槛(USD)，低于此金额豁免 Travel Rule，0 表示不豁免。</li>
+              </ul>
+              
+              
+              <p>小数位(decimals)不在此表存储，统一复用{@code cus_sys_coin_on_chain.decimals}。</p>
+          description: ''
+    MessageResultTravelRuleCoin:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/TravelRuleCoin'
+          description: ''
+    RiskEvaluation:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键ID
+          format: int64
+        bizRefType:
+          type: string
+          description: >-
+            业务引用类型：PAYOUT_ORDER(出金订单) / WITHDRAW_ORDER(提现订单) / INBOUND_ORDER(入金订单)
+        bizRefId:
+          type: string
+          description: 业务订单号(orderId)
+        merchantEcode:
+          type: string
+          description: 商户 code(ecode)
+        direction:
+          type: string
+          description: 方向：OUTGOING(出金) / INCOMING(入金)
+        amount:
+          type: integer
+          description: 交易金额（链上金额 BigInteger）
+        currency:
+          type: string
+          description: 币种(coinId)
+        riskScore:
+          type: number
+          description: 风险分（Elliptic 0-10）
+        ruleHits:
+          type: string
+          description: 命中规则明细，JSON 数组文本，供 admin 告警列表展示
+        factors:
+          type: string
+          description: 因子快照，JSON 对象文本，仅内部审计用
+        conclusion:
+          type: string
+          description: 内部细粒度结论：PASS / HOLD / BLOCK / MANUAL_REVIEW
+        decision:
+          type: string
+          description: 业务决策：PASS(放行) / HOLD(挂起) / BLOCK(阻断)
+        dispositionStatus:
+          type: string
+          description: 处置状态：PENDING(待处置) / APPROVED(已放行) / REJECTED(已拒绝)
+        disposedBy:
+          type: string
+          description: 处置人
+        disposedAt:
+          type: string
+          description: 处置时间
+        reviewResult:
+          type: string
+          description: 复核结果：NONE/TRUE_POSITIVE/TRUE_NEGATIVE/FALSE_POSITIVE/FALSE_NEGATIVE
+        reviewedBy:
+          type: string
+          description: 复核人
+        reviewedAt:
+          type: string
+          description: 复核时间
+        createTime:
+          type: string
+          description: 创建时间
     GasTopUpItemView:
       type: object
       properties:
@@ -7879,6 +9188,55 @@ components:
         sourceFamily:
           type: string
           description: ''
+    PageRiskEvaluation:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskEvaluation'
+            description: |-
+              合规评估明细表实体。
+
+              <p>对应数据库表{@code cus_risk_evaluation}。</p>
+
+              <p>每笔出入金合规评估落一行快照：记录评估时的因子、命中的规则、最终决策，
+              以及后续人工处置结果。告警列表以该表为数据源。</p>
+          description: ''
+        total:
+          type: integer
+          description: ''
+          format: int64
+        size:
+          type: integer
+          description: ''
+          format: int64
+        current:
+          type: integer
+          description: ''
+          format: int64
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+            description: com.baomidou.mybatisplus.core.metadata.OrderItem
+          description: ''
+        optimizeCountSql:
+          type: boolean
+          description: ''
+        searchCount:
+          type: boolean
+          description: ''
+        optimizeJoinOfCountSql:
+          type: boolean
+          description: ''
+        maxLimit:
+          type: integer
+          description: ''
+          format: int64
+        countId:
+          type: string
+          description: ''
     GasTopUpResponseView:
       type: object
       properties:
@@ -7901,6 +9259,24 @@ components:
             description: >-
               com.cregis.custody.admin.dto.operations.gas.GasOperationsSourceAvailabilityView
           description: ''
+    MessageResultPageRiskEvaluation:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/PageRiskEvaluation'
+          description: ''
+    AdminKybCaseDecisionRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: 决策原因或备注
     MessageResultGasTopUpResponseView:
       type: object
       properties:
@@ -7913,6 +9289,7 @@ components:
         data:
           $ref: '#/components/schemas/GasTopUpResponseView'
           description: ''
+    QueryParamRiskEvaluation: *ref_0
     GasConfigurationUpdateRequest:
       type: object
       properties:
@@ -7931,6 +9308,37 @@ components:
         expectedVersion:
           type: string
           description: ''
+    MessageResultAlertView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/AlertView'
+          description: ''
+    RiskDispositionEventView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 事件ID
+          format: int64
+        eventType:
+          type: string
+          description: 事件类型
+        operator:
+          type: string
+          description: 操作人
+        payload:
+          $ref: '#/components/schemas/MapObject'
+          description: 事件详情快照
+        createTime:
+          type: string
+          description: 事件时间
     PlatformGasConfig:
       type: object
       properties:
@@ -7964,6 +9372,75 @@ components:
         updatedTime:
           type: string
           description: 更新时间
+    AlertView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 告警ID
+          format: int64
+        bizRefType:
+          type: string
+          description: 业务引用类型：PAYOUT_ORDER / WITHDRAW_ORDER / INBOUND_ORDER
+        bizRefId:
+          type: string
+          description: 业务订单号
+        merchantEcode:
+          type: string
+          description: 商户 code
+        direction:
+          type: string
+          description: 方向
+        amount:
+          type: integer
+          description: 交易金额（链上金额 BigInteger）
+        currency:
+          type: string
+          description: 币种
+        riskScore:
+          type: number
+          description: 风险分
+        ruleHits:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapObject'
+          description: 命中规则明细
+        conclusion:
+          type: string
+          description: 内部细粒度结论
+        decision:
+          type: string
+          description: 业务决策
+        dispositionStatus:
+          type: string
+          description: 处置状态
+        disposedBy:
+          type: string
+          description: 处置人
+        disposedAt:
+          type: string
+          description: 处置时间
+        createTime:
+          type: string
+          description: 创建时间
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskDispositionEventView'
+            description: 风控处置事件视图（回显给 console 风控中心 / admin 告警详情的 Review Activity 时间线）。
+          description: 处置时间线
+    PartyView:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ''
+        address:
+          type: string
+          description: ''
+        detail:
+          type: string
+          description: ''
     MessageResultListPlatformGasConfig:
       type: object
       properties:
@@ -7979,10 +9456,402 @@ components:
             $ref: '#/components/schemas/PlatformGasConfig'
             description: 平台链配置实体 - 平台级费用因子
           description: ''
-    key:
+    TransactionLensItemView:
       type: object
-      properties: {}
+      properties:
+        orderId:
+          type: string
+          description: ''
+        direction:
+          type: string
+          description: ''
+        amount:
+          type: string
+          description: ''
+        coinId:
+          type: string
+          description: ''
+        network:
+          type: string
+          description: ''
+        createTime:
+          type: string
+          description: ''
+        merchantName:
+          type: string
+          description: ''
+        originator:
+          $ref: '#/components/schemas/PartyView'
+          description: ''
+        beneficiary:
+          $ref: '#/components/schemas/PartyView'
+          description: ''
+        compliance:
+          type: string
+          description: ''
+        travelRule:
+          type: string
+          description: ''
+        signoff:
+          type: string
+          description: ''
+        onchain:
+          type: string
+          description: ''
+        disposition:
+          type: string
+          description: ''
+        reviewResult:
+          type: string
+          description: ''
+    PageTransactionLensItemView:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionLensItemView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDtos.TransactionLensItemView
+          description: ''
+        total:
+          type: integer
+          description: ''
+          format: int64
+        size:
+          type: integer
+          description: ''
+          format: int64
+        current:
+          type: integer
+          description: ''
+          format: int64
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+            description: com.baomidou.mybatisplus.core.metadata.OrderItem
+          description: ''
+        optimizeCountSql:
+          type: boolean
+          description: ''
+        searchCount:
+          type: boolean
+          description: ''
+        optimizeJoinOfCountSql:
+          type: boolean
+          description: ''
+        maxLimit:
+          type: integer
+          description: ''
+          format: int64
+        countId:
+          type: string
+          description: ''
+    MessageResultPageTransactionLensItemView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/PageTransactionLensItemView'
+          description: ''
+    TransactionLensQuery:
+      type: object
+      properties:
+        pageNum:
+          type: integer
+          description: ''
+          format: int64
+          default: 1
+        pageSize:
+          type: integer
+          description: ''
+          format: int64
+          default: 10
+        direction:
+          type: string
+          description: ''
+        compliance:
+          type: string
+          description: ''
+        travelRule:
+          type: string
+          description: ''
+        signoff:
+          type: string
+          description: ''
+        onchain:
+          type: string
+          description: ''
+        settlement:
+          type: string
+          description: ''
+        outcome:
+          type: string
+          description: ''
+        merchantEcode:
+          type: string
+          description: ''
+        dateFrom:
+          type: string
+          description: ''
+        dateTo:
+          type: string
+          description: ''
+        keyword:
+          type: string
+          description: ''
+    OperationalStats:
+      type: object
+      properties:
+        totalTransactions:
+          type: integer
+          description: ''
+          format: int64
+        settled:
+          type: integer
+          description: ''
+          format: int64
+        rejected:
+          type: integer
+          description: ''
+          format: int64
+        pendingReview:
+          type: integer
+          description: ''
+          format: int64
+    ReviewResultStats:
+      type: object
+      properties:
+        truePositive:
+          type: integer
+          description: ''
+          format: int64
+        trueNegative:
+          type: integer
+          description: ''
+          format: int64
+        falsePositive:
+          type: integer
+          description: ''
+          format: int64
+        falseNegative:
+          type: integer
+          description: ''
+          format: int64
+    TransactionLensSummaryView:
+      type: object
+      properties:
+        operational:
+          $ref: '#/components/schemas/OperationalStats'
+          description: ''
+        reviewResult:
+          $ref: '#/components/schemas/ReviewResultStats'
+          description: ''
+        pendingReviewBreakdown:
+          type: array
+          items:
+            type: string
+          description: ''
+    MessageResultTransactionLensSummaryView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/TransactionLensSummaryView'
+          description: ''
+    MessageResultTransactionLensItemView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/TransactionLensItemView'
+          description: ''
+    RuleTriggerView:
+      type: object
+      properties:
+        ruleCode:
+          type: string
+          description: ''
+        ruleName:
+          type: string
+          description: ''
+        decision:
+          type: string
+          description: ''
+        severity:
+          type: string
+          description: ''
+        description:
+          type: string
+          description: ''
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapObject'
+          description: ''
+    CheckItemView:
+      type: object
+      properties:
+        label:
+          type: string
+          description: ''
+        value:
+          type: string
+          description: ''
+        passed:
+          type: boolean
+          description: ''
+    ScreeningItemView:
+      type: object
+      properties:
+        subject:
+          type: string
+          description: ''
+        result:
+          type: string
+          description: ''
+    ScreeningView:
+      type: object
+      properties:
+        entity:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScreeningItemView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.ScreeningItemView
+          description: ''
+        onchain:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScreeningItemView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.ScreeningItemView
+          description: ''
+    TravelRuleSummaryView:
+      type: object
+      properties:
+        status:
+          type: string
+          description: ''
+        vaspDid:
+          type: string
+          description: ''
+        ivms101Status:
+          type: string
+          description: ''
+    CommunicationRoundView:
+      type: object
+      properties:
+        roundNo:
+          type: integer
+          description: ''
+        type:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        initiator:
+          type: string
+          description: ''
+        requestedAt:
+          type: string
+          description: ''
+        responseAt:
+          type: string
+          description: ''
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapObject'
+          description: ''
+        payload:
+          $ref: '#/components/schemas/MapObject'
+          description: ''
+    TimelineNodeView:
+      type: object
+      properties:
+        label:
+          type: string
+          description: ''
+        detail:
+          type: string
+          description: ''
+        time:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
     QueryParamSystemUser: *ref_0
+    ComplianceTabView:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: ''
+        riskScore:
+          type: number
+          description: ''
+        decision:
+          type: string
+          description: ''
+        conclusion:
+          type: string
+          description: ''
+        dispositionStatus:
+          type: string
+          description: ''
+        rulesTriggered:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleTriggerView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.RuleTriggerView
+          description: ''
+        cddChecklist:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckItemView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.CheckItemView
+          description: ''
+        screening:
+          $ref: '#/components/schemas/ScreeningView'
+          description: ''
+        travelRuleSummary:
+          $ref: '#/components/schemas/TravelRuleSummaryView'
+          description: ''
+        communication:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationRoundView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.CommunicationRoundView
+          description: ''
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineNodeView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.TimelineNodeView
+          description: ''
     AddSystemStaffRequest:
       type: object
       properties:
@@ -8009,6 +9878,18 @@ components:
         defaultEntryId:
           type: string
           description: 默认进入位
+    MessageResultComplianceTabView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/ComplianceTabView'
+          description: ''
     TestActivationRequest:
       type: object
       properties:
@@ -8021,6 +9902,21 @@ components:
         roleCode:
           type: string
           description: Role code (e.g. OPERATIONS)
+    VaspIdentityView:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ''
+        originatorDid:
+          type: string
+          description: ''
+        beneficiaryDid:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
     AdminStaffPasswordResetRequest:
       type: object
       properties:
@@ -8046,7 +9942,54 @@ components:
           type: string
           description: 邮箱验证码
           default: '##default'
+    TravelRuleTabView:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: ''
+        notabeneTxId:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        vaspIdentity:
+          $ref: '#/components/schemas/VaspIdentityView'
+          description: ''
+        ivms101Status:
+          type: string
+          description: ''
+        ivms101Pii:
+          $ref: '#/components/schemas/MapObject'
+          description: ''
+        networkTrace:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineNodeView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.TimelineNodeView
+          description: ''
+        manualTrace:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineNodeView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.TimelineNodeView
+          description: ''
     QueryParamSystemRole: *ref_0
+    MessageResultTravelRuleTabView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/TravelRuleTabView'
+          description: ''
     SystemRole:
       type: object
       properties:
@@ -8072,6 +10015,22 @@ components:
         updateTime:
           type: string
           description: 更新时间
+    ApproverView:
+      type: object
+      properties:
+        attendeeId:
+          type: integer
+          description: ''
+          format: int64
+        status:
+          type: integer
+          description: ''
+        statusLabel:
+          type: string
+          description: ''
+        updatedAt:
+          type: string
+          description: ''
     RolePermissionUpdateRequest:
       type: object
       properties:
@@ -8080,6 +10039,39 @@ components:
           items:
             type: string
           description: 权限编码列表
+    SignoffTabView:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: ''
+        taskId:
+          type: string
+          description: ''
+        state:
+          type: string
+          description: ''
+        initiator:
+          type: string
+          description: ''
+        threshold:
+          type: integer
+          description: ''
+        total:
+          type: integer
+          description: ''
+        approvers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApproverView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensOpsDtos.ApproverView
+          description: ''
+        signers:
+          type: array
+          items:
+            type: string
+          description: ''
     CoinOnChain:
       type: object
       properties:
@@ -8156,6 +10148,202 @@ components:
           type: string
           description: 提现手续费
           default: '##default'
+    MessageResultSignoffTabView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/SignoffTabView'
+          description: ''
+    key:
+      type: object
+      properties: {}
+    QuarantineView:
+      type: object
+      properties:
+        reasonType:
+          type: string
+          description: ''
+        amount:
+          type: string
+          description: ''
+        action:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        actionAt:
+          type: string
+          description: ''
+        actionNote:
+          type: string
+          description: ''
+    DispositionTabView:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        amount:
+          type: string
+          description: ''
+        heldSince:
+          type: string
+          description: ''
+        holdBalance:
+          type: string
+          description: ''
+        forfeitureDestination:
+          type: string
+          description: ''
+        quarantine:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuarantineView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensOpsDtos.QuarantineView
+          description: ''
+    MessageResultDispositionTabView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/DispositionTabView'
+          description: ''
+    OnChainTabView:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: ''
+        network:
+          type: string
+          description: ''
+        txHash:
+          type: string
+          description: ''
+        status:
+          type: string
+          description: ''
+        fee:
+          type: string
+          description: ''
+        blockNumber:
+          type: string
+          description: ''
+        blockHash:
+          type: string
+          description: ''
+        confirmations:
+          type: integer
+          description: ''
+        blockTime:
+          type: string
+          description: ''
+        finalized:
+          type: boolean
+          description: ''
+        nonce:
+          type: string
+          description: ''
+        gasUsed:
+          type: string
+          description: ''
+        gasPrice:
+          type: string
+          description: ''
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineNodeView'
+            description: >-
+              com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.TimelineNodeView
+          description: ''
+    MessageResultOnChainTabView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/OnChainTabView'
+          description: ''
+    FactorView:
+      type: object
+      properties:
+        factorCode:
+          type: string
+          description: 因子编码
+        factorName:
+          type: string
+          description: 因子展示名
+        valueType:
+          type: string
+          description: 值类型：NUMBER / STRING / TAG_LIST / ENUM
+        domain:
+          type: string
+          description: 因子域：customerDueDiligence / counterpartyVasp / screening
+        defaultOperator:
+          type: string
+          description: 默认操作符
+        allowedValues:
+          type: array
+          items:
+            type: string
+          description: 可选值列表
+        enabled:
+          type: boolean
+          description: 是否启用
+        builtIn:
+          type: boolean
+          description: 是否内置
+        sortOrder:
+          type: integer
+          description: 排序
+    MessageResultListFactorView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FactorView'
+            description: 因子目录视图（规则编辑器因子源 + 因子管理页）
+          description: ''
+    MessageResultFactorView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/FactorView'
+          description: ''
     QueryParamSystemPermissionChange: *ref_0
     PermissionChangeApplyRequest:
       type: object
@@ -8509,33 +10697,6 @@ components:
       properties:
         inputSnapshot:
           $ref: '#/components/schemas/TestInputSnapshot'
-          description: ''
-    NotificationRequest:
-      type: object
-      properties:
-        type:
-          type: string
-          description: ''
-        title:
-          type: string
-          description: ''
-        content:
-          type: string
-          description: ''
-    SupplementReminderRequest:
-      type: object
-      properties:
-        message:
-          type: string
-          description: ''
-    CommunicationCreateRequest:
-      type: object
-      properties:
-        type:
-          type: string
-          description: ''
-        content:
-          type: string
           description: ''
     QueryParamMerchantGasFulfillRecord: *ref_0
     DeployContractRequest:

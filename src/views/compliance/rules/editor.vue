@@ -20,27 +20,41 @@
       <div class="p-5">
         <el-form label-width="140px" :model="form">
           <el-form-item :label="$t('rules.ruleName')">
-            <el-input v-model="form.name" />
+            <el-input v-model="form.ruleName" :disabled="isBuiltIn" />
           </el-form-item>
           <el-form-item :label="$t('rules.description')">
-            <el-input v-model="form.description" type="textarea" :rows="2" />
+            <el-input v-model="form.description" type="textarea" :rows="2" :disabled="isBuiltIn" />
           </el-form-item>
           <div class="grid grid-cols-2 gap-x-6">
             <el-form-item :label="$t('rules.direction')">
-              <el-input :model-value="directionLabel(form.direction)" disabled />
+              <el-select v-model="form.direction" class="w-full" :disabled="isBuiltIn">
+                <el-option
+                  v-for="item in DIRECTION_DICT"
+                  :key="item.value"
+                  :label="$t(item.labelKey)"
+                  :value="item.value"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item :label="$t('rules.stage')">
               <el-input :model-value="stageLabel(form.stage)" disabled />
             </el-form-item>
           </div>
           <div class="grid grid-cols-2 gap-x-6">
-            <el-form-item :label="$t('rules.minAmount')">
-              <el-input v-model="form.minAmount" placeholder="e.g. 10000" />
-            </el-form-item>
             <el-form-item :label="$t('rules.severity')">
-              <el-select v-model="form.severity" class="w-full">
+              <el-select v-model="form.severity" class="w-full" :disabled="isBuiltIn">
                 <el-option
-                  v-for="item in severityDict"
+                  v-for="item in SEVERITY_DICT"
+                  :key="item.value"
+                  :label="$t(item.labelKey)"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item :label="$t('rules.decision')">
+              <el-select v-model="form.decision" class="w-full" :disabled="isBuiltIn">
+                <el-option
+                  v-for="item in DECISION_DICT"
                   :key="item.value"
                   :label="$t(item.labelKey)"
                   :value="item.value"
@@ -50,26 +64,43 @@
           </div>
           <div class="grid grid-cols-2 gap-x-6">
             <el-form-item :label="$t('rules.scope')">
-              <el-select v-model="form.scope" class="w-full">
+              <el-select v-model="form.scopeType" class="w-full" :disabled="isBuiltIn">
                 <el-option
-                  v-for="item in scopeDict"
+                  v-for="item in SCOPE_DICT"
                   :key="item.value"
                   :label="$t(item.labelKey)"
                   :value="item.value"
                 />
               </el-select>
             </el-form-item>
-            <el-form-item :label="$t('rules.decision')">
-              <el-select v-model="form.decision" class="w-full">
-                <el-option
-                  v-for="item in decisionDict"
-                  :key="item.value"
-                  :label="$t(item.labelKey)"
-                  :value="item.value"
-                />
-              </el-select>
+            <el-form-item :label="$t('rules.minAmountUsd')">
+              <el-input-number
+                v-model="form.minAmountUsd"
+                class="!w-full min-amount-input"
+                :min="0"
+                :controls="false"
+                :placeholder="$t('rules.minAmountUsdPlaceholder')"
+                :disabled="isBuiltIn"
+              />
             </el-form-item>
           </div>
+          <el-form-item v-if="form.scopeType === 'MERCHANT'" :label="$t('rules.scopeValue')">
+            <el-select
+              v-model="form.scopeValue"
+              class="w-full"
+              filterable
+              :loading="merchantLoading"
+              :disabled="isBuiltIn"
+              :placeholder="$t('rules.scopeValuePlaceholder')"
+            >
+              <el-option
+                v-for="m in merchantOptions"
+                :key="m.value"
+                :label="m.label"
+                :value="m.value"
+              />
+            </el-select>
+          </el-form-item>
         </el-form>
       </div>
     </div>
@@ -92,13 +123,49 @@
               v-for="factor in domain.factors"
               :key="factor.key"
               class="factor-row"
-              :class="{ active: isFactorActive(factor.key) }"
+              :class="{ active: isFactorActive(factor.key), disabled: !factor.supported }"
             >
-              <div class="factor-toggle" @click="toggleFactor(factor.key)">
+              <div class="factor-toggle" @click="factor.supported && toggleFactor(factor.key)">
                 <span v-if="isFactorActive(factor.key)" class="text-white text-[10px]">✓</span>
               </div>
               <span class="factor-label">{{ factor.label }}</span>
-              <div v-if="isFactorActive(factor.key)" class="flex flex-wrap gap-1 ml-auto">
+
+              <!-- input 类型：风险分数 / 金额 -->
+              <div v-if="factor.type === 'input'" class="ml-auto">
+                <div v-if="isFactorActive(factor.key)" class="flex items-center justify-end gap-2">
+                  <el-input
+                    :model-value="getFactorValue(factor.key)"
+                    placeholder="e.g. 7.0"
+                    size="small"
+                    class="!w-40"
+                    @update:model-value="setFactorValue(factor.key, $event)"
+                  />
+                  <span v-if="factor.hint" class="text-xs text-g-400">{{ factor.hint }}</span>
+                </div>
+                <span v-else class="factor-options-hint">{{ factor.hint }}</span>
+              </div>
+
+              <!-- single 类型：eq 单选 -->
+              <div
+                v-else-if="factor.type === 'single' && isFactorActive(factor.key)"
+                class="flex flex-wrap gap-1 ml-auto justify-end"
+              >
+                <el-radio-group
+                  :model-value="getFactorValue(factor.key)"
+                  size="small"
+                  @update:model-value="(v) => setFactorValue(factor.key, String(v))"
+                >
+                  <el-radio v-for="opt in factor.options" :key="opt" :value="opt">
+                    {{ opt }}
+                  </el-radio>
+                </el-radio-group>
+              </div>
+
+              <!-- multi 类型：in 多选 -->
+              <div
+                v-else-if="factor.type === 'multi' && isFactorActive(factor.key)"
+                class="flex flex-wrap gap-1 ml-auto justify-end"
+              >
                 <el-checkbox
                   v-for="opt in factor.options"
                   :key="opt"
@@ -110,7 +177,7 @@
                 </el-checkbox>
               </div>
               <span v-else class="factor-options-hint">{{
-                getFactorOptionsDisplay(factor.key)
+                factor.supported ? getFactorOptionsDisplay(factor.key) : t('rules.factorPending')
               }}</span>
             </div>
           </div>
@@ -121,7 +188,9 @@
     <!-- Action Buttons -->
     <div class="flex justify-end gap-3">
       <el-button @click="router.back()">{{ $t('common.cancel') }}</el-button>
-      <el-button type="primary" @click="saveRule">{{ $t('common.confirm') }}</el-button>
+      <el-button type="primary" @click="saveRule" :loading="saving" :disabled="isBuiltIn">{{
+        $t('common.confirm')
+      }}</el-button>
     </div>
   </div>
 </template>
@@ -130,15 +199,26 @@
   import { computed, onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { ElMessage } from 'element-plus'
   import countriesEn from '@/data/countries-en.json'
   import countriesZh from '@/data/countries-zh.json'
+  import { fetchMerchantList } from '@/api/merchant'
   import {
-    DECISION_DICT as decisionDict,
-    SCOPE_DICT as scopeDict,
-    SEVERITY_DICT as severityDict,
-    stageLabelKey,
-    directionLabelKey
-  } from './dictionaries'
+    fetchComplianceFactors,
+    fetchComplianceRuleDetail,
+    createComplianceRule,
+    updateComplianceRule
+  } from '@/api/compliance'
+  import type { RuleCondition, FactorView } from '@/features/compliance/types'
+  import {
+    DECISION_DICT,
+    SCOPE_DICT,
+    SEVERITY_DICT,
+    DIRECTION_DICT,
+    factorByKey,
+    factorLabel as factorLabelOf,
+    stageLabel as stageLabelOf
+  } from '@/features/compliance/dictionaries'
 
   defineOptions({ name: 'RuleEditor' })
 
@@ -146,160 +226,112 @@
   const router = useRouter()
   const { locale, t } = useI18n()
 
-  const DIRECTION_FALLBACK: Record<string, string> = {
-    Outgoing: 'rules.outgoing',
-    Incoming: 'rules.incoming'
-  }
-  const STAGE_FALLBACK: Record<string, string> = {
-    'Due Diligence': 'rules.stages.dueDiligence',
-    'Mismatch Hold': 'rules.stages.mismatchHold'
-  }
-
-  function dictText(
-    lookup: (value: string) => string | undefined,
-    value: string,
-    fallbackMap?: Record<string, string>
-  ): string {
-    const key = lookup(value)
-    if (key) return t(key)
-    if (fallbackMap?.[value]) return t(fallbackMap[value])
-    return value
-  }
-
-  function stageLabel(value: string): string {
-    return dictText(stageLabelKey, value, STAGE_FALLBACK)
-  }
-
-  function directionLabel(value: string): string {
-    return dictText(directionLabelKey, value, DIRECTION_FALLBACK)
-  }
-
   const ruleId = computed(() => route.params.id as string)
   const isEdit = computed(() => !!ruleId.value)
+  const isBuiltIn = ref(false)
+  const saving = ref(false)
 
   const pageTitle = computed(() => (isEdit.value ? t('rules.editRule') : t('rules.addRule')))
   const pageSubtitle = computed(() =>
     isEdit.value ? t('rules.editRuleSubtitle') : t('rules.addRuleSubtitle')
   )
 
-  // Get country list based on current locale
-  function getCountries(): { code: string; name: string }[] {
-    return locale.value === 'zh' ? countriesZh : countriesEn
+  function stageLabel(value: string): string {
+    return stageLabelOf(value, t)
   }
 
-  const countryOptions = computed(() => getCountries().map((c) => `${c.code} — ${c.name}`))
+  // 国家列表（counterparty_jurisdiction 的多选数据源）
+  const countryOptions = computed(() => {
+    const countries = locale.value === 'zh' ? countriesZh : countriesEn
+    return countries.map((c) => `${c.code} — ${c.name}`)
+  })
 
-  interface FactorOption {
-    key: string
-    labelKey: string
-    type: 'multi'
-    options: string[]
-  }
+  // ─── 因子目录（GET /compliance/factors 接口驱动）───
+  // 地址因子按方向显示：出金只显示受益方地址，入金只显示发起方地址（对手方筛查语义）
+  // ─── 因子目录（GET /compliance/factors，接口驱动）───
+  // enabled=false 的因子置灰不可编辑；factorName 走 i18n 兜底（FACTOR_CATALOG）
+  const serverFactors = ref<FactorView[]>([])
 
-  interface FactorDomain {
-    domainKey: string
-    factors: FactorOption[]
-  }
-
-  const factorCatalogTemplate: FactorDomain[] = [
-    {
-      domainKey: 'rules.factorDomains.customerDueDiligence',
-      factors: [
-        {
-          key: 'onboarding_state',
-          labelKey: 'rules.factors.onboardingStatus',
-          type: 'multi',
-          options: ['onboarded', 'pending', 'labeled', 'frozen', 'offboarded']
-        },
-        {
-          key: 'customer_risk_level',
-          labelKey: 'rules.factors.customerRiskLevel',
-          type: 'multi',
-          options: ['low', 'medium', 'high']
-        }
-      ]
-    },
-    {
-      domainKey: 'rules.factorDomains.screening',
-      factors: [
-        {
-          key: 'screening.counterparty_vasp',
-          labelKey: 'rules.factors.counterpartyVasp',
-          type: 'multi',
-          options: ['ofacSdn', 'euList', 'unSecurity', 'pep', 'adverseMedia', 'criminal']
-        },
-        {
-          key: 'screening.beneficiary_entity',
-          labelKey: 'rules.factors.beneficiary',
-          type: 'multi',
-          options: ['ofacSdn', 'euList', 'unSecurity', 'pep', 'adverseMedia', 'criminal']
-        },
-        {
-          key: 'screening.originator_address',
-          labelKey: 'rules.factors.originatorAddress',
-          type: 'multi',
-          options: ['mixer', 'darknet', 'ransomware', 'sanctionsAddr', 'theftScam', 'structuring']
-        },
-        {
-          key: 'screening.beneficiary_address',
-          labelKey: 'rules.factors.beneficiaryAddress',
-          type: 'multi',
-          options: ['mixer', 'darknet', 'ransomware', 'sanctionsAddr', 'theftScam', 'structuring']
-        }
-      ]
-    },
-    {
-      domainKey: 'rules.factorDomains.counterpartyVasp',
-      factors: [
-        {
-          key: 'counterparty_jurisdiction',
-          labelKey: 'rules.factors.jurisdiction',
-          type: 'multi',
-          options: countryOptions.value
-        },
-        {
-          key: 'vasp_status',
-          labelKey: 'rules.factors.vaspStatus',
-          type: 'multi',
-          options: ['registered', 'exempt', 'unlicensed']
-        },
-        {
-          key: 'vasp_regulatory',
-          labelKey: 'rules.factors.regulatory',
-          type: 'multi',
-          options: ['verified', 'unverified']
-        },
-        {
-          key: 'tr_capable',
-          labelKey: 'rules.factors.trCapable',
-          type: 'multi',
-          options: ['yes', 'no']
-        },
-        {
-          key: 'ivms101_valid',
-          labelKey: 'rules.factors.ivms101Valid',
-          type: 'multi',
-          options: ['valid', 'invalid']
-        }
-      ]
+  async function loadFactors() {
+    try {
+      serverFactors.value = await fetchComplianceFactors()
+    } catch {
+      serverFactors.value = []
     }
-  ]
+  }
 
-  const factorCatalog = computed(() =>
-    factorCatalogTemplate.map((domain) => ({
-      domain: t(domain.domainKey),
-      factors: domain.factors.map((factor) => ({
-        ...factor,
-        label: t(factor.labelKey),
-        options: factor.options.map((opt) => {
-          if (opt.includes(' — ')) return opt
-          const translated = t(`rules.factorOptions.${opt}`)
-          return translated.startsWith('rules.factorOptions.') ? opt : translated
-        })
-      }))
+  function factorLabel(factor: FactorView): string {
+    return factorLabelOf(factor.factorCode, t, factor.factorName)
+  }
+
+  function factorType(factor: FactorView): 'input' | 'multi' | 'single' {
+    // NUMBER → 输入框
+    if (factor.valueType === 'NUMBER') return 'input'
+    // in → 多选；eq → 单选
+    if (factor.defaultOperator === 'in') return 'multi'
+    if (factor.defaultOperator === 'eq') return 'single'
+    // 兜底：无可选值 → 输入框；否则单选
+    if (factor.allowedValues.length === 0) return 'input'
+    return 'single'
+  }
+
+  function factorHint(factor: FactorView): string {
+    const staticFactor = factorByKey(factor.factorCode)
+    return staticFactor?.hintKey ? t(staticFactor.hintKey) : ''
+  }
+
+  // 辖区因子（allowedValues 为空 + in 操作符）用国家列表做数据源
+  function factorOptions(factor: FactorView): string[] {
+    if (factorType(factor) === 'input') return []
+    if (factor.allowedValues.length > 0) {
+      return factor.allowedValues.map((opt) => {
+        const translated = t(`rules.factorOptions.${opt}`)
+        return translated.startsWith('rules.factorOptions.') ? opt : translated
+      })
+    }
+    return countryOptions.value
+  }
+
+  const factorCatalog = computed(() => {
+    const domains: Record<
+      string,
+      Array<{
+        key: string
+        label: string
+        type: string
+        hint: string
+        supported: boolean
+        options: string[]
+      }>
+    > = {}
+    for (const factor of serverFactors.value) {
+      // 按方向过滤地址因子
+      if (form.direction === 'OUTGOING' && factor.factorCode === 'screening.originator_address')
+        continue
+      if (form.direction === 'INCOMING' && factor.factorCode === 'screening.beneficiary_address')
+        continue
+      // Travel Rule 相关因子归到 travelRule 分组（后端 domain 仍为 counterpartyVasp）
+      const domain = ['tr_capable', 'ivms101_valid'].includes(factor.factorCode)
+        ? 'travelRule'
+        : factor.domain
+      const domainKey = `rules.factorDomains.${domain}`
+      if (!domains[domainKey]) domains[domainKey] = []
+      domains[domainKey].push({
+        key: factor.factorCode,
+        label: factorLabel(factor),
+        type: factorType(factor),
+        hint: factorHint(factor),
+        supported: factor.enabled,
+        options: factorOptions(factor)
+      })
+    }
+    return Object.entries(domains).map(([domainKey, factors]) => ({
+      domain: t(domainKey),
+      factors
     }))
-  )
+  })
 
+  // activeFactors: multi 类型存选项数组，input 类型存单值（用数组第一个元素承载）
   const activeFactors = ref<Record<string, string[]>>({})
 
   function toggleFactor(factorKey: string) {
@@ -333,6 +365,18 @@
     return activeFactors.value[factorKey]?.includes(option) ?? false
   }
 
+  function getFactorValue(factorKey: string): string {
+    return activeFactors.value[factorKey]?.[0] ?? ''
+  }
+
+  function setFactorValue(factorKey: string, value: string) {
+    if (value === '') {
+      delete activeFactors.value[factorKey]
+    } else {
+      activeFactors.value[factorKey] = [value]
+    }
+  }
+
   function getFactorOptionsDisplay(factorKey: string): string {
     const factor = factorCatalog.value.flatMap((d) => d.factors).find((f) => f.key === factorKey)
     if (!factor) return ''
@@ -340,35 +384,147 @@
   }
 
   const form = reactive({
-    id: 0,
-    name: '',
+    ruleName: '',
     description: '',
     direction: 'OUTGOING',
-    stage: '',
-    minAmount: '',
+    stage: 'DUE_DILIGENCE',
     severity: 'ROUTINE',
-    scope: 'GLOBAL',
-    decision: 'SUBMIT_REVIEW',
-    riskFactors: [] as string[]
+    scopeType: 'GLOBAL',
+    scopeValue: '',
+    decision: 'SUBMIT_FOR_REVIEW',
+    minAmountUsd: null as number | null,
+    enabled: true
   })
 
-  function saveRule() {
-    // TODO: Implement save rule API call
-    console.log('Save rule:', { ...form, activeFactors: activeFactors.value })
-    router.back()
+  // ─── 商户列表（scopeType=MERCHANT 时选择 scopeValue）───
+  const merchantOptions = ref<Array<{ label: string; value: string }>>([])
+  const merchantLoading = ref(false)
+
+  async function loadMerchants() {
+    merchantLoading.value = true
+    try {
+      const result = await fetchMerchantList({ pageSize: 200 })
+      merchantOptions.value = result.records.map((m) => ({
+        label: `${m.merchantName} (${m.code})`,
+        value: m.code
+      }))
+    } catch {
+      merchantOptions.value = []
+    } finally {
+      merchantLoading.value = false
+    }
   }
 
-  onMounted(() => {
+  // ─── conditions ↔ activeFactors 映射（operator/valueType 用接口数据）───
+  function buildConditions(): RuleCondition[] {
+    const conds: RuleCondition[] = []
+    let sort = 1
+    for (const [key, values] of Object.entries(activeFactors.value)) {
+      const serverFactor = serverFactors.value.find((f) => f.factorCode === key)
+      if (!serverFactor || !serverFactor.enabled) continue
+      if (values.length === 0) continue
+      // input/single 类型：单值；multi 类型：逗号分隔
+      const type = factorType(serverFactor)
+      const value = type === 'multi' ? values.join(',') : values[0]
+      conds.push({
+        field: key,
+        operator: serverFactor.defaultOperator,
+        value,
+        enabled: true,
+        sortOrder: sort++
+      })
+    }
+    return conds
+  }
+
+  function applyConditions(conditions: RuleCondition[]) {
+    activeFactors.value = {}
+    for (const c of conditions || []) {
+      const serverFactor = serverFactors.value.find((f) => f.factorCode === c.field)
+      if (!serverFactor) continue
+      const type = factorType(serverFactor)
+      if (type !== 'multi') {
+        activeFactors.value[c.field] = [c.value || '']
+      } else {
+        const opts = (c.value || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+        if (opts.length) activeFactors.value[c.field] = opts
+      }
+    }
+  }
+
+  async function loadDetail() {
+    if (!isEdit.value) return
+    try {
+      const detail = await fetchComplianceRuleDetail(ruleId.value)
+      form.ruleName = detail.ruleName
+      form.description = detail.description || ''
+      form.direction = detail.direction
+      form.stage = 'DUE_DILIGENCE'
+      form.severity = detail.severity
+      form.scopeType = detail.scopeType
+      form.scopeValue = detail.scopeValue || ''
+      form.decision = detail.decision
+      form.minAmountUsd = detail.minAmountUsd ?? null
+      form.enabled = detail.enabled
+      applyConditions(detail.conditions || [])
+      isBuiltIn.value = detail.builtIn
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : 'Failed to load rule')
+      router.back()
+    }
+  }
+
+  async function saveRule() {
+    if (!form.ruleName.trim()) {
+      ElMessage.warning(t('rules.ruleName') + ' is required')
+      return
+    }
+    saving.value = true
+    try {
+      const payload = {
+        ruleName: form.ruleName,
+        description: form.description || undefined,
+        direction: form.direction,
+        scopeType: form.scopeType,
+        scopeValue: form.scopeType === 'MERCHANT' ? form.scopeValue : undefined,
+        decision: form.decision,
+        severity: form.severity,
+        minAmountUsd: form.minAmountUsd ?? null,
+        enabled: form.enabled,
+        conditions: buildConditions()
+      }
+
+      if (isEdit.value) {
+        await updateComplianceRule(ruleId.value, payload)
+        ElMessage.success('Rule updated')
+      } else {
+        await createComplianceRule(payload)
+        ElMessage.success('Rule created')
+      }
+      router.push({ name: 'ComplianceRules' })
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : 'Failed to save rule')
+    } finally {
+      saving.value = false
+    }
+  }
+
+  onMounted(async () => {
+    loadMerchants()
+    // 因子目录先于详情加载（applyConditions 依赖 serverFactors）
+    await loadFactors()
     if (isEdit.value) {
-      // TODO: Load rule data from API
-      console.log('Edit rule:', ruleId.value)
+      loadDetail()
       return
     }
     // 新增：从 query 读取 stage 编号与方向编号
     const stageCode = route.query.stage as string
     const directionCode = route.query.direction as string
     if (stageCode) form.stage = stageCode
-    if (directionCode === 'incoming') {
+    if (directionCode === 'INCOMING') {
       form.direction = 'INCOMING'
       form.decision = 'HOLD'
     }
@@ -378,8 +534,8 @@
 <style scoped>
   .factor-row {
     display: flex;
-    align-items: center;
     gap: 10px;
+    align-items: center;
     padding: 8px 12px;
     background: var(--el-fill-color-light);
     border: 1px solid var(--el-border-color-lighter);
@@ -392,15 +548,24 @@
     border-color: var(--el-color-primary-light-5);
   }
 
+  .factor-row.disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .factor-row.disabled .factor-toggle {
+    cursor: not-allowed;
+  }
+
   .factor-toggle {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
     width: 16px;
     height: 16px;
+    cursor: pointer;
     border: 2px solid var(--el-border-color);
     border-radius: 4px;
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
     transition: all 0.15s;
   }
 
@@ -410,15 +575,24 @@
   }
 
   .factor-label {
+    min-width: 140px;
     font-size: 13px;
     font-weight: 500;
     color: var(--el-text-color-primary);
-    min-width: 140px;
   }
 
   .factor-options-hint {
     margin-left: auto;
     font-size: 12px;
     color: var(--el-text-color-secondary);
+  }
+
+  /* 金额门槛输入框与同排 el-select/el-input 宽度对齐，内部文本左对齐 */
+  .min-amount-input :deep(.el-input__wrapper) {
+    width: 100%;
+  }
+
+  .min-amount-input :deep(.el-input__inner) {
+    text-align: left;
   }
 </style>

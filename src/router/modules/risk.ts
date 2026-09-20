@@ -53,7 +53,8 @@ export const riskRoutes: AppRouteRecord = {
         title: 'menus.risk.assessment',
         icon: 'ri:alert-line',
         keepAlive: false,
-        isHide: true
+        isHide: true,
+        activePath: '/risk/queue'
       }
     }
   ]

@@ -145,7 +145,7 @@
   const orderId = route.params.id as string
 
   const shareLink = ref(`https://share.cregis-custody.com/tr/${orderId}?token=abc123xyz`)
-  const fileList = ref([])
+  const fileList = ref<any[]>([])
 
   function copyLink() {
     navigator.clipboard.writeText(shareLink.value)

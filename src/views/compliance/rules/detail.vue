@@ -12,187 +12,176 @@
       </el-button>
     </div>
 
-    <!-- Read-only Notice -->
-    <div
-      class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-warning-light-9)] border border-[var(--el-color-warning-light-5)] rounded-lg text-sm text-[var(--el-color-warning)] mb-5"
-    >
-      <ArtSvgIcon icon="ri:lock-line" class="text-base" />
-      <span>{{ $t('rules.readonlyNotice') }}</span>
+    <!-- Loading / Error -->
+    <div v-if="loading" class="art-card p-10 text-center">
+      <el-skeleton :rows="8" animated />
+    </div>
+    <div v-else-if="errorMessage" class="art-card p-10 text-center">
+      <p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p>
+      <el-button type="primary" @click="loadDetail">{{ $t('console.refresh') }}</el-button>
     </div>
 
-    <!-- Rule Detail Card -->
-    <div class="art-card mb-5">
-      <div class="p-5 border-b border-[var(--default-border)] flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-g-900">{{ currentRule.name }}</h2>
-        <div class="flex items-center gap-2">
-          <el-tag :type="statusTag(currentRule.status)" size="default" effect="light">
-            {{ statusLabel(currentRule.status) }}
-          </el-tag>
-          <el-button
-            v-if="currentRule.status === 'Active'"
-            type="danger"
-            plain
-            size="small"
-            @click="cancelRule"
-          >
-            {{ $t('rules.cancelRule') }}
-          </el-button>
-          <el-button
-            v-if="currentRule.status === 'Pending'"
-            type="warning"
-            plain
-            size="small"
-            @click="activateRule"
-          >
-            {{ $t('rules.activateRule') }}
-          </el-button>
-          <el-button
-            v-if="currentRule.status === 'Cancelled'"
-            type="success"
-            plain
-            size="small"
-            @click="recoverRule"
-          >
-            {{ $t('rules.recoverRule') }}
-          </el-button>
-        </div>
+    <template v-else-if="currentRule">
+      <!-- Read-only Notice -->
+      <div
+        class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-warning-light-9)] border border-[var(--el-color-warning-light-5)] rounded-lg text-sm text-[var(--el-color-warning)] mb-5"
+      >
+        <ArtSvgIcon icon="ri:lock-line" class="text-base" />
+        <span>{{ $t('rules.readonlyNotice') }}</span>
       </div>
-      <div class="p-5">
-        <!-- Description -->
-        <div class="mb-5">
-          <label class="text-xs font-semibold text-g-600 block mb-1">{{
-            $t('rules.description')
-          }}</label>
-          <div
-            class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800 leading-relaxed"
-          >
-            {{ currentRule.description }}
+
+      <!-- Rule Detail Card -->
+      <div class="art-card mb-5">
+        <div class="p-5 border-b border-[var(--default-border)] flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-g-900">{{ currentRule.ruleName }}</h2>
+            <div class="text-xs text-g-400 font-mono mt-1">{{ currentRule.ruleCode }}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <el-tag :type="currentRule.enabled ? 'success' : 'info'" size="default" effect="light">
+              {{ currentRule.enabled ? $t('rules.enabled') : $t('rules.disabled') }}
+            </el-tag>
+            <el-tag v-if="currentRule.builtIn" type="warning" size="default" effect="plain">
+              {{ $t('rules.builtIn') }}
+            </el-tag>
           </div>
         </div>
+        <div class="p-5">
+          <!-- Description -->
+          <div class="mb-5">
+            <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              $t('rules.description')
+            }}</label>
+            <div
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800 leading-relaxed"
+            >
+              {{ currentRule.description || '—' }}
+            </div>
+          </div>
 
-        <!-- Direction + Amount + Severity -->
-        <div class="grid grid-cols-3 gap-4 mb-5">
-          <div>
-            <label class="text-xs font-semibold text-g-600 block mb-1">{{
-              $t('rules.direction')
-            }}</label>
-            <div
-              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
-            >
-              {{ directionLabel(currentRule.direction) }}
-            </div>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-g-600 block mb-1">{{
-              $t('rules.minAmount')
-            }}</label>
-            <div
-              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
-            >
-              {{ minAmountLabel(currentRule.minAmount) }}
-            </div>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-g-600 block mb-1">{{
-              $t('rules.severity')
-            }}</label>
-            <div
-              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
-            >
-              {{ severityLabel(currentRule.severity) }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Stage + Decision + Scope -->
-        <div class="grid grid-cols-3 gap-4 mb-5">
-          <div>
-            <label class="text-xs font-semibold text-g-600 block mb-1">{{
-              $t('rules.stage')
-            }}</label>
-            <div
-              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
-            >
-              {{ stageLabel(currentRule.stage) }}
-            </div>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-g-600 block mb-1">{{
-              $t('rules.decision')
-            }}</label>
-            <div
-              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
-            >
-              {{ decisionLabel(currentRule.decision) }}
-            </div>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-g-600 block mb-1">{{
-              $t('rules.scope')
-            }}</label>
-            <div
-              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
-            >
-              {{ scopeLabel(currentRule.scope) }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Risk Factors -->
-        <div>
-          <label class="text-xs font-semibold text-g-600 block mb-2">{{
-            $t('rules.riskFactors')
-          }}</label>
-          <div
-            v-if="activeFactors.length === 0"
-            class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-400 italic"
-          >
-            {{ $t('rules.noRiskFactors') }}
-          </div>
-          <div v-else class="space-y-4">
-            <div v-for="domain in groupedFactors" :key="domain.domain">
+          <!-- Direction + Min Amount + Severity -->
+          <div class="grid grid-cols-3 gap-4 mb-5">
+            <div>
+              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+                $t('rules.direction')
+              }}</label>
               <div
-                class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-2 border-b border-[var(--default-border)]"
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
               >
-                {{ domainLabel(domain.domain) }}
+                {{ directionLabel(currentRule.direction) }}
               </div>
-              <div class="flex flex-col gap-2">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+                $t('rules.minAmountUsd')
+              }}</label>
+              <div
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+              >
+                {{
+                  currentRule.minAmountUsd != null
+                    ? `$${currentRule.minAmountUsd}`
+                    : $t('rules.anyAmount')
+                }}
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+                $t('rules.severity')
+              }}</label>
+              <div
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+              >
+                {{ severityLabel(currentRule.severity) }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Decision + Scope -->
+          <div class="grid grid-cols-2 gap-4 mb-5">
+            <div>
+              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+                $t('rules.decision')
+              }}</label>
+              <div
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+              >
+                {{ decisionLabel(currentRule.decision) }}
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+                $t('rules.scope')
+              }}</label>
+              <div
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+              >
+                {{ scopeLabel(currentRule.scopeType)
+                }}{{ currentRule.scopeValue ? `: ${currentRule.scopeValue}` : '' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Risk Factors -->
+          <div>
+            <label class="text-xs font-semibold text-g-600 block mb-2">{{
+              $t('rules.riskFactors')
+            }}</label>
+            <div
+              v-if="activeFactors.length === 0"
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-400 italic"
+            >
+              {{ $t('rules.noRiskFactors') }}
+            </div>
+            <div v-else class="space-y-4">
+              <div v-for="domain in groupedFactors" :key="domain.domain">
                 <div
-                  v-for="factor in domain.items"
-                  :key="factor.label"
-                  class="flex items-center gap-2 px-3 py-2 bg-[var(--el-color-primary-light-9)] border border-[var(--el-color-primary-light-5)] rounded-lg"
+                  class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-2 border-b border-[var(--default-border)]"
                 >
-                  <span
-                    class="w-4 h-4 rounded bg-[var(--el-color-primary)] flex items-center justify-center text-white text-[10px] flex-shrink-0"
-                    >✓</span
+                  {{ domain.domain }}
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div
+                    v-for="factor in domain.items"
+                    :key="factor.label"
+                    class="flex items-center gap-2 px-3 py-2 bg-[var(--el-color-primary-light-9)] border border-[var(--el-color-primary-light-5)] rounded-lg"
                   >
-                  <span class="text-sm font-medium text-g-800 min-w-[140px]">{{
-                    factorLabel(factor.label)
-                  }}</span>
-                  <span class="text-xs text-[var(--el-color-primary)] font-medium ml-auto">{{
-                    factor.values.map(factorOptionLabel).join(', ')
-                  }}</span>
+                    <span
+                      class="w-4 h-4 rounded bg-[var(--el-color-primary)] flex items-center justify-center text-white text-[10px] flex-shrink-0"
+                      >✓</span
+                    >
+                    <span class="text-sm font-medium text-g-800 min-w-[140px]">{{
+                      factorLabel(factor.label)
+                    }}</span>
+                    <span class="text-xs text-[var(--el-color-primary)] font-medium ml-auto">{{
+                      factor.values.map(factorOptionLabel).join(', ')
+                    }}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
+  import { computed, ref, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { fetchComplianceRuleDetail } from '@/api/compliance'
+  import type { ComplianceRuleView } from '@/features/compliance/types'
   import {
-    decisionLabelKey,
-    scopeLabelKey,
-    severityLabelKey,
-    ruleStatusLabelKey,
-    directionLabelKey,
-    stageLabelKey
-  } from './dictionaries'
+    conditionDomainLabel,
+    decisionLabel as decisionLabelOf,
+    directionLabel as directionLabelOf,
+    factorLabel as factorLabelOf,
+    factorOptionLabel as factorOptionLabelOf,
+    scopeLabel as scopeLabelOf,
+    severityLabel as severityLabelOf
+  } from '@/features/compliance/dictionaries'
 
   defineOptions({ name: 'ComplianceRuleDetail' })
 
@@ -200,197 +189,68 @@
   const router = useRouter()
   const { t } = useI18n()
 
-  // Mock rule data (in real app, fetch by route.params.id)
-  const rulesMap: Record<string, any> = {
-    '1': {
-      name: 'Sanctions Hit Block',
-      status: 'Active',
-      severity: 'Critical',
-      description:
-        'Reject if counterparty VASP or beneficiary matches OFAC SDN, UN Security Council, or EU sanctions lists.',
-      direction: 'Outgoing',
-      decision: 'Auto Reject',
-      scope: 'Global',
-      minAmount: 'Any amount',
-      stage: 'Due Diligence',
-      factors: {
-        Screening: [
-          { label: 'Counterparty VASP', values: ['OFAC SDN', 'EU List', 'UN Security'] },
-          { label: 'Beneficiary', values: ['OFAC SDN', 'EU List', 'UN Security'] }
-        ]
-      }
-    },
-    '2': {
-      name: 'High-Risk Jurisdiction Block',
-      status: 'Active',
-      severity: 'Critical',
-      description:
-        'Reject outgoing transfers to DPRK, Iran, Syria, or Cuba above 10,000 AED equivalent.',
-      direction: 'Outgoing',
-      decision: 'Auto Reject',
-      scope: 'Global',
-      minAmount: '10,000',
-      stage: 'Due Diligence',
-      factors: {
-        'Counterparty VASP': [
-          {
-            label: 'Jurisdiction',
-            values: ['KP — North Korea', 'IR — Iran', 'SY — Syria', 'CU — Cuba']
-          }
-        ]
-      }
+  const loading = ref(false)
+  const errorMessage = ref('')
+  const currentRule = ref<ComplianceRuleView | null>(null)
+
+  async function loadDetail() {
+    const ruleId = route.params.id as string
+    if (!ruleId) {
+      errorMessage.value = 'Rule ID is required'
+      return
+    }
+    loading.value = true
+    errorMessage.value = ''
+    try {
+      currentRule.value = await fetchComplianceRuleDetail(ruleId)
+    } catch (err) {
+      errorMessage.value = err instanceof Error ? err.message : 'Failed to load rule detail'
+      currentRule.value = null
+    } finally {
+      loading.value = false
     }
   }
 
-  const ruleId = route.params.id as string
-  const currentRule = reactive(
-    rulesMap[ruleId] || {
-      name: 'Rule Not Found',
-      status: 'Active',
-      severity: 'Routine',
-      description: 'The requested rule could not be found.',
-      direction: 'Outgoing',
-      decision: 'Submit for Review',
-      scope: 'Global',
-      minAmount: 'Any amount',
-      stage: 'Due Diligence',
-      factors: {}
-    }
-  )
-
-  // ─── 字典翻译（与列表页相同的 fallback 兼容）───
-  const DECISION_FALLBACK: Record<string, string> = {
-    'Auto Reject': 'rules.decisions.autoReject',
-    'Submit for Review': 'rules.decisions.submitReview',
-    Hold: 'rules.decisions.hold'
-  }
-  const SCOPE_FALLBACK: Record<string, string> = {
-    Global: 'rules.scopes.global',
-    'Merchant Specific': 'rules.scopes.merchantSpecific'
-  }
-  const SEVERITY_FALLBACK: Record<string, string> = {
-    Routine: 'rules.severities.routine',
-    Medium: 'rules.severities.medium',
-    Critical: 'rules.severities.critical'
-  }
-  const STATUS_FALLBACK: Record<string, string> = {
-    Active: 'rules.statuses.active',
-    Pending: 'rules.statuses.pending',
-    Cancelled: 'rules.statuses.cancelled'
-  }
-  const DIRECTION_FALLBACK: Record<string, string> = {
-    Outgoing: 'rules.outgoing',
-    Incoming: 'rules.incoming'
-  }
-  const STAGE_FALLBACK: Record<string, string> = {
-    'Due Diligence': 'rules.stages.dueDiligence',
-    'Mismatch Hold': 'rules.stages.mismatchHold'
-  }
-
-  function dictLabel(
-    lookup: (value: string) => string | undefined,
-    value: string,
-    fallbackMap?: Record<string, string>
-  ): string {
-    const key = lookup(value)
-    if (key) return t(key)
-    if (fallbackMap?.[value]) return t(fallbackMap[value])
-    return value
-  }
-
+  // ─── 枚举展示统一走 dictionaries（此处仅绑定 t）───
   function severityLabel(value: string): string {
-    return dictLabel(severityLabelKey, value, SEVERITY_FALLBACK)
-  }
-
-  function statusLabel(value: string): string {
-    return dictLabel(ruleStatusLabelKey, value, STATUS_FALLBACK)
-  }
-
-  function decisionLabel(value: string): string {
-    return dictLabel(decisionLabelKey, value, DECISION_FALLBACK)
-  }
-
-  function scopeLabel(value: string): string {
-    return dictLabel(scopeLabelKey, value, SCOPE_FALLBACK)
+    return severityLabelOf(value, t)
   }
 
   function directionLabel(value: string): string {
-    return dictLabel(directionLabelKey, value, DIRECTION_FALLBACK)
+    return directionLabelOf(value, t)
   }
 
-  function stageLabel(stage: string): string {
-    return dictLabel(stageLabelKey, stage, STAGE_FALLBACK)
+  function decisionLabel(value: string): string {
+    return decisionLabelOf(value, t)
   }
 
-  /** 最小金额：空值 / ANY / 旧英文 'Any amount' 均显示本地化"任意金额" */
-  function minAmountLabel(value: string): string {
-    if (!value || value === 'ANY' || value === 'Any amount') return t('rules.anyAmount')
-    return value
+  function scopeLabel(value: string): string {
+    return scopeLabelOf(value, t)
   }
 
-  // ─── 风险因子翻译（域 / 因子 / 选项值均走 i18n）───
-  const DOMAIN_FALLBACK: Record<string, string> = {
-    Screening: 'rules.factorDomains.screening',
-    'Customer Due Diligence': 'rules.factorDomains.customerDueDiligence',
-    'Counterparty VASP': 'rules.factorDomains.counterpartyVasp'
-  }
-  const FACTOR_FALLBACK: Record<string, string> = {
-    'Onboarding Status': 'rules.factors.onboardingStatus',
-    'Customer Risk Level': 'rules.factors.customerRiskLevel',
-    'Counterparty VASP': 'rules.factors.counterpartyVasp',
-    Beneficiary: 'rules.factors.beneficiary',
-    'Originator Address': 'rules.factors.originatorAddress',
-    'Beneficiary Address': 'rules.factors.beneficiaryAddress',
-    Jurisdiction: 'rules.factors.jurisdiction',
-    'VASP Status': 'rules.factors.vaspStatus',
-    Regulatory: 'rules.factors.regulatory',
-    'Travel Rule Capable': 'rules.factors.trCapable',
-    'IVMS101 PII': 'rules.factors.ivms101Valid'
-  }
-  const OPTION_FALLBACK: Record<string, string> = {
-    'OFAC SDN': 'rules.factorOptions.ofacSdn',
-    'EU List': 'rules.factorOptions.euList',
-    'UN Security': 'rules.factorOptions.unSecurity',
-    PEP: 'rules.factorOptions.pep',
-    'Adverse Media': 'rules.factorOptions.adverseMedia',
-    Criminal: 'rules.factorOptions.criminal',
-    Mixer: 'rules.factorOptions.mixer',
-    Darknet: 'rules.factorOptions.darknet',
-    Ransomware: 'rules.factorOptions.ransomware',
-    'Sanctions Addr': 'rules.factorOptions.sanctionsAddr',
-    'Theft/Scam': 'rules.factorOptions.theftScam',
-    Structuring: 'rules.factorOptions.structuring',
-    Registered: 'rules.factorOptions.registered',
-    Exempt: 'rules.factorOptions.exempt',
-    Unlicensed: 'rules.factorOptions.unlicensed',
-    Verified: 'rules.factorOptions.verified',
-    Unverified: 'rules.factorOptions.unverified',
-    Yes: 'rules.factorOptions.yes',
-    No: 'rules.factorOptions.no',
-    Valid: 'rules.factorOptions.valid',
-    Invalid: 'rules.factorOptions.invalid'
-  }
-
-  function domainLabel(value: string): string {
-    return DOMAIN_FALLBACK[value] ? t(DOMAIN_FALLBACK[value]) : value
-  }
-
+  // ─── conditions → 风险因子分组展示（field 映射来自 dictionaries）───
   function factorLabel(value: string): string {
-    return FACTOR_FALLBACK[value] ? t(FACTOR_FALLBACK[value]) : value
+    return factorLabelOf(value, t)
   }
 
-  /** 国家选项（含 ' — '）原样返回，其余按 i18n 翻译 */
   function factorOptionLabel(value: string): string {
-    if (value.includes(' — ')) return value
-    return OPTION_FALLBACK[value] ? t(OPTION_FALLBACK[value]) : value
+    return factorOptionLabelOf(value, t)
   }
 
   const activeFactors = computed(() => {
+    const conditions = currentRule.value?.conditions || []
     const result: Array<{ domain: string; label: string; values: string[] }> = []
-    for (const [domain, items] of Object.entries(currentRule.factors || {})) {
-      for (const item of items as Array<{ label: string; values: string[] }>) {
-        result.push({ domain, ...item })
-      }
+    for (const c of conditions) {
+      if (!c.field) continue
+      const values = (c.value || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+      result.push({
+        domain: conditionDomainLabel(c.field, t),
+        label: c.field,
+        values
+      })
     }
     return result
   })
@@ -404,21 +264,7 @@
     return Object.entries(groups).map(([domain, items]) => ({ domain, items }))
   })
 
-  function statusTag(status: string) {
-    if (status === 'Active') return 'success'
-    if (status === 'Pending') return 'warning'
-    return 'info'
-  }
-
-  function cancelRule() {
-    currentRule.status = 'Cancelled'
-  }
-
-  function activateRule() {
-    currentRule.status = 'Active'
-  }
-
-  function recoverRule() {
-    currentRule.status = 'Active'
-  }
+  onMounted(() => {
+    loadDetail()
+  })
 </script>

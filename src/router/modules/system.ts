@@ -20,7 +20,13 @@ export const systemRoutes: AppRouteRecord = {
       path: 'employees',
       name: 'EmployeeManagement',
       component: '/system/employees',
-      meta: { title: 'menus.system.employees', icon: 'ri:team-line', keepAlive: true, isHide: true }
+      meta: {
+        title: 'menus.system.employees',
+        icon: 'ri:team-line',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/system/team'
+      }
     },
     {
       path: 'monitor',
@@ -30,7 +36,8 @@ export const systemRoutes: AppRouteRecord = {
         title: 'menus.system.monitor',
         icon: 'ri:heart-pulse-line',
         keepAlive: true,
-        isHide: true
+        isHide: true,
+        activePath: '/system/team'
       }
     },
     {
@@ -41,7 +48,8 @@ export const systemRoutes: AppRouteRecord = {
         title: 'menus.system.personalCenter',
         icon: 'ri:user-settings-line',
         keepAlive: false,
-        isHide: true
+        isHide: true,
+        activePath: '/system/team'
       }
     }
   ]

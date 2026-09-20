@@ -1,6 +1,6 @@
 <!-- Compliance Rules — 合规规则管理 -->
 <template>
-  <div class="page-content">
+  <div class="page-content rules-page">
     <!-- ═══ Page Header ═══ -->
     <div class="mb-5">
       <h1 class="text-xl font-semibold text-g-900">{{ $t('rules.title') }}</h1>
@@ -10,20 +10,6 @@
     <!-- ═══ Filter Bar ═══ -->
     <div class="art-card mb-5 p-4">
       <div class="flex flex-wrap items-center gap-6">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('rules.status') }}:</span>
-          <div class="flex gap-1">
-            <button
-              v-for="opt in statusOptions"
-              :key="opt.value"
-              class="filter-btn"
-              :class="{ active: statusFilter === opt.value }"
-              @click="statusFilter = opt.value"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
-        </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-medium text-g-600">{{ $t('rules.severity') }}:</span>
           <div class="flex gap-1">
@@ -43,383 +29,342 @@
 
     <!-- ═══ Direction Tabs ═══ -->
     <el-tabs v-model="direction" class="mb-5">
-      <el-tab-pane :label="`${$t('rules.outgoing')} (${outgoingCount})`" name="outgoing" />
-      <el-tab-pane :label="`${$t('rules.incoming')} (${incomingCount})`" name="incoming" />
+      <el-tab-pane :label="$t('rules.outgoing')" name="OUTGOING" />
+      <el-tab-pane :label="$t('rules.incoming')" name="INCOMING" />
     </el-tabs>
 
-    <!-- ═══ Step Sections ═══ -->
-    <div v-for="(step, stepIdx) in filteredSteps" :key="step.name" class="step-section mb-7">
-      <div class="flex items-center gap-2.5 mb-1">
-        <span
-          class="w-6 h-6 rounded-full bg-g-100 text-g-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0"
-        >
-          {{ stepIdx + 1 }}
-        </span>
-        <span class="text-[15px] font-semibold text-g-900">{{ stageLabel(step.name) }}</span>
+    <!-- ═══ 列表区（撑满剩余高度，可滚动）═══ -->
+    <div class="rules-list flex-1 min-h-0 overflow-y-auto">
+      <!-- Loading / Error / Empty -->
+      <div v-if="loading" class="art-card p-10 text-center">
+        <el-skeleton :rows="6" animated />
       </div>
-      <div class="text-xs text-g-500 mb-4 ml-[34px]">{{ stepDescription(step.name) }}</div>
+      <div v-else-if="errorMessage" class="art-card p-10 text-center">
+        <p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p>
+        <el-button type="primary" @click="loadRules">{{ $t('console.refresh') }}</el-button>
+      </div>
+      <div v-else-if="filteredRules.length === 0" class="art-card p-10 text-center">
+        <p class="text-g-500 mb-4">{{ $t('rules.noRiskFactors') }}</p>
+        <el-button type="primary" @click="openAddRule">{{ $t('rules.addRule') }}</el-button>
+      </div>
 
-      <!-- Rule Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        <div
-          v-for="rule in step.rules"
-          :key="rule.id"
-          class="art-card rule-card-hover p-4 cursor-pointer"
-          :class="{ 'opacity-60 bg-g-50': rule.status === 'Cancelled' }"
-          @click="goDetail(rule.id)"
-        >
-          <div class="flex items-start justify-between gap-2 mb-2">
-            <span class="text-sm font-semibold text-g-900">{{ rule.name }}</span>
-            <div class="flex gap-1 flex-shrink-0">
-              <el-tag :type="severityTag(rule.severity)" size="small" effect="light">
-                {{ severityLabel(rule.severity) }}
-              </el-tag>
-              <el-tag :type="statusTag(rule.status)" size="small" effect="light">
-                {{ statusLabel(rule.status) }}
-              </el-tag>
+      <!-- Step Sections -->
+      <div
+        v-else
+        v-for="(step, stepIdx) in filteredSteps"
+        :key="step.name"
+        class="step-section mb-7"
+      >
+        <div class="flex items-center gap-2.5 mb-1">
+          <span
+            class="w-6 h-6 rounded-full bg-g-100 text-g-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0"
+          >
+            {{ stepIdx + 1 }}
+          </span>
+          <span class="text-[15px] font-semibold text-g-900">{{ stageLabelOf(step.name) }}</span>
+        </div>
+        <div class="text-xs text-g-500 mb-4 ml-[34px]">{{ stepDescription(step.name) }}</div>
+
+        <!-- Rule Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-stretch">
+          <div
+            v-for="rule in step.rules"
+            :key="rule.id"
+            class="art-card rule-card-hover p-4 cursor-pointer flex flex-col"
+            :class="{ 'opacity-60 bg-g-50': !rule.enabled }"
+            @click="goDetail(rule.id)"
+          >
+            <!-- 上部自适应 -->
+            <div class="flex-1">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-g-900 truncate">{{
+                      rule.ruleName
+                    }}</span>
+                    <el-tag v-if="rule.builtIn" type="info" size="small" effect="plain">
+                      {{ $t('rules.builtIn') }}
+                    </el-tag>
+                  </div>
+                  <div class="text-[11px] text-g-400 font-mono mt-0.5 truncate">{{
+                    rule.ruleCode
+                  }}</div>
+                </div>
+                <div class="flex gap-1 flex-shrink-0">
+                  <el-tag :type="severityTag(rule.severity)" size="small" effect="light">
+                    {{ severityLabelOf(rule.severity) }}
+                  </el-tag>
+                </div>
+              </div>
+
+              <p class="text-xs text-g-600 leading-relaxed mb-3 line-clamp-2">{{
+                rule.description
+              }}</p>
+
+              <div class="flex flex-wrap gap-1.5 mb-3">
+                <el-tag :type="directionTag(rule.direction)" size="small" effect="plain">
+                  {{ directionLabelOf(rule.direction) }}
+                </el-tag>
+                <el-tag size="small" effect="plain">
+                  {{ scopeLabelOf(rule.scopeType)
+                  }}{{ rule.scopeValue ? `: ${rule.scopeValue}` : '' }}
+                </el-tag>
+              </div>
+
+              <div class="flex gap-3 text-[11px] text-g-400">
+                <span
+                  >{{ $t('rules.decision') }}:
+                  <span class="text-g-600">{{ decisionLabelOf(rule.decision) }}</span></span
+                >
+                <span
+                  >{{ $t('rules.minAmountUsd') }}:
+                  <span class="text-g-600">{{ minAmountDisplay(rule.minAmountUsd) }}</span></span
+                >
+              </div>
+            </div>
+
+            <!-- 底部操作栏固定 -->
+            <div
+              class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[var(--default-border)] h-[40px]"
+              @click.stop
+            >
+              <div class="flex gap-1">
+                <el-button
+                  v-if="rule.enabled"
+                  size="small"
+                  text
+                  type="danger"
+                  @click="toggleRuleStatus(rule, false)"
+                >
+                  {{ $t('rules.cancel') }}
+                </el-button>
+                <el-button
+                  v-else
+                  size="small"
+                  text
+                  type="success"
+                  @click="toggleRuleStatus(rule, true)"
+                >
+                  {{ $t('rules.recover') }}
+                </el-button>
+              </div>
+              <div class="flex gap-1">
+                <el-button size="small" text @click="editRule(rule)">
+                  {{ $t('rules.edit') }}
+                </el-button>
+                <el-button size="small" text @click="goDetail(rule.id)">
+                  {{ $t('rules.detail') }}
+                </el-button>
+              </div>
             </div>
           </div>
-          <p class="text-xs text-g-600 leading-relaxed mb-3">{{ rule.description }}</p>
-          <div class="flex gap-3 text-[11px] text-g-400">
-            <span
-              >{{ $t('rules.decision') }}:
-              <span class="text-g-600">{{ decisionLabel(rule.decision) }}</span></span
-            >
-            <span
-              >{{ $t('rules.scope') }}:
-              <span class="text-g-600">{{ scopeLabel(rule.scope) }}</span></span
-            >
-          </div>
-          <!-- Actions -->
-          <div class="flex gap-2 mt-3 pt-3 border-t border-[var(--default-border)]" @click.stop>
-            <el-button
-              v-if="rule.status === 'Active' || rule.status === 'Pending'"
-              size="small"
-              text
-              type="danger"
-              @click="toggleRuleStatus(rule, 'Cancelled')"
-            >
-              {{ $t('rules.cancel') }}
-            </el-button>
-            <el-button
-              v-if="rule.status === 'Cancelled'"
-              size="small"
-              text
-              type="success"
-              @click="toggleRuleStatus(rule, 'Active')"
-            >
-              {{ $t('rules.recover') }}
-            </el-button>
-            <el-button size="small" text @click="editRule(rule)">
-              {{ $t('rules.edit') }}
-            </el-button>
-          </div>
         </div>
-      </div>
 
-      <!-- Add Rule per step -->
-      <button
-        class="w-full mt-3 py-2.5 border border-dashed border-g-300 rounded-lg text-sm font-medium text-g-500 hover:border-primary hover:bg-primary-50 hover:text-primary transition-all"
-        @click="openAddRule(step.name)"
-      >
-        + {{ $t('rules.addRule') }}
-      </button>
+        <!-- Add Rule per step -->
+        <button
+          class="w-full mt-3 py-2.5 border border-dashed border-g-300 rounded-lg text-sm font-medium text-g-500 hover:border-primary hover:bg-primary-50 hover:text-primary transition-all"
+          @click="openAddRule(step.name)"
+        >
+          + {{ $t('rules.addRule') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ Pagination（固定底部）═══ -->
+    <div
+      v-if="pagination.total > 0"
+      class="flex justify-end items-center px-5 py-3 border-t border-[var(--default-border)] shrink-0"
+    >
+      <el-pagination
+        v-model:current-page="filterPage"
+        :total="pagination.total"
+        :page-size="pagination.pageSize"
+        :page-count="pagination.totalPages"
+        :page-sizes="[10, 20, 50]"
+        background
+        layout="total, sizes, prev, pager, next, jumper"
+        @current-change="(v: number) => updatePage({ page: v })"
+        @size-change="(v: number) => updatePage({ pageSize: v, page: 1 })"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+  import { ref, computed, reactive, onMounted, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { ElMessage } from 'element-plus'
+  import { fetchComplianceRules, updateComplianceRuleEnabled } from '@/api/compliance'
+  import type { ComplianceRuleItem } from '@/features/compliance/types'
   import {
-    decisionLabelKey,
-    scopeLabelKey,
-    severityLabelKey,
-    ruleStatusLabelKey,
-    stageLabelKey,
-    stageDescKey
-  } from './dictionaries'
+    decisionLabel,
+    directionLabel,
+    directionTagType as directionTag,
+    scopeLabel,
+    severityLabel,
+    severityTagType as severityTag,
+    stageDescKey,
+    stageLabel
+  } from '@/features/compliance/dictionaries'
 
   defineOptions({ name: 'ComplianceRules' })
 
   const router = useRouter()
   const { t } = useI18n()
 
-  const direction = ref('outgoing')
-  const statusFilter = ref('all')
+  // ─── State ───
+  const loading = ref(false)
+  const errorMessage = ref('')
+  const rules = ref<ComplianceRuleItem[]>([])
+
+  const direction = ref('OUTGOING')
   const severityFilter = ref('all')
 
-  const statusOptions = computed(() => [
-    { label: t('rules.all'), value: 'all' },
-    { label: t('rules.active'), value: 'Active' },
-    { label: t('rules.pending'), value: 'Pending' },
-    { label: t('rules.cancelled'), value: 'Cancelled' }
-  ])
+  const pagination = reactive({
+    pageIndex: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 1
+  })
+
+  const filterPage = ref(1)
+
+  // ─── Computed ───
   const severityOptions = computed(() => [
     { label: t('rules.all'), value: 'all' },
-    { label: t('rules.routine'), value: 'Routine' },
-    { label: t('rules.medium'), value: 'Medium' },
-    { label: t('rules.critical'), value: 'Critical' }
+    { label: t('rules.routine'), value: 'ROUTINE' },
+    { label: t('rules.medium'), value: 'MEDIUM' },
+    { label: t('rules.critical'), value: 'CRITICAL' }
   ])
 
-  interface Rule {
-    id: number
-    name: string
-    severity: string
-    status: string
-    description: string
-    decision: string
-    scope: string
-    stage: string
-    direction: string
-  }
-
-  const rules = ref<Rule[]>([
-    {
-      id: 1,
-      name: 'Sanctions Hit Block',
-      severity: 'Critical',
-      status: 'Active',
-      description:
-        'Reject if counterparty VASP or beneficiary matches OFAC SDN, UN Security Council, or EU sanctions lists.',
-      decision: 'Auto Reject',
-      scope: 'Global',
-      stage: 'DUE_DILIGENCE',
-      direction: 'Outgoing'
-    },
-    {
-      id: 2,
-      name: 'High-Risk Jurisdiction Block',
-      severity: 'Critical',
-      status: 'Active',
-      description:
-        'Reject outgoing transfers to DPRK, Iran, Syria, or Cuba above 10,000 AED equivalent.',
-      decision: 'Auto Reject',
-      scope: 'Global',
-      stage: 'DUE_DILIGENCE',
-      direction: 'Outgoing'
-    },
-    {
-      id: 3,
-      name: 'Large Transaction Review',
-      severity: 'Routine',
-      status: 'Active',
-      description:
-        'Route to compliance review for any outgoing transfer exceeding 50,000 AED equivalent.',
-      decision: 'Submit for Review',
-      scope: 'Global',
-      stage: 'DUE_DILIGENCE',
-      direction: 'Outgoing'
-    },
-    {
-      id: 4,
-      name: 'Unlicensed VASP Counterparty',
-      severity: 'Medium',
-      status: 'Pending',
-      description:
-        'Hold for manual review when counterparty VASP status is Unlicensed or regulatory verification is unconfirmed.',
-      decision: 'Submit for Review',
-      scope: 'Global',
-      stage: 'DUE_DILIGENCE',
-      direction: 'Outgoing'
-    },
-    {
-      id: 5,
-      name: 'Tainted Address Block',
-      severity: 'Critical',
-      status: 'Active',
-      description:
-        'Reject incoming transfers from addresses flagged for mixer interaction, darknet market, or ransomware association.',
-      decision: 'Hold',
-      scope: 'Global',
-      stage: 'DUE_DILIGENCE',
-      direction: 'Incoming'
-    },
-    {
-      id: 6,
-      name: 'CryptoVault — High Volume Review',
-      severity: 'Medium',
-      status: 'Active',
-      description:
-        'Merchant-specific override: review incoming transfers to CryptoVault Ltd exceeding 100,000 AED.',
-      decision: 'Submit for Review',
-      scope: 'Merchant-Specific',
-      stage: 'DUE_DILIGENCE',
-      direction: 'Incoming'
-    },
-    {
-      id: 7,
-      name: 'Suspicious Pattern Monitoring',
-      severity: 'Medium',
-      status: 'Cancelled',
-      description: 'Flag transactions matching known suspicious patterns or structuring behavior.',
-      decision: 'Submit for Review',
-      scope: 'Global',
-      stage: 'DUE_DILIGENCE',
-      direction: 'Incoming'
-    },
-    {
-      id: 8,
-      name: 'IVMS101 Mismatch',
-      severity: 'Routine',
-      status: 'Active',
-      description:
-        'Hold for review when originator PII fails IVMS101 validation or contains incomplete identifying information.',
-      decision: 'Submit for Review',
-      scope: 'Global',
-      stage: 'MISMATCH_HOLD',
-      direction: 'Incoming'
-    },
-    {
-      id: 9,
-      name: 'Amount Mismatch Hold',
-      severity: 'Critical',
-      status: 'Active',
-      description:
-        'Hold incoming transfers when the on-chain amount differs from the Travel Rule message by more than 1%.',
-      decision: 'Hold',
-      scope: 'Global',
-      stage: 'MISMATCH_HOLD',
-      direction: 'Incoming'
-    }
-  ])
-
-  const outgoingCount = computed(
-    () => rules.value.filter((r) => r.direction.toLowerCase() === 'outgoing').length
-  )
-  const incomingCount = computed(
-    () => rules.value.filter((r) => r.direction.toLowerCase() === 'incoming').length
-  )
-
-  const filteredSteps = computed(() => {
-    const filtered = rules.value.filter((r) => {
-      if (r.direction.toLowerCase() !== direction.value) return false
-      if (statusFilter.value !== 'all' && r.status !== statusFilter.value) return false
+  const filteredRules = computed(() => {
+    return rules.value.filter((r) => {
       if (severityFilter.value !== 'all' && r.severity !== severityFilter.value) return false
       return true
     })
-    const stages = [...new Set(filtered.map((r) => r.stage))]
-    return stages.map((name) => ({
-      name,
-      rules: filtered.filter((r) => r.stage === name)
-    }))
   })
 
-  // ─── 阶段（按编号查字典，出金/入金描述自动区分）───
-  const STAGE_LABEL_FALLBACK: Record<string, string> = {
-    'Due Diligence': 'rules.stages.dueDiligence',
-    'Mismatch Hold': 'rules.stages.mismatchHold'
+  const filteredSteps = computed(() => [
+    {
+      name: 'DUE_DILIGENCE',
+      rules: filteredRules.value
+    }
+  ])
+
+  // ─── Methods ───
+  async function loadRules() {
+    loading.value = true
+    errorMessage.value = ''
+    try {
+      const queryList: Array<{ key: string; oper?: string; value: unknown; join?: string }> = []
+      queryList.push({ key: 'direction', oper: '=', value: direction.value, join: 'and' })
+      if (severityFilter.value !== 'all') {
+        queryList.push({ key: 'severity', oper: '=', value: severityFilter.value, join: 'and' })
+      }
+
+      const result = await fetchComplianceRules({
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize,
+        queryList
+      })
+      rules.value = result.records || []
+      pagination.total = result.total || 0
+      pagination.totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize))
+    } catch (err) {
+      errorMessage.value = err instanceof Error ? err.message : 'Failed to load rules'
+      rules.value = []
+    } finally {
+      loading.value = false
+    }
   }
-  const STAGE_DESC_FALLBACK: Record<string, [string, string]> = {
-    // value: [outgoingDescKey, incomingDescKey]
-    'Due Diligence': [
-      'rules.stages.outgoingDueDiligenceDesc',
-      'rules.stages.incomingDueDiligenceDesc'
-    ],
-    'Mismatch Hold': ['rules.stages.mismatchHoldDesc', 'rules.stages.mismatchHoldDesc']
+
+  // ─── 枚举展示统一走 dictionaries（此处仅绑定 t）───
+  function severityLabelOf(severity: string): string {
+    return severityLabel(severity, t)
+  }
+  function directionLabelOf(direction: string): string {
+    return directionLabel(direction, t)
+  }
+  function decisionLabelOf(decision: string): string {
+    return decisionLabel(decision, t)
+  }
+  function scopeLabelOf(scopeType: string): string {
+    return scopeLabel(scopeType, t)
+  }
+  function stageLabelOf(stage: string): string {
+    return stageLabel(stage, t)
+  }
+
+  /** 金额门槛：null 或 0 均显示“任意金额” */
+  function minAmountDisplay(minAmountUsd: number | null): string {
+    if (minAmountUsd == null || minAmountUsd === 0) return t('rules.anyAmount')
+    return `$${minAmountUsd}`
   }
 
   function stepDescription(stage: string): string {
-    const dirCode = direction.value === 'outgoing' ? 'OUTGOING' : 'INCOMING'
-    const key = stageDescKey(stage, dirCode)
-    if (key) return t(key)
-    const fallback = STAGE_DESC_FALLBACK[stage]
-    if (fallback) return t(dirCode === 'OUTGOING' ? fallback[0] : fallback[1])
-    return ''
+    const key = stageDescKey(stage, direction.value)
+    return key ? t(key) : ''
   }
 
-  function stageLabel(stage: string): string {
-    const key = stageLabelKey(stage)
-    if (key) return t(key)
-    if (STAGE_LABEL_FALLBACK[stage]) return t(STAGE_LABEL_FALLBACK[stage])
-    return stage
-  }
-
-  // ─── 字典翻译（value 为后端枚举，labelKey 来自 dictionaries.ts）───
-  function dictLabel(
-    lookup: (value: string) => string | undefined,
-    value: string,
-    fallbackMap?: Record<string, string>
-  ): string {
-    const key = lookup(value)
-    if (key) return t(key)
-    // 兼容 mock 数据中的旧英文值
-    if (fallbackMap?.[value]) return t(fallbackMap[value])
-    return value
-  }
-
-  const DECISION_FALLBACK: Record<string, string> = {
-    'Auto Reject': 'rules.decisions.autoReject',
-    'Submit for Review': 'rules.decisions.submitReview',
-    Hold: 'rules.decisions.hold'
-  }
-  const SCOPE_FALLBACK: Record<string, string> = {
-    Global: 'rules.scopes.global',
-    'Merchant Specific': 'rules.scopes.merchantSpecific'
-  }
-  const SEVERITY_FALLBACK: Record<string, string> = {
-    Routine: 'rules.severities.routine',
-    Medium: 'rules.severities.medium',
-    Critical: 'rules.severities.critical'
-  }
-  const STATUS_FALLBACK: Record<string, string> = {
-    Active: 'rules.statuses.active',
-    Pending: 'rules.statuses.pending',
-    Cancelled: 'rules.statuses.cancelled'
-  }
-
-  function severityLabel(severity: string): string {
-    return dictLabel(severityLabelKey, severity, SEVERITY_FALLBACK)
-  }
-
-  function statusLabel(status: string): string {
-    return dictLabel(ruleStatusLabelKey, status, STATUS_FALLBACK)
-  }
-
-  function decisionLabel(decision: string): string {
-    return dictLabel(decisionLabelKey, decision, DECISION_FALLBACK)
-  }
-
-  function scopeLabel(scope: string): string {
-    return dictLabel(scopeLabelKey, scope, SCOPE_FALLBACK)
-  }
-
-  function severityTag(severity: string) {
-    if (severity === 'Critical') return 'danger'
-    if (severity === 'Medium') return 'warning'
-    return 'info'
-  }
-
-  function statusTag(status: string) {
-    if (status === 'Active') return 'success'
-    if (status === 'Pending') return 'warning'
-    return 'info'
-  }
-
-  function openAddRule(stage: string) {
+  function openAddRule(stage: string | MouseEvent = 'DUE_DILIGENCE') {
+    const stageCode = typeof stage === 'string' ? stage : 'DUE_DILIGENCE'
     router.push({
       name: 'ComplianceRuleEditor',
-      query: { stage, direction: direction.value }
+      query: { stage: stageCode, direction: direction.value }
     })
   }
 
-  function editRule(rule: Rule) {
-    router.push({
-      name: 'ComplianceRuleEditor',
-      params: { id: String(rule.id) }
-    })
-  }
-
-  function toggleRuleStatus(rule: Rule, status: string) {
-    rule.status = status
+  function editRule(rule: ComplianceRuleItem) {
+    router.push({ name: 'ComplianceRuleEditor', params: { id: String(rule.id) } })
   }
 
   function goDetail(id: number) {
     router.push({ name: 'ComplianceRuleDetail', params: { id: String(id) } })
   }
+
+  async function toggleRuleStatus(rule: ComplianceRuleItem, enabled: boolean) {
+    try {
+      await updateComplianceRuleEnabled(rule.id, { enabled })
+      rule.enabled = enabled
+      ElMessage.success(enabled ? t('rules.enabled') : t('rules.disabled'))
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : 'Failed to update')
+    }
+  }
+
+  function updatePage(patch: { page?: number; pageSize?: number }) {
+    if (patch.pageSize !== undefined) {
+      pagination.pageSize = patch.pageSize
+      pagination.pageIndex = 1
+      filterPage.value = 1
+    } else if (patch.page !== undefined) {
+      pagination.pageIndex = patch.page
+      filterPage.value = patch.page
+    }
+    loadRules()
+  }
+
+  onMounted(() => {
+    loadRules()
+  })
+
+  // 切换出入金 tab 时重新请求对应方向的规则
+  watch(direction, () => {
+    pagination.pageIndex = 1
+    filterPage.value = 1
+    loadRules()
+  })
 </script>
 
 <style scoped>
+  /* 页面纵向布局：分页固定底部，列表区撑满剩余高度 */
+  .rules-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
   .filter-btn {
     padding: 4px 10px;
     font-family: inherit;
@@ -453,63 +398,11 @@
     box-shadow: 0 1px 3px rgb(0 0 0 / 4%);
   }
 
-  /* Dialog height limitation */
-  :deep(.el-dialog) {
-    max-height: calc(100vh - 64px);
-    display: flex;
-    flex-direction: column;
-  }
-
-  :deep(.el-dialog__body) {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-  }
-
-  /* Factor row styles */
-  .factor-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background: var(--el-fill-color-light);
-    border: 1px solid var(--el-border-color-lighter);
-    border-radius: 8px;
-    transition: all 0.15s;
-  }
-
-  .factor-row.active {
-    background: var(--el-bg-color);
-    border-color: var(--el-color-primary-light-5);
-  }
-
-  .factor-toggle {
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--el-border-color);
-    border-radius: 4px;
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .factor-row.active .factor-toggle {
-    background: var(--el-color-primary);
-    border-color: var(--el-color-primary);
-  }
-
-  .factor-label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--el-text-color-primary);
-    min-width: 140px;
-  }
-
-  .factor-options-hint {
-    margin-left: auto;
-    font-size: 12px;
-    color: var(--el-text-color-secondary);
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 </style>

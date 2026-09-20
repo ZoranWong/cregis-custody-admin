@@ -20,7 +20,12 @@ export const operationsRoutes: AppRouteRecord = {
       path: 'gas/:cusAccountId',
       name: 'gas-detail',
       component: '/operations/gas/detail',
-      meta: { title: 'menus.operations.gasDetail', icon: 'ri:flashlight-line', isHide: true }
+      meta: {
+        title: 'menus.operations.gasDetail',
+        icon: 'ri:flashlight-line',
+        isHide: true,
+        activePath: '/operations/gas'
+      }
     },
     {
       path: 'fee',
@@ -39,7 +44,8 @@ export const operationsRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.operations.merchantFeeDetail',
         icon: 'ri:money-dollar-circle-line',
-        isHide: true
+        isHide: true,
+        activePath: '/operations/fee'
       }
     }
   ]

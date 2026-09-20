@@ -20,7 +20,12 @@ export const complianceRoutes: AppRouteRecord = {
       path: 'merchants/:merchantId',
       name: 'merchant-detail',
       component: '/operations/merchants/detail',
-      meta: { title: 'menus.compliance.merchantDetail', icon: 'ri:store-line', isHide: true }
+      meta: {
+        title: 'menus.compliance.merchantDetail',
+        icon: 'ri:store-line',
+        isHide: true,
+        activePath: '/compliance/merchants'
+      }
     },
     {
       path: 'tx-lens',
@@ -36,7 +41,8 @@ export const complianceRoutes: AppRouteRecord = {
         title: 'menus.compliance.txLensDetail',
         icon: 'ri:search-eye-line',
         keepAlive: false,
-        isHide: true
+        isHide: true,
+        activePath: '/compliance/tx-lens'
       }
     },
     {
@@ -53,7 +59,8 @@ export const complianceRoutes: AppRouteRecord = {
         title: 'menus.compliance.ruleEditor',
         icon: 'ri:file-list-3-line',
         keepAlive: false,
-        isHide: true
+        isHide: true,
+        activePath: '/compliance/rules'
       }
     },
     {
@@ -64,7 +71,8 @@ export const complianceRoutes: AppRouteRecord = {
         title: 'menus.compliance.ruleDetail',
         icon: 'ri:file-list-3-line',
         keepAlive: false,
-        isHide: true
+        isHide: true,
+        activePath: '/compliance/rules'
       }
     },
     {
@@ -80,6 +88,18 @@ export const complianceRoutes: AppRouteRecord = {
       meta: { title: 'menus.compliance.travelRuleEvents', icon: 'ri:global-line', keepAlive: true }
     },
     {
+      path: 'travel-rule/:id',
+      name: 'TravelRuleDetail',
+      component: '/compliance/travel-rule/detail',
+      meta: {
+        title: 'menus.compliance.travelRuleDetail',
+        icon: 'ri:global-line',
+        keepAlive: false,
+        isHide: true,
+        activePath: '/compliance/travel-rule'
+      }
+    },
+    {
       path: 'travel-rule/:id/share',
       name: 'TravelRuleShare',
       component: '/compliance/travel-rule/share',
@@ -87,7 +107,8 @@ export const complianceRoutes: AppRouteRecord = {
         title: 'menus.compliance.travelRuleShare',
         icon: 'ri:global-line',
         keepAlive: false,
-        isHide: true
+        isHide: true,
+        activePath: '/compliance/travel-rule'
       }
     }
   ]
