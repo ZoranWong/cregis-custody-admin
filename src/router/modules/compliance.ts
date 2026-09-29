@@ -110,6 +110,18 @@ export const complianceRoutes: AppRouteRecord = {
         isHide: true,
         activePath: '/compliance/travel-rule'
       }
+    },
+    {
+      path: 'travel-rule-auto-accept/editor/:id?',
+      name: 'TravelRuleAutoAcceptEditor',
+      component: '/compliance/travel-rule/auto-accept-editor',
+      meta: {
+        title: 'menus.compliance.travelRuleAutoAcceptEditor',
+        icon: 'ri:global-line',
+        keepAlive: false,
+        isHide: true,
+        activePath: '/compliance/rules'
+      }
     }
   ]
 }

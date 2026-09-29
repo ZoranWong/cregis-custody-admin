@@ -24,11 +24,26 @@
             </button>
           </div>
         </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-g-600">{{ $t('rules.scope') }}:</span>
+          <div class="flex gap-1">
+            <button
+              v-for="opt in scopeOptions"
+              :key="opt.value"
+              class="filter-btn"
+              :class="{ active: scopeFilter === opt.value }"
+              @click="scopeFilter = opt.value"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ═══ Direction Tabs ═══ -->
+    <!-- ═══ Direction Tabs（ALL 为出入金通用规则）═══ -->
     <el-tabs v-model="direction" class="mb-5">
+      <el-tab-pane :label="$t('rules.all')" name="ALL" />
       <el-tab-pane :label="$t('rules.outgoing')" name="OUTGOING" />
       <el-tab-pane :label="$t('rules.incoming')" name="INCOMING" />
     </el-tabs>
@@ -220,6 +235,7 @@
 
   const direction = ref('OUTGOING')
   const severityFilter = ref('all')
+  const scopeFilter = ref('all')
 
   const pagination = reactive({
     pageIndex: 1,
@@ -238,19 +254,29 @@
     { label: t('rules.critical'), value: 'CRITICAL' }
   ])
 
+  const scopeOptions = computed(() => [
+    { label: t('rules.all'), value: 'all' },
+    { label: t('rules.global'), value: 'GLOBAL' },
+    { label: t('rules.merchant'), value: 'MERCHANT' }
+  ])
+
   const filteredRules = computed(() => {
     return rules.value.filter((r) => {
       if (severityFilter.value !== 'all' && r.severity !== severityFilter.value) return false
+      if (scopeFilter.value !== 'all' && r.scopeType !== scopeFilter.value) return false
       return true
     })
   })
 
-  const filteredSteps = computed(() => [
-    {
-      name: 'DUE_DILIGENCE',
-      rules: filteredRules.value
-    }
-  ])
+  const filteredSteps = computed(() => {
+    // Travel Rule Auto-Accept 与 Mismatch Hold 暂不支持，只展示 Due Diligence
+    return [
+      {
+        name: 'DUE_DILIGENCE',
+        rules: filteredRules.value
+      }
+    ]
+  })
 
   // ─── Methods ───
   async function loadRules() {
@@ -258,7 +284,13 @@
     errorMessage.value = ''
     try {
       const queryList: Array<{ key: string; oper?: string; value: unknown; join?: string }> = []
-      queryList.push({ key: 'direction', oper: '=', value: direction.value, join: 'and' })
+      // ALL = 出入金通用规则，direction 参数固定传 'all'
+      queryList.push({
+        key: 'direction',
+        oper: '=',
+        value: direction.value.toLowerCase(),
+        join: 'and'
+      })
       if (severityFilter.value !== 'all') {
         queryList.push({ key: 'severity', oper: '=', value: severityFilter.value, join: 'and' })
       }
@@ -303,12 +335,23 @@
   }
 
   function stepDescription(stage: string): string {
-    const key = stageDescKey(stage, direction.value)
+    // ALL 为通用规则，无方向专属描述，取 OUTGOING 侧文案兜底
+    const dir = direction.value === 'ALL' ? 'OUTGOING' : direction.value
+    const key = stageDescKey(stage, dir)
     return key ? t(key) : ''
   }
 
   function openAddRule(stage: string | MouseEvent = 'DUE_DILIGENCE') {
     const stageCode = typeof stage === 'string' ? stage : 'DUE_DILIGENCE'
+
+    // Route to Travel Rule Auto-Accept editor for TRAVEL_RULE_AUTO_ACCEPT stage
+    if (stageCode === 'TRAVEL_RULE_AUTO_ACCEPT') {
+      router.push({
+        name: 'TravelRuleAutoAcceptEditor'
+      })
+      return
+    }
+
     router.push({
       name: 'ComplianceRuleEditor',
       query: { stage: stageCode, direction: direction.value }

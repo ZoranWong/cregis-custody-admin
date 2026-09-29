@@ -45,7 +45,15 @@
     "search": "查询",
     "reset": "重置",
     "copy": "复制",
-    "copied": "已复制"
+    "copied": "已复制",
+    "deleteSuccess": "删除成功",
+    "required": "不能为空",
+    "updateSuccess": "更新成功",
+    "addSuccess": "添加成功",
+    "save": "保存",
+    "edit": "编辑",
+    "editSuccess": "修改成功",
+    "editFailed": "修改失败"
   },
   "analytics": {
     "daily": "每日",
@@ -357,9 +365,14 @@
       "traceTransferStatusChanged": "转账状态已变更",
       "traceAgentStatusChanged": "代理状态已变更",
       "tracePresentationSatisfied": "已满足信息递交要求",
-      "traceAuthorizationSatisfied": "已满足授权要求"
+      "traceAuthorizationSatisfied": "已满足授权要求",
+      "rule": "条规则",
+      "rules": "条规则"
     },
-    "soRejected": "已拒绝"
+    "soRejected": "已拒绝",
+    "stageNoTravelRule": "无 Travel Rule 信息",
+    "unknownVasp": "未知VASP",
+    "unknownCustomer": "未知客户"
   },
   "alerts": {
     "pageTitle": "合规告警",
@@ -530,7 +543,11 @@
     "stages": {
       "dueDiligence": "尽职调查",
       "outgoingDueDiligenceDesc": "在交易发出前进行风险筛查。决策：自动拒绝或提交审查。",
-      "incomingDueDiligenceDesc": "在资金入账前进行风险筛查。决策：持有或提交审查。"
+      "incomingDueDiligenceDesc": "在资金入账前进行风险筛查。决策：持有或提交审查。",
+      "travelRuleAutoAccept": "Travel Rule 自动接受",
+      "travelRuleAutoAcceptDesc": "预事件门控：当对手方满足所有条件时自动接受 Travel Rule 请求。不符合条件的请求将转入人工审查。",
+      "mismatchHold": "不匹配持有",
+      "mismatchHoldDesc": "当链上交易与 Travel Rule PII 不匹配时持有入金转账。决策：持有或提交审查。"
     },
     "factors": {
       "onboardingStatus": "商户尽调状态",
@@ -592,7 +609,35 @@
       "match": "匹配",
       "mismatch": "不匹配"
     },
-    "otherDomain": "其他"
+    "otherDomain": "其他",
+    "acceptanceConditions": "接受条件",
+    "acceptanceConditionsHint": "所有启用的条件必须满足才能自动接受。不符合条件的请求将转入人工审查。",
+    "beneficiaryNameMatch": "受益人姓名完全匹配",
+    "beneficiaryNameMatchDesc": "请求中的受益人姓名与我们记录中的完全匹配",
+    "aliasMatch": "别名匹配",
+    "aliasMatchDesc": "当受益人匹配已知别名/DBA 名称时接受",
+    "aliases": "别名列表",
+    "aliasPlaceholder": "输入别名",
+    "addAlias": "添加别名",
+    "onboardingStatus": "入驻状态",
+    "onboardingStatusDesc": "对手方必须具有以下状态之一",
+    "riskLevel": "风险等级",
+    "riskLevelDesc": "对手方风险等级必须是以下之一",
+    "addTravelRuleAutoAccept": "新增 Travel Rule 自动接受规则",
+    "editTravelRuleAutoAccept": "编辑 Travel Rule 自动接受规则",
+    "addTravelRuleAutoAcceptSubtitle": "配置自动接受 Travel Rule 请求的条件",
+    "editTravelRuleAutoAcceptSubtitle": "修改自动接受规则的条件",
+    "onboardingStatusOptions": {
+      "onboarded": "已入驻",
+      "pending": "待审核",
+      "labeled": "已标记",
+      "frozen": "已冻结"
+    },
+    "riskLevelOptions": {
+      "low": "低风险",
+      "medium": "中风险",
+      "high": "高风险"
+    }
   },
   "opsHome": {
     "ticketQueue": "工单队列",
@@ -879,7 +924,8 @@
       "alerts": "合规告警",
       "travelRuleEvents": "Travel Rule 事件",
       "travelRuleDetail": "Travel Rule 详情",
-      "travelRuleShare": "Travel Rule 审批"
+      "travelRuleShare": "Travel Rule 审批",
+      "travelRuleAutoAcceptEditor": "Travel Rule 自动接受编辑"
     },
     "audit": {
       "title": "审计管理",
@@ -1139,7 +1185,20 @@
     "approveSuccess": "预审已通过",
     "approveFailed": "操作失败",
     "rejectSuccess": "已拒绝",
-    "rejectFailed": "操作失败"
+    "rejectFailed": "操作失败",
+    "tabAliases": "别名",
+    "aliasesDescription": "管理 Travel Rule 匹配的交易名称和别名",
+    "addAlias": "添加别名",
+    "editAlias": "编辑别名",
+    "noAliases": "暂无别名",
+    "noAliasesHint": "点击\"添加别名\"开始配置",
+    "aliasPlaceholder": "输入别名",
+    "aliasName": "别名",
+    "confirmDeleteAlias": "确认删除此别名？",
+    "riskLevel": "风险等级",
+    "riskLevelLow": "低风险",
+    "riskLevelMedium": "中风险",
+    "riskLevelHigh": "高风险"
   },
   "merchantType": {
     "NON_FINANCIAL_CORPORATE": "非金融企业",

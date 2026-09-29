@@ -32,10 +32,14 @@
       <el-button type="primary" @click="loadList">{{ $t('console.refresh') }}</el-button>
     </div>
 
-    <!-- ═══ 摘要卡片 ═══ -->
+    <!-- ═══ 摘要卡片（可点击筛选：all ↔ 各状态，切换时独立发请求）═══ -->
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
-        <div class="art-card h-32 px-5 mb-5 flex flex-col justify-center">
+        <div
+          class="art-card h-32 px-5 mb-5 flex flex-col justify-center summary-filter-card"
+          :class="{ active: activeSummaryFilter === card.key }"
+          @click="toggleSummaryFilter(card.key)"
+        >
           <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
           <span class="text-[26px] font-medium mt-1" :class="card.valueClass">{{
             card.value
@@ -323,8 +327,14 @@
     type TagType,
     type Tone
   } from '@/features/compliance/txState'
-  import { STAGE_LABEL_KEYS, buildStages, type StageKey } from '@/features/compliance/txStages'
+  import {
+    STAGE_LABEL_KEYS,
+    buildStages,
+    isStageDisabled,
+    type StageKey
+  } from '@/features/compliance/txStages'
   import { formatCoinBalance, formatTime } from '@/utils/format'
+  import BigNumber from 'bignumber.js'
 
   defineOptions({ name: 'TransactionLens' })
 
@@ -356,6 +366,34 @@
     pageSize: 10,
     total: 0
   })
+
+  // ─── 摘要卡片点击筛选（all ↔ pending 等，每次切换独立发请求）───
+  const activeSummaryFilter = ref<'all' | 'pending' | string>('all')
+
+  /** 卡片 key → 列表查询条件（pending = 合规审查中） */
+  const SUMMARY_FILTER_QUERIES: Record<string, Record<string, string>> = {
+    pending: { compliance: 'review' }
+  }
+
+  function toggleSummaryFilter(key: string) {
+    // 再点一次取消筛选；切换时重置页码并单独发请求
+    activeSummaryFilter.value = activeSummaryFilter.value === key ? 'all' : key
+    applySummaryFilter()
+    pagination.pageNum = 1
+    loadList()
+  }
+
+  function applySummaryFilter() {
+    const query = SUMMARY_FILTER_QUERIES[activeSummaryFilter.value]
+    if (query) {
+      Object.assign(filters, query)
+    } else {
+      // all：清掉卡片引入的筛选条件（不影响用户手动设置的其他筛选）
+      for (const k of Object.keys(SUMMARY_FILTER_QUERIES.pending || {})) {
+        ;(filters as Record<string, unknown>)[k] = ''
+      }
+    }
+  }
 
   const merchants = ['CryptoVault', 'PayFlow', 'ChainBridge', 'TokenGuard', 'BlockSafe']
 
@@ -468,19 +506,24 @@
       const decimals = coinDecimals.value[tx.coinId]
       const amount = decimals ? formatCoinBalance(tx.amount, decimals) : tx.amount
       const usdRate = coinUsdRate.value[tx.coinId]
-      const fiat = usdRate != null && decimals ? Number(amount) * usdRate : null
-      const fiatDisplay =
-        fiat != null ? `≈ $${fiat.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '--'
+      const fiat = usdRate != null && decimals ? new BigNumber(amount).times(usdRate) : null
+      const fiatDisplay = fiat != null ? `≈ $${fiat.toFormat(2, BigNumber.ROUND_HALF_UP)}` : '--'
 
-      // 阶段序列由方向 + 对手方 name 决定；颜色由各自状态值决定
+      // 阶段序列由方向决定槽位与时序；颜色由各自状态值决定；
+      // travelRule 槽位恒保留，无对手方 did 时置灰并提示"无 Travel Rule 信息"
+      const disabledKeys = new Set<StageKey>(
+        buildStages(tx).filter((key) => isStageDisabled(tx, key))
+      )
       const stageOf: Record<StageKey, () => { value: string; tone: Tone }> = {
         compliance: () => ({
           value: complianceLabel(tx.compliance),
           tone: toneOf(tx.compliance)
         }),
         travelRule: () => ({
-          value: travelRuleLabel(tx.travelRule),
-          tone: toneOf(tx.travelRule)
+          value: disabledKeys.has('travelRule')
+            ? t('txLens.stageNoTravelRule')
+            : travelRuleLabel(tx.travelRule),
+          tone: disabledKeys.has('travelRule') ? 'na' : toneOf(tx.travelRule)
         }),
         signoff: () => ({ value: signoffLabel(tx.signoff), tone: toneOf(tx.signoff) }),
         onchain: () => ({ value: onchainLabel(tx.onchain), tone: toneOf(tx.onchain) }),
@@ -500,8 +543,16 @@
         amountDisplay: `${amount} ${tx.coinId}`,
         fiatDisplay,
         createTime: formatTime(tx.createTime),
-        originatorName: tx.originator?.name || tx.originator?.did || '--',
-        beneficiaryName: tx.beneficiary?.name || tx.beneficiary?.did || '--',
+        originatorName: tx.originator?.name
+          ? tx.originator.name
+          : tx.originator?.did
+            ? t('txLens.unknownVasp')
+            : t('txLens.unknownCustomer'),
+        beneficiaryName: tx.beneficiary?.name
+          ? tx.beneficiary.name
+          : tx.beneficiary?.did
+            ? t('txLens.unknownVasp')
+            : t('txLens.unknownCustomer'),
         stages
       }
     })
@@ -597,6 +648,22 @@
 
   .tx-card:hover {
     border-color: var(--el-color-primary-light-5);
+  }
+
+  /* 摘要卡片点击筛选：可点击反馈 + 激活态 */
+  .summary-filter-card {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .summary-filter-card:hover {
+    border-color: var(--el-color-primary-light-5);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  }
+
+  .summary-filter-card.active {
+    background: var(--el-color-primary-light-9);
+    border-color: var(--el-color-primary);
   }
 
   /* 阶段条：横向排布，圆点 + 标签/状态两行；阶段数随场景变化，自适应 */

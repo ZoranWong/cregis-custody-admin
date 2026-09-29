@@ -51,9 +51,10 @@
           <span class="text-sm font-semibold text-g-900">{{
             $t('txLens.detail.rulesTriggered')
           }}</span>
-          <span class="text-xs font-semibold text-g-500">{{
-            $t('txLens.detail.rulesCount', { count: rulesTriggered.length })
-          }}</span>
+          <span class="text-xs font-semibold text-g-500">
+            {{ rulesTriggered.length }}
+            {{ rulesTriggered.length === 1 ? $t('txLens.detail.rule') : $t('txLens.detail.rules') }}
+          </span>
         </div>
         <div class="p-4 flex flex-col gap-2">
           <div

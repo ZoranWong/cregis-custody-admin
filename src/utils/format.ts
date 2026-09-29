@@ -1,4 +1,5 @@
 import { translateUiText } from '@/utils/text'
+import BigNumber from 'bignumber.js'
 
 const datetimeFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
@@ -91,9 +92,9 @@ export function badgeTone(
 
 export function formatCoinBalance(raw: string | null | undefined, decimals: number): string {
   if (!raw) return '0'
-  const num = Number(raw) / Math.pow(10, decimals)
-  if (isNaN(num)) return '0'
-  if (num === 0) return '0'
+  const num = new BigNumber(raw).div(new BigNumber(10).pow(decimals))
+  if (num.isNaN()) return '0'
+  if (num.isZero()) return '0'
   const formatted = num.toFixed(decimals)
   const trimmed = formatted.replace(/0+$/, '').replace(/\.$/, '')
   return trimmed || '0'

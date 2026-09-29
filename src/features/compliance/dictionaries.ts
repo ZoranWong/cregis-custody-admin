@@ -51,10 +51,22 @@ export interface StageItem {
 
 export const STAGE_DICT: StageItem[] = [
   {
+    value: 'TRAVEL_RULE_AUTO_ACCEPT',
+    labelKey: 'rules.stages.travelRuleAutoAccept',
+    outgoingDescKey: '',
+    incomingDescKey: 'rules.stages.travelRuleAutoAcceptDesc'
+  },
+  {
     value: 'DUE_DILIGENCE',
     labelKey: 'rules.stages.dueDiligence',
     outgoingDescKey: 'rules.stages.outgoingDueDiligenceDesc',
     incomingDescKey: 'rules.stages.incomingDueDiligenceDesc'
+  },
+  {
+    value: 'MISMATCH_HOLD',
+    labelKey: 'rules.stages.mismatchHold',
+    outgoingDescKey: '',
+    incomingDescKey: 'rules.stages.mismatchHoldDesc'
   }
 ]
 

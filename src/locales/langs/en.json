@@ -45,7 +45,15 @@
     "search": "Search",
     "reset": "Reset",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "deleteSuccess": "Deleted successfully",
+    "required": "is required",
+    "updateSuccess": "Updated successfully",
+    "addSuccess": "Added successfully",
+    "save": "Save",
+    "edit": "Edit",
+    "editSuccess": "Updated successfully",
+    "editFailed": "Failed to update"
   },
   "analytics": {
     "daily": "Daily",
@@ -159,7 +167,7 @@
       "compTimeline": "Timeline",
       "noTimeline": "No timeline records",
       "rulesTriggered": "Rules Triggered",
-      "rulesCount": "{count} rules",
+      "rulesCount": "{count} rule | {count} rules",
       "noRulesTriggered": "No Rules Triggered",
       "noRulesTriggeredHint": "This transaction did not trigger any compliance rules and can be released normally.",
       "viewRule": "View Rule →",
@@ -357,9 +365,14 @@
       "traceTransferStatusChanged": "Transfer Status Changed",
       "traceAgentStatusChanged": "Agent Status Changed",
       "tracePresentationSatisfied": "Presentation Required",
-      "traceAuthorizationSatisfied": "Authorization Required"
+      "traceAuthorizationSatisfied": "Authorization Required",
+      "rule": "rule",
+      "rules": "rules"
     },
-    "soRejected": "Rejected"
+    "soRejected": "Rejected",
+    "stageNoTravelRule": "No Travel Rule",
+    "unknownVasp": "Unknown VASP",
+    "unknownCustomer": "Unknown Customer"
   },
   "alerts": {
     "pageTitle": "Compliance Alerts",
@@ -530,7 +543,11 @@
     "stages": {
       "dueDiligence": "Due Diligence",
       "outgoingDueDiligenceDesc": "Screen the transaction for risk before anything leaves our side. Decision: Auto Reject or Submit for Review.",
-      "incomingDueDiligenceDesc": "Screen the received funds for risk before crediting to the customer. Decision: Hold or Submit for Review."
+      "incomingDueDiligenceDesc": "Screen the received funds for risk before crediting to the customer. Decision: Hold or Submit for Review.",
+      "travelRuleAutoAccept": "Travel Rule Auto-Accept",
+      "travelRuleAutoAcceptDesc": "Pre-event gate: automatically accept Travel Rule requests when counterparty meets all conditions. Requests that don't qualify fall through to manual review.",
+      "mismatchHold": "Mismatch Hold",
+      "mismatchHoldDesc": "Hold incoming transfers when the on-chain transaction does not match the Travel Rule PII. Decision: Hold or Submit for Review."
     },
     "factors": {
       "onboardingStatus": "Onboarding Status",
@@ -592,7 +609,35 @@
       "match": "Match",
       "mismatch": "Mismatch"
     },
-    "otherDomain": "Other"
+    "otherDomain": "Other",
+    "acceptanceConditions": "Acceptance Conditions",
+    "acceptanceConditionsHint": "All enabled conditions must be met for auto-accept. Requests that don't qualify fall through to manual review.",
+    "beneficiaryNameMatch": "Beneficiary name full match",
+    "beneficiaryNameMatchDesc": "Exact match between request beneficiary name and our records",
+    "aliasMatch": "Alias match",
+    "aliasMatchDesc": "Accept when beneficiary matches a known alias / DBA name",
+    "aliases": "Aliases",
+    "aliasPlaceholder": "Enter alias",
+    "addAlias": "Add Alias",
+    "onboardingStatus": "Onboarding status",
+    "onboardingStatusDesc": "Counterparty must have one of these statuses",
+    "riskLevel": "Risk level",
+    "riskLevelDesc": "Counterparty risk tier must be one of these",
+    "addTravelRuleAutoAccept": "Add Travel Rule Auto-Accept Rule",
+    "editTravelRuleAutoAccept": "Edit Travel Rule Auto-Accept Rule",
+    "addTravelRuleAutoAcceptSubtitle": "Configure conditions for auto-accepting Travel Rule requests",
+    "editTravelRuleAutoAcceptSubtitle": "Modify conditions for auto-accept rule",
+    "onboardingStatusOptions": {
+      "onboarded": "Onboarded",
+      "pending": "Pending",
+      "labeled": "Labeled",
+      "frozen": "Frozen"
+    },
+    "riskLevelOptions": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    }
   },
   "opsHome": {
     "ticketQueue": "Ticket Queue",
@@ -877,7 +922,8 @@
       "alerts": "Compliance Alerts",
       "travelRuleEvents": "Travel Rule Events",
       "travelRuleDetail": "Travel Rule Detail",
-      "travelRuleShare": "Travel Rule Approval"
+      "travelRuleShare": "Travel Rule Approval",
+      "travelRuleAutoAcceptEditor": "Travel Rule Auto-Accept Editor"
     },
     "audit": {
       "title": "Audit",
@@ -1137,7 +1183,20 @@
     "approveSuccess": "Screening approved",
     "approveFailed": "Operation failed",
     "rejectSuccess": "Rejected",
-    "rejectFailed": "Operation failed"
+    "rejectFailed": "Operation failed",
+    "tabAliases": "Aliases",
+    "aliasesDescription": "Manage trade names and aliases for Travel Rule matching",
+    "addAlias": "Add Alias",
+    "editAlias": "Edit Alias",
+    "noAliases": "No aliases configured",
+    "noAliasesHint": "Click \"Add Alias\" to get started",
+    "aliasPlaceholder": "Enter alias",
+    "aliasName": "Alias",
+    "confirmDeleteAlias": "Are you sure to delete this alias?",
+    "riskLevel": "Risk Level",
+    "riskLevelLow": "Low",
+    "riskLevelMedium": "Medium",
+    "riskLevelHigh": "High"
   },
   "merchantType": {
     "NON_FINANCIAL_CORPORATE": "Non-financial corporate",

@@ -32,13 +32,6 @@
           <div class="text-right">
             <div class="text-xs font-semibold text-g-700 font-mono">{{ overview.orderId }}</div>
             <div class="text-[10px] text-g-500 mt-1">{{ createTime }}</div>
-            <div class="flex gap-1 justify-end mt-1">
-              <el-tag :type="onchainTag" size="small" effect="dark">{{ onchainLabelText }}</el-tag>
-              <el-tag type="success" size="small" effect="dark">{{ complianceLabelText }}</el-tag>
-              <el-tag type="success" size="small" effect="dark"
-                >TR {{ travelRuleLabelText }}</el-tag
-              >
-            </div>
           </div>
         </div>
         <!-- Parties -->
@@ -48,7 +41,10 @@
               {{ originatorLabelText }}
             </div>
             <div class="text-sm font-semibold text-g-900">
-              {{ overview.originator?.name || overview.merchantName || '--' }}
+              {{
+                overview.originator?.name ||
+                (overview.originator?.did ? $t('txLens.unknownVasp') : $t('txLens.unknownCustomer'))
+              }}
             </div>
             <div class="text-xs text-g-600 mt-0.5">{{ overview.originator?.detail || '--' }}</div>
             <div class="text-xs text-g-500 font-mono mt-0.5">
@@ -70,7 +66,12 @@
               {{ beneficiaryLabelText }}
             </div>
             <div class="text-sm font-semibold text-g-900">
-              {{ overview.beneficiary?.name || '--' }}
+              {{
+                overview.beneficiary?.name ||
+                (overview.beneficiary?.did
+                  ? $t('txLens.unknownVasp')
+                  : $t('txLens.unknownCustomer'))
+              }}
             </div>
             <div class="text-xs text-g-600 mt-0.5">{{ overview.beneficiary?.detail || '--' }}</div>
             <div class="text-xs text-g-500 font-mono mt-0.5">
@@ -98,7 +99,7 @@
           v-for="(step, index) in steps"
           :key="step.key"
           class="step-tab"
-          :class="{ active: activeStep === step.key }"
+          :class="{ active: activeStep === step.key, disabled: step.disabled }"
           @click="handleStepClick(index)"
         >
           <div class="step-indicator" :style="{ background: toneColor(step.tone) }"></div>
@@ -176,7 +177,6 @@
     REVIEW_RESULT_DICT,
     SIGNOFF_DICT,
     TRAVEL_RULE_DICT,
-    onchainTagType,
     reviewResultTagType,
     toneOf,
     toneTextStyle,
@@ -184,8 +184,14 @@
     type Tone,
     type TxStateItem
   } from '@/features/compliance/txState'
-  import { STAGE_LABEL_KEYS, buildStages, type StageKey } from '@/features/compliance/txStages'
+  import {
+    STAGE_LABEL_KEYS,
+    buildStages,
+    isStageDisabled,
+    type StageKey
+  } from '@/features/compliance/txStages'
   import { formatCoinBalance, formatTime } from '@/utils/format'
+  import BigNumber from 'bignumber.js'
 
   defineOptions({ name: 'TransactionLensDetail' })
 
@@ -223,8 +229,8 @@
     const decimals = coinDecimals.value[overview.value.coinId]
     const usdRate = coinUsdRate.value[overview.value.coinId]
     if (decimals == null || usdRate == null) return '--'
-    const amount = Number(formatCoinBalance(overview.value.amount, decimals))
-    return `≈ $${(amount * usdRate).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+    const amount = formatCoinBalance(overview.value.amount, decimals)
+    return `≈ $${new BigNumber(amount).times(usdRate).toFormat(2, BigNumber.ROUND_HALF_UP)}`
   })
   const createTime = computed(() => formatTime(overview.value?.createTime))
 
@@ -239,13 +245,6 @@
   function enumLabel(map: TxStateItem[], v?: string): string {
     return txStateLabel(map, v, t)
   }
-  const complianceLabelText = computed(() =>
-    enumLabel(enumMaps.compliance, overview.value?.compliance)
-  )
-  const travelRuleLabelText = computed(() =>
-    enumLabel(enumMaps.travelRule, overview.value?.travelRule)
-  )
-  const onchainLabelText = computed(() => enumLabel(enumMaps.onchain, overview.value?.onchain))
 
   const originatorLabelText = computed(() => {
     const outgoing = overview.value?.direction === 'outgoing'
@@ -256,15 +255,13 @@
     return outgoing ? t('txLens.detail.beneficiaryCounterparty') : 'Beneficiary (Our Customer)'
   })
 
-  const onchainTag = computed(() => onchainTagType(overview.value?.onchain))
-
   // Review Result 标签
   const reviewResultLabelText = computed(() =>
     txStateLabel(REVIEW_RESULT_DICT, overview.value?.reviewResult, t)
   )
   const reviewResultTag = computed(() => reviewResultTagType(overview.value?.reviewResult))
 
-  // 阶段序列与列表页同源：方向 + 对手方 name 决定显示哪些事件
+  // 阶段序列与列表页同源：方向决定槽位与时序，对手方 name 决定 travelRule 是否可用
   const steps = computed(() => {
     const o = overview.value
     if (!o) return []
@@ -283,24 +280,32 @@
       disposition: o.disposition
     }
     return buildStages(o).map((key) => {
-      const tone = toneOf(rawOf[key])
+      const disabled = isStageDisabled(o, key)
+      // 不可用槽位固定灰色 na，状态文案提示"无 Travel Rule 信息"
+      const tone = disabled ? 'na' : toneOf(rawOf[key])
+      const state = disabled ? t('txLens.stageNoTravelRule') : stateOf[key]
       return {
         key,
         label: t(STAGE_LABEL_KEYS[key]),
-        state: stateOf[key],
-        tone
+        state,
+        tone,
+        disabled
       }
     })
   })
 
-  const stepOrder = computed(() => steps.value.map((s) => s.key))
+  /** 可进入的 step：在序列中且未被禁用（如个人转账的 Travel Rule） */
+  const enterableSteps = computed(() => steps.value.filter((s) => !s.disabled).map((s) => s.key))
 
   function back() {
     router.back()
   }
 
   function handleStepClick(index: number) {
-    const key = stepOrder.value[index]
+    const step = steps.value[index]
+    // 不可用槽位（如个人转账的 Travel Rule）不可进入
+    if (!step || step.disabled) return
+    const key = step.key
     if (key) {
       activeStep.value = key
       // 更新 URL query 参数，使用 replace 避免添加浏览器历史
@@ -373,9 +378,9 @@
     onchainData.value = onchain
     loading.value = false
 
-    // 验证 URL 中的 step 参数是否有效，无效则回退到 'compliance'
-    const validSteps = stepOrder.value
-    if (!validSteps.includes(activeStep.value as StageKey)) {
+    // 验证 URL 中的 step 参数：须在序列中且未被禁用（个人转账的 travelRule 不可进入），
+    // 无效则回退到 'compliance'（恒存在且可用）
+    if (!enterableSteps.value.includes(activeStep.value as StageKey)) {
       activeStep.value = 'compliance'
       // 同步更新 URL
       router.replace({
@@ -459,6 +464,22 @@
     background: var(--el-color-primary-light-9);
     border-color: var(--el-color-primary);
     box-shadow: 0 2px 8px rgb(0 0 0 / 12%);
+  }
+
+  /* 不可用槽位（无 Travel Rule 信息）：置灰、不可点击、去 hover 反馈 */
+  .step-tab.disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .step-tab.disabled:hover {
+    background: var(--el-bg-color);
+    border-color: var(--el-border-color-light);
+    box-shadow: none;
+  }
+
+  .step-tab.disabled .step-title {
+    color: var(--el-text-color-placeholder);
   }
 
   .step-indicator {

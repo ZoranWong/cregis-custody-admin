@@ -2,20 +2,19 @@
  * 交易阶段编排 — 「哪些事件出现在这笔交易上」的唯一判定入口。
  *
  * 关键约定（与后端确认过）：
- *   1. 阶段是否显示，只由【出入金方向】+【对手方有没有 name(Travel Rule PII)】决定，
- *      与阶段自身的状态取值无关。状态值只决定颜色，不决定显不显示。
- *   2. 判别"有没有 Travel Rule"要看对手方的 name，不能看 travelRule 状态值。
- *      实测 50 笔订单：以 ivms101Pii 是否为 null 为真值，
- *        - 对手方 name 判定  50/50 命中
- *        - travelRule !== 'na' 49/50，反例 I202609112098320881708306432
- *          （travelRule=pending 但 ivms101Pii 为 null，实为个人入金）
- *   3. na 表示"未执行 / 无法判断该事件是否发生"，阶段槽位仍然保留，只是渲染成灰色。
+ *   1. 阶段槽位只由【出入金方向】决定，方向固定哪些阶段出现；
+ *      对手方有没有 did(Notabene VASP 标识) 只决定 travelRule 槽位是否可用（disabled）。
+ *   2. 判别"有没有 Travel Rule"要看对手方的 did，不能看 travelRule 状态值。
+ *      实测列表数据：did 与 Travel Rule 信息完全对应；
+ *      travelRule 状态值不可靠（存在 tr=pending 但双方均无 did 的个人转账脏数据）。
+ *   3. 无 Travel Rule 信息时槽位保留、不可点击、渲染成灰色（na），
+ *      状态显示"无 Travel Rule 信息"，列表与详情一致。
  *
  * 四场景产出：
- *   出金 · VASP   Compliance → Travel Rule → Sign-off  → On-Chain
- *   出金 · 个人   Compliance → Sign-off                → On-Chain
- *   入金 · VASP   Compliance → Travel Rule             → On-Chain → Fund Disposition
- *   入金 · 个人   Compliance                           → On-Chain → Fund Disposition
+ *   出金（无论 VASP/个人） Compliance → Travel Rule → Sign-off → On-Chain
+ *     —— 个人出金时 Travel Rule 置灰不可点
+ *   入金（无论 VASP/个人） Travel Rule → On-Chain → Compliance → Fund Disposition
+ *     —— 个人入金时 Travel Rule 置灰不可点
  */
 
 export type StageKey = 'compliance' | 'travelRule' | 'signoff' | 'onchain' | 'disposition'
@@ -23,22 +22,23 @@ export type StageKey = 'compliance' | 'travelRule' | 'signoff' | 'onchain' | 'di
 /** 编排所需的最小交易信息（列表项与 overview 均满足） */
 export interface StageSource {
   direction: string
-  originator?: { name?: string | null } | null
-  beneficiary?: { name?: string | null } | null
+  originator?: { did?: string | null } | null
+  beneficiary?: { did?: string | null } | null
+  onchain?: string | null
 }
 
 /**
  * 对手方：出金看受益方，入金看发起方。
  * direction 大小写不一致（列表 / overview 用小写，告警接口用大写），统一归一化。
  */
-export function counterparty(tx: StageSource): { name?: string | null } | null {
+export function counterparty(tx: StageSource): { did?: string | null } | null {
   const outgoing = String(tx.direction).toLowerCase() === 'outgoing'
   return (outgoing ? tx.beneficiary : tx.originator) ?? null
 }
 
-/** 是否发生 Travel Rule —— 以对手方是否携带 name(PII) 为准，不看状态值 */
+/** 是否发生 Travel Rule —— 以对手方是否携带 did(Notabene VASP 标识) 为准，不看状态值 */
 export function hasTravelRule(tx: StageSource): boolean {
-  return !!counterparty(tx)?.name
+  return !!counterparty(tx)?.did
 }
 
 /** 交易方向（归一化后） */
@@ -46,15 +46,23 @@ export function isOutgoing(tx: StageSource): boolean {
   return String(tx.direction).toLowerCase() === 'outgoing'
 }
 
-/** 按方向 + 对手方 name 是否存在，产出该交易应展示的阶段序列 */
+/**
+ * 按方向产出该交易应展示的阶段序列。
+ * 入金按业务时序排列：Travel Rule → On-Chain → Compliance → Fund Disposition。
+ */
 export function buildStages(tx: StageSource): StageKey[] {
-  const outgoing = isOutgoing(tx)
-  const keys: StageKey[] = ['compliance']
-  if (hasTravelRule(tx)) keys.push('travelRule')
-  if (outgoing) keys.push('signoff')
-  keys.push('onchain') // 出金入金都有
-  if (!outgoing) keys.push('disposition')
-  return keys
+  if (isOutgoing(tx)) {
+    return ['compliance', 'travelRule', 'signoff', 'onchain']
+  }
+  return ['travelRule', 'onchain', 'compliance', 'disposition']
+}
+
+/**
+ * 阶段是否不可用（置灰、不可点击）。
+ * 目前只有 travelRule 会：无对手方 PII（个人转账）时该槽位保留但不可进入。
+ */
+export function isStageDisabled(tx: StageSource, key: StageKey): boolean {
+  return key === 'travelRule' && !hasTravelRule(tx)
 }
 
 /** 阶段 → 展示标签的 i18n 键 */

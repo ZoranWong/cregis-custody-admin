@@ -270,52 +270,85 @@
       <!-- ═══════════════════════════════════════════ -->
       <template v-else>
         <el-tabs v-model="activeTab">
-          <!-- Tab 1: Compliance Status -->
+          <!-- Tab 1: Compliance Status（onboarded 后可编辑：切换入驻状态/风险等级） -->
           <el-tab-pane :label="$t('merchantDetail.tabCompliance')" name="compliance">
-            <div class="cdd-grid">
-              <div class="art-card p-4">
-                <div
-                  class="text-xs font-semibold text-g-700 mb-3 pb-2 border-b border-[var(--default-border)]"
-                >
-                  {{ $t('merchantDetail.cdd') }}
+            <div class="screening-grid">
+              <!-- Onboarding Status -->
+              <div class="summary-card">
+                <div class="summary-card-title">
+                  {{ $t('merchantDetail.cddOnboardingStatus') }}
                 </div>
-                <div class="flex flex-col gap-2.5">
-                  <div class="cdd-item">
-                    <span class="text-success font-bold">✓</span>
-                    <span
-                      >{{ $t('merchantDetail.cddOnboardingStatus') }}:
-                      {{ merchantStatusLabel(detail.merchantStatus) }}</span
-                    >
-                  </div>
-                  <div class="cdd-item">
-                    <span class="text-success font-bold">✓</span>
-                    <span
-                      >{{ $t('merchantDetail.cddCustomerType') }}:
-                      {{ merchantTypeLabel(detail.merchantType) }}</span
-                    >
-                  </div>
-                  <div class="cdd-item">
-                    <span class="text-success font-bold">✓</span>
-                    <span
-                      >{{ $t('merchantDetail.cddKybStatus') }}:
-                      {{ kybStatusLabel(detail.kybStatus) }}</span
-                    >
-                  </div>
+                <!-- 编辑模式：下拉切换；只读模式：徽章展示 -->
+                <el-select
+                  v-if="complianceEditing"
+                  v-model="complianceForm.merchantStatus"
+                  size="default"
+                  class="!w-full"
+                >
+                  <el-option
+                    v-for="opt in MERCHANT_STATUS_OPTIONS"
+                    :key="opt"
+                    :label="merchantStatusLabel(opt)"
+                    :value="opt"
+                  />
+                </el-select>
+                <div v-else class="summary-card-value">
+                  <span class="status-badge" :class="headerStatusClass">
+                    {{ merchantStatusLabel(detail.merchantStatus) }}
+                  </span>
                 </div>
               </div>
-              <div class="art-card p-4">
-                <div
-                  class="text-xs font-semibold text-g-700 mb-3 pb-2 border-b border-[var(--default-border)]"
+
+              <!-- Risk Level（问卷暂无此字段，先本地维护） -->
+              <div class="summary-card">
+                <div class="summary-card-title">{{ $t('merchantDetail.riskLevel') }}</div>
+                <el-select
+                  v-if="complianceEditing"
+                  v-model="complianceForm.riskLevel"
+                  size="default"
+                  class="!w-full"
                 >
-                  {{ $t('merchantDetail.bizInfo') }}
-                </div>
-                <div class="flex flex-col gap-2.5">
-                  <div v-for="f in bizInfoFields" :key="f.key" class="cdd-item">
-                    <span class="text-success font-bold">✓</span>
-                    <span>{{ f.label }}: {{ questionnaireValue(f.key) }}</span>
-                  </div>
+                  <el-option
+                    v-for="opt in RISK_LEVEL_OPTIONS"
+                    :key="opt.value"
+                    :label="t(opt.labelKey)"
+                    :value="opt.value"
+                  />
+                </el-select>
+                <div v-else class="summary-card-value">
+                  <span class="status-badge" :class="riskLevelBadgeClass(complianceForm.riskLevel)">
+                    {{ riskLevelLabel(complianceForm.riskLevel) }}
+                  </span>
                 </div>
               </div>
+
+              <!-- KYB Status（只读） -->
+              <div class="summary-card">
+                <div class="summary-card-title">{{ $t('merchantDetail.kybStatus') }}</div>
+                <div class="summary-card-value">{{ kybStatusLabel(detail.kybStatus) }}</div>
+              </div>
+
+              <!-- 客户类型（只读） -->
+              <div class="summary-card">
+                <div class="summary-card-title">{{ $t('merchantDetail.type') }}</div>
+                <div class="summary-card-value">
+                  {{ merchantTypeLabel(detail.merchantType) }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 编辑操作 -->
+            <div class="flex justify-end gap-2 mt-4">
+              <el-button v-if="complianceEditing" @click="cancelComplianceEdit">
+                {{ $t('common.cancel') }}
+              </el-button>
+              <el-button
+                type="primary"
+                :loading="complianceSaving"
+                @click="complianceEditing ? saveCompliance() : startComplianceEdit()"
+              >
+                {{ complianceEditing ? $t('common.save') : $t('common.edit') }}
+              </el-button>
             </div>
           </el-tab-pane>
 
@@ -400,6 +433,42 @@
               </div>
             </div>
           </el-tab-pane>
+
+          <el-tab-pane :label="$t('merchantDetail.tabAliases')" name="aliases">
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-sm text-g-500">{{ $t('merchantDetail.aliasesDescription') }}</div>
+              <el-button type="primary" size="small" @click="showAddAliasDialog = true">
+                <ArtSvgIcon icon="ri:add-line" class="mr-1" />{{ $t('merchantDetail.addAlias') }}
+              </el-button>
+            </div>
+
+            <!-- Aliases List -->
+            <div v-if="aliases.length > 0" class="flex flex-col gap-3">
+              <div
+                v-for="(alias, index) in aliases"
+                :key="index"
+                class="flex items-center justify-between p-4 border border-[var(--default-border)] rounded-lg"
+              >
+                <div class="flex-1">
+                  <div class="text-sm font-medium text-g-900">{{ alias }}</div>
+                </div>
+                <div class="flex gap-2">
+                  <el-button size="small" text type="primary" @click="editAlias(index)">
+                    <ArtSvgIcon icon="ri:edit-line" />
+                  </el-button>
+                  <el-button size="small" text type="danger" @click="deleteAlias(index)">
+                    <ArtSvgIcon icon="ri:delete-bin-line" />
+                  </el-button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="text-center py-10">
+              <div class="text-g-400 text-sm mb-2">{{ $t('merchantDetail.noAliases') }}</div>
+              <div class="text-g-400 text-xs">{{ $t('merchantDetail.noAliasesHint') }}</div>
+            </div>
+          </el-tab-pane>
         </el-tabs>
       </template>
     </template>
@@ -428,13 +497,40 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- ═══ Alias Dialog ═══ -->
+    <el-dialog
+      v-model="showAddAliasDialog"
+      :title="
+        editingAliasIndex !== null ? $t('merchantDetail.editAlias') : $t('merchantDetail.addAlias')
+      "
+      width="440px"
+      @close="closeAliasDialog"
+    >
+      <el-form @submit.prevent="saveAlias">
+        <el-form-item :label="$t('merchantDetail.aliasName')">
+          <el-input
+            v-model="aliasForm.name"
+            :placeholder="$t('merchantDetail.aliasPlaceholder')"
+            @keyup.enter="saveAlias"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="closeAliasDialog">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveAlias">
+          {{ $t('common.confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue'
+  import { computed, onMounted, reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
+  import { ElMessage, ElMessageBox } from 'element-plus'
   import { fetchMerchantKybDetail, approveKybScreening, rejectKybScreening } from '@/api/merchant'
   import type { AdminMerchantKybDetailView, KybQuestionnaire } from '@/api/merchant'
 
@@ -453,8 +549,76 @@
   const rejectReason = ref('')
   const deciding = ref(false)
 
+  // Aliases management
+  const aliases = ref<string[]>([])
+  const showAddAliasDialog = ref(false)
+  const aliasForm = ref({ name: '' })
+  const editingAliasIndex = ref<number | null>(null)
+
+  // ─── Compliance Status 编辑（onboarded 后可切换入驻状态 / 风险等级）───
+  const complianceEditing = ref(false)
+  const complianceSaving = ref(false)
+  const complianceForm = reactive({ merchantStatus: '', riskLevel: '' })
+
+  /** 入驻状态可切换的取值（原型：Pending/Onboarded/Frozen/Offboarded） */
+  const MERCHANT_STATUS_OPTIONS = ['PENDING', 'ACTIVE', 'FROZEN', 'CANCELLED']
+
+  /** 风险等级三档；问卷暂无该字段，先本地维护，接口就绪后接入 */
+  const RISK_LEVEL_OPTIONS = [
+    { value: 'LOW', labelKey: 'merchantDetail.riskLevelLow' },
+    { value: 'MEDIUM', labelKey: 'merchantDetail.riskLevelMedium' },
+    { value: 'HIGH', labelKey: 'merchantDetail.riskLevelHigh' }
+  ]
+
+  function riskLevelLabel(value: string): string {
+    const hit = RISK_LEVEL_OPTIONS.find((o) => o.value === value)
+    return hit ? t(hit.labelKey) : value || '-'
+  }
+
+  function riskLevelBadgeClass(value: string): string {
+    if (value === 'LOW') return 'onboarded'
+    if (value === 'MEDIUM') return 'in-review'
+    if (value === 'HIGH') return 'rejected'
+    return ''
+  }
+
+  function startComplianceEdit() {
+    if (!detail.value) return
+    complianceForm.merchantStatus = detail.value.merchantStatus?.toUpperCase() || 'ACTIVE'
+    complianceForm.riskLevel = complianceForm.riskLevel || 'LOW'
+    complianceEditing.value = true
+  }
+
+  function cancelComplianceEdit() {
+    complianceEditing.value = false
+    // 回退到保存前的值：入驻状态以接口数据为准
+    if (detail.value) complianceForm.merchantStatus = detail.value.merchantStatus?.toUpperCase()
+  }
+
+  async function saveCompliance() {
+    // TODO: 接口就绪后对接（更新入驻状态 / 风险等级）
+    complianceSaving.value = true
+    try {
+      if (detail.value && complianceForm.merchantStatus) {
+        detail.value.merchantStatus = complianceForm.merchantStatus
+      }
+      complianceEditing.value = false
+      ElMessage.success(t('merchantDetail.editSuccess'))
+    } catch {
+      ElMessage.error(t('merchantDetail.editFailed'))
+    } finally {
+      complianceSaving.value = false
+    }
+  }
+
   // ─── State-derived view ───
-  const isOnboarded = computed(() => detail.value?.merchantStatus?.toUpperCase() === 'ACTIVE')
+  // KYB 审核通过（APPROVED）即进入详情 tab 视图；
+  // 之后本地切换 ACTIVE / FROZEN / CANCELLED 都保持该视图，不再翻回 onboarding 步骤器
+  const isOnboarded = computed(() => {
+    const s = detail.value?.merchantStatus?.toUpperCase()
+    if (s === 'ACTIVE' || s === 'FROZEN' || s === 'CANCELLED') return true
+    return detail.value?.kybStatus?.toUpperCase() === 'APPROVED'
+  })
   const canDecide = computed(() => detail.value?.kybStatus?.toUpperCase() === 'PENDING_SCREENING')
 
   const headerStatusClass = computed(() => {
@@ -520,7 +684,7 @@
   }
 
   function backToList() {
-    router.push({ name: 'MerchantList' })
+    router.back()
   }
 
   async function handleApprove() {
@@ -550,6 +714,58 @@
     } finally {
       deciding.value = false
     }
+  }
+
+  // ─── Alias Management ───
+  function editAlias(index: number) {
+    editingAliasIndex.value = index
+    aliasForm.value.name = aliases.value[index]
+    showAddAliasDialog.value = true
+  }
+
+  function deleteAlias(index: number) {
+    ElMessageBox.confirm(t('merchantDetail.confirmDeleteAlias'), t('common.confirm'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning'
+    })
+      .then(() => {
+        aliases.value.splice(index, 1)
+        ElMessage.success(t('common.deleteSuccess'))
+        // TODO: Call API to delete alias
+      })
+      .catch(() => {
+        // Cancelled
+      })
+  }
+
+  function saveAlias() {
+    if (!aliasForm.value.name.trim()) {
+      ElMessage.warning(t('merchantDetail.aliasName') + ' ' + t('common.required'))
+      return
+    }
+
+    if (editingAliasIndex.value !== null) {
+      // Edit existing alias
+      aliases.value[editingAliasIndex.value] = aliasForm.value.name
+      ElMessage.success(t('common.updateSuccess'))
+      // TODO: Call API to update alias
+    } else {
+      // Add new alias
+      aliases.value.push(aliasForm.value.name)
+      ElMessage.success(t('common.addSuccess'))
+      // TODO: Call API to add alias
+    }
+
+    showAddAliasDialog.value = false
+    aliasForm.value.name = ''
+    editingAliasIndex.value = null
+  }
+
+  function closeAliasDialog() {
+    showAddAliasDialog.value = false
+    aliasForm.value.name = ''
+    editingAliasIndex.value = null
   }
 
   // ─── Questionnaire field groups ───
@@ -590,13 +806,6 @@
   const regulatoryFields = computed<Field[]>(() => [
     { key: 'regulated', label: t('merchantDetail.qRegulated'), boolean: true },
     { key: 'regulatoryAction', label: t('merchantDetail.qRegulatoryAction'), boolean: true }
-  ])
-  const bizInfoFields = computed<Field[]>(() => [
-    { key: 'registrationNumber', label: t('merchantDetail.qRegistrationNumber') },
-    { key: 'dateOfIncorporation', label: t('merchantDetail.qDateOfIncorporation') },
-    { key: 'taxId', label: t('merchantDetail.qTaxId') },
-    { key: 'employeeCount', label: t('merchantDetail.qEmployeeCount') },
-    { key: 'beneficiaryCount', label: t('merchantDetail.qBeneficiaryCount') }
   ])
   const allQuestionnaireFields = computed<Field[]>(() => [
     ...entityFields.value,
@@ -714,121 +923,139 @@
     display: inline-flex;
     align-items: center;
     padding: 3px 10px;
-    border-radius: 20px;
     font-size: 11px;
     font-weight: 600;
     line-height: 1.4;
+    border-radius: 20px;
   }
+
   .status-badge.onboarded {
-    background: var(--el-color-success-light-8);
     color: var(--el-color-success);
+    background: var(--el-color-success-light-8);
   }
+
   .status-badge.pending {
-    background: var(--el-color-warning-light-8);
     color: var(--el-color-warning-dark-2);
+    background: var(--el-color-warning-light-8);
   }
+
   .status-badge.in-review {
-    background: var(--el-color-primary-light-8);
     color: var(--el-color-primary);
+    background: var(--el-color-primary-light-8);
   }
+
   .status-badge.rejected {
-    background: var(--el-color-danger-light-8);
     color: var(--el-color-danger);
+    background: var(--el-color-danger-light-8);
   }
 
   /* Onboarding progress */
   .onboarding-progress {
+    padding: 24px 32px 20px;
     background: linear-gradient(135deg, var(--el-fill-color-light) 0%, var(--el-bg-color) 100%);
     border: 1px solid var(--el-border-color-light);
     border-radius: 14px;
-    padding: 24px 32px 20px;
   }
+
   .progress-title {
+    margin-bottom: 20px;
     font-size: 11px;
     font-weight: 700;
     color: var(--el-text-color-secondary);
-    margin-bottom: 20px;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
+
   .progress-stepper {
     display: flex;
     align-items: flex-start;
   }
+
   .progress-step {
-    flex: 1;
+    position: relative;
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
-    position: relative;
     text-align: center;
   }
+
   .progress-step::before {
-    content: '';
     position: absolute;
     top: 18px;
-    left: -50%;
     right: 50%;
+    left: -50%;
+    z-index: 0;
     height: 3px;
+    content: '';
     background: var(--el-border-color-lighter);
     border-radius: 2px;
-    z-index: 0;
   }
+
   .progress-step:first-child::before {
     display: none;
   }
+
   .progress-step.completed::before {
     background: var(--el-color-success);
   }
+
   .progress-step.active::before {
     background: var(--el-color-success-light-5);
   }
+
   .step-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 36px;
+    height: 36px;
     font-size: 13px;
     font-weight: 700;
-    position: relative;
-    z-index: 1;
+    color: var(--el-text-color-placeholder);
     background: var(--el-bg-color);
     border: 2.5px solid var(--el-border-color-light);
-    color: var(--el-text-color-placeholder);
+    border-radius: 50%;
   }
+
   .step-circle.done,
   .progress-step.completed .step-circle {
+    color: #fff;
     background: var(--el-color-success);
     border-color: transparent;
-    color: #fff;
   }
+
   .step-circle.active {
+    color: #fff;
     background: var(--el-color-primary);
     border-color: transparent;
-    color: #fff;
     box-shadow: 0 0 0 4px var(--el-color-primary-light-8);
   }
+
   .step-label {
+    max-width: 120px;
     margin-top: 10px;
     font-size: 12px;
     font-weight: 500;
     color: var(--el-text-color-secondary);
-    max-width: 120px;
   }
+
   .progress-step.completed .step-label {
-    color: var(--el-text-color-primary);
     font-weight: 600;
+    color: var(--el-text-color-primary);
   }
+
   .progress-step.active .step-label {
-    color: var(--el-color-primary);
     font-weight: 700;
+    color: var(--el-color-primary);
   }
+
   .step-meta {
+    margin-top: 3px;
     font-size: 11px;
     color: var(--el-text-color-secondary);
-    margin-top: 3px;
   }
 
   /* Screening grid */
@@ -837,27 +1064,30 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
+
   .summary-card {
     padding: 16px;
     background: var(--el-fill-color-light);
     border: 1px solid var(--el-border-color-light);
     border-radius: 8px;
   }
+
   .summary-card-title {
+    margin-bottom: 8px;
     font-size: 11px;
     font-weight: 600;
     color: var(--el-text-color-secondary);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    margin-bottom: 8px;
   }
+
   .summary-card-value {
+    overflow: hidden;
     font-size: 14px;
     font-weight: 500;
     color: var(--el-text-color-primary);
-    white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* CDD grid */
@@ -866,14 +1096,16 @@
     grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
+
   .cdd-item {
     display: flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
     font-size: 13px;
     color: var(--el-text-color-regular);
-    margin-bottom: 10px;
   }
+
   .cdd-item:last-child {
     margin-bottom: 0;
   }
@@ -884,6 +1116,7 @@
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 12px;
   }
+
   .team-card {
     padding: 14px;
     background: var(--el-fill-color-light);
