@@ -233,9 +233,7 @@ export interface MerchantFilterOptionsView {
   watchBuckets: string[]
 }
 
-export interface MerchantListItemView extends MerchantRecord {
-  // Extend with any additional view-specific fields
-}
+export type MerchantListItemView = MerchantRecord
 
 export interface PageResult<T> {
   records: T[]
@@ -300,4 +298,60 @@ export async function fetchMerchants(
       totalCount: response.total
     }
   }
+}
+
+// ─── 企业用户（/merchant/{ecode}/user/page）───
+
+/** 企业用户视图：企业成员关系（cus_merchant_staff）与账号（cus_sys_console_user）聚合 */
+export interface AdminMerchantUserVO {
+  ecode: string
+  userId: number
+  /** 企业内角色 */
+  role:
+    | 'MERCHANT_STAFF'
+    | 'MERCHANT_OWNER'
+    | 'MERCHANT_ADMIN'
+    | 'MERCHANT_FUND_OPERATOR'
+    | 'MERCHANT_ANYCALL_OPERATOR'
+    | string
+  /** 企业内状态 */
+  state: 'SUSPENDING' | 'ACTIVE' | 'INACTIVE' | string
+  /** 账号状态 */
+  userState: 'SUSPENDING' | 'ACTIVE' | 'INACTIVE' | string
+  username: string
+  email: string
+  phone: string | null
+  pk: string
+  passwordSet: boolean
+  joinTime: string
+  createTime: string
+  loginTime: string | null
+}
+
+export interface AdminMerchantUserPage {
+  records: AdminMerchantUserVO[]
+  total: number
+  size: number
+  current: number
+}
+
+export interface MerchantUserQuery {
+  pageIndex?: number
+  pageSize?: number
+  sortFields?: string
+  queryList?: Array<{ key: string; value: unknown; oper?: string; join?: string }>
+}
+
+/**
+ * 分页查询企业用户
+ * POST /merchant/{ecode}/user/page
+ */
+export async function fetchMerchantUsers(
+  ecode: string,
+  query: MerchantUserQuery = {}
+): Promise<AdminMerchantUserPage> {
+  return (await apiRequest<AdminMerchantUserPage>(
+    `/merchant/${encodeURIComponent(ecode)}/user/page`,
+    { method: 'POST', body: query }
+  )) as AdminMerchantUserPage
 }

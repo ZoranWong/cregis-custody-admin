@@ -59,16 +59,23 @@
               }}</span>
             </div>
             <div class="flex gap-2.5 flex-wrap">
-              <el-button
+              <!-- 罚没/追回操作接口暂未提供，先禁用 -->
+              <el-tooltip
                 v-if="disposition === 'held'"
-                type="danger"
-                plain
-                @click="emit('forfeit')"
-                >{{ $t('txLens.detail.forfeitToDesignated') }}</el-button
+                :content="$t('common.underDevelopment')"
+                placement="top"
               >
-              <el-button v-if="disposition === 'forfeited'" @click="emit('claim-back')">{{
-                $t('txLens.detail.claimBackForfeited')
-              }}</el-button>
+                <el-button type="danger" plain disabled>{{
+                  $t('txLens.detail.forfeitToDesignated')
+                }}</el-button>
+              </el-tooltip>
+              <el-tooltip
+                v-if="disposition === 'forfeited'"
+                :content="$t('common.underDevelopment')"
+                placement="top"
+              >
+                <el-button disabled>{{ $t('txLens.detail.claimBackForfeited') }}</el-button>
+              </el-tooltip>
             </div>
           </div>
         </template>
@@ -87,7 +94,6 @@
     heldSince?: string
     forfeitureDestination?: string
   }>()
-  const emit = defineEmits<{ (e: 'forfeit'): void; (e: 'claim-back'): void }>()
   const { t } = useI18n()
 
   const statusLabel = computed(() => {

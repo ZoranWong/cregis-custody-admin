@@ -68,7 +68,7 @@
         <el-table-column prop="reason" :label="$t('gas.issue')" min-width="200" />
         <el-table-column prop="network" :label="$t('gas.network')" width="120" />
         <el-table-column :label="$t('gas.lastSignal')" width="140">
-          <template #default="{ row }">{{ relativeTime(row.lastSignalAt) }}</template>
+          <template #default="{ row }">{{ formatTime(row.lastSignalAt) }}</template>
         </el-table-column>
         <el-table-column :label="$t('merchantList.action')" width="80">
           <template #default="{ row }"
@@ -144,7 +144,7 @@
       </template>
       <el-table v-else :data="filteredActivities" stripe size="small">
         <el-table-column :label="$t('gas.time')" width="140">
-          <template #default="{ row }">{{ relativeTime(row.occurredAt) }}</template>
+          <template #default="{ row }">{{ formatTime(row.occurredAt) }}</template>
         </el-table-column>
         <el-table-column :label="$t('gas.merchant')" min-width="160">
           <template #default="{ row }">
@@ -323,7 +323,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import { useGasOperations } from '@/features/ops/gas/useGasOperations'
   import { useCoinStore } from '@/store/modules/coins'
-  import { formatCoinBalance } from '@/utils/format'
+  import { formatCoinBalance, formatTime } from '@/utils/format'
   import type { GasHomeActivityView } from '@/features/ops/gas/types'
 
   defineOptions({ name: 'GasOperations' })
@@ -385,21 +385,6 @@
     const sign =
       row.activityType === 'succeeded' && row.businessType === 'gas_consumption' ? '-' : '+'
     return `${sign}${formatted} ${unit.toUpperCase()}`
-  }
-  function relativeTime(iso: string | null): string {
-    if (!iso) return '-'
-    try {
-      const d = new Date(iso)
-      const now = Date.now()
-      const diff = Math.floor((now - d.getTime()) / 60000)
-      if (diff < 1) return 'just now'
-      if (diff < 60) return `${diff} min ago`
-      const hours = Math.floor(diff / 60)
-      if (hours < 24) return `${hours}h ago`
-      return `${Math.floor(hours / 24)}d ago`
-    } catch {
-      return iso
-    }
   }
   function label(v: string | null | undefined): string {
     if (!v) return '-'

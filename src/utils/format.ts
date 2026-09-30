@@ -1,23 +1,27 @@
 import { translateUiText } from '@/utils/text'
 import BigNumber from 'bignumber.js'
 
-const datetimeFormatter = new Intl.DateTimeFormat('en-US', {
-  year: 'numeric',
-  month: 'short',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit'
-})
+/**
+ * 统一时间格式："2026-09-21 15:42"（到分钟，浏览器本地时区）。
+ *
+ * 接口返回的时间串（如 "2026-09-21T15:42:31"）为 UTC 存储，
+ * 无时区后缀时补 Z 再解析，保证按本地时区正确换算显示。
+ */
+function formatLocalMinute(input: string): string {
+  // 无时区后缀的 UTC 串：补 Z 后按本地时区解析
+  const normalized = /[Zz]|[+-]\d{2}:?\d{2}$/.test(input) ? input : `${input.replace(' ', 'T')}Z`
+  const date = new Date(normalized)
+  if (Number.isNaN(date.getTime())) return input
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 
+/** "2026-09-21 15:42"（到分钟，本地时区） */
 export function formatDateTime(value?: string | null): string {
   if (!value) {
     return '-'
   }
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-  return datetimeFormatter.format(date)
+  return formatLocalMinute(value)
 }
 
 export function formatRecoveryCodes(value?: string | null): string {
@@ -100,13 +104,65 @@ export function formatCoinBalance(raw: string | null | undefined, decimals: numb
   return trimmed || '0'
 }
 
-/** 将 ISO 时间字符串格式化为 "YYYY-MM-DD HH:MM:SS"，常用于表格中的等宽时间显示 */
+/** 原型统一时间格式："Sep 21, 2026 at 15:42 UTC"（到分钟 + 时区），全站列表/详情共用 */
 export function formatTime(iso: string | null | undefined): string {
   if (!iso) return '-'
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  return formatLocalMinute(iso)
+}
+
+/**
+ * 构建 tx hash 的区块链浏览器 URL（规则与 custody-manager 的 buildTxLink 同源）。
+ * 未知网络回退 etherscan；tx 或 network 为空返回 ''（调用方按纯文本渲染）。
+ */
+export function buildTxLink(tx: string, network: string): string {
+  if (!tx || !network) return ''
+  const hash = tx.replaceAll('"', '')
+  if (network.includes('sepolia')) {
+    return `https://sepolia.etherscan.io/tx/${hash}`
+  }
+  if (network.includes('goerli')) {
+    return `https://goerli.etherscan.io/tx/${hash}`
+  }
+  if (network.includes('optimism')) {
+    return `https://optimistic.etherscan.io/tx/${hash}`
+  }
+  if (network.includes('arbitrum')) {
+    return `https://arbiscan.io/tx/${hash}`
+  }
+  if (network.includes('bsc')) {
+    return `https://bscscan.com/tx/${hash}`
+  }
+  if (network.includes('polygon')) {
+    return `https://polygonscan.com/tx/${hash}`
+  }
+  if (network.includes('zkSync')) {
+    return `https://zkscan.io/explorer/tx/${hash}`
+  }
+  if (network.includes('base')) {
+    return `https://basescan.org/tx/${hash}`
+  }
+  if (network.includes('linea')) {
+    return `https://explorer.linea.build/tx/${hash}`
+  }
+  if (network.includes('mantle')) {
+    return `https://explorer.mantlenetwork.io/tx/${hash}`
+  }
+  if (network.includes('zkEVM')) {
+    return `https://explorer.public.zkevm-test.net/tx/${hash}`
+  }
+  if (network.includes('tron') && network.includes('nile')) {
+    return `https://nile.tronscan.org/#/transaction/${hash}`
+  }
+  if (network.includes('tron')) {
+    return `https://tronscan.org/#/transaction/${hash}`
+  }
+  if (network.includes('sui') && network.includes('testnet')) {
+    return `https://suiscan.xyz/testnet/tx/${hash}`
+  }
+  if (network.includes('sui')) {
+    return `https://suiscan.xyz/mainnet/tx/${hash}`
+  }
+  return `https://etherscan.io/tx/${hash}`
 }
 
 /** 截断长 hex 字符串（地址、tx hash），默认前 6 后 4；可指定前后长度 */

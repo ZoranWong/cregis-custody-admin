@@ -451,14 +451,26 @@ export interface CheckItemView {
   passed: boolean
 }
 
+/** 实体筛查项（/compliance/transactions/{id}/compliance 实测） */
 export interface ScreeningItemView {
   subject: string
+  /** OUR_MERCHANT / ORIGINATOR / BENEFICIARY … */
+  partyType: string
+  /** VERIFIED / CLEAR / HIT / UNKNOWN … */
+  result: string
+}
+
+/** 链上地址筛查项：主体为地址数组，无 subject */
+export interface OnchainScreeningItemView {
+  addresses: string[]
+  partyType: string
+  level: string | null
   result: string
 }
 
 export interface ScreeningView {
   entity: ScreeningItemView[]
-  onchain: ScreeningItemView[]
+  onchain: OnchainScreeningItemView[]
 }
 
 export interface TravelRuleSummaryView {

@@ -1,4 +1,4 @@
-<!-- Step: On-Chain — 链上信息 -->
+<!-- Step: On-Chain — 链上信息（Tx Hash + Status，hash 跳区块链浏览器） -->
 <template>
   <div>
     <!-- 无链上交易 -->
@@ -10,57 +10,42 @@
     </div>
 
     <template v-else>
-      <!-- Block Information -->
-      <div class="art-card mb-4">
-        <div class="p-4 border-b border-[var(--default-border)]">
-          <span class="text-sm font-semibold text-g-900">{{
-            $t('txLens.detail.blockInformation')
-          }}</span>
-        </div>
-        <div class="p-4">
-          <div
-            v-if="!hasBlockInfo"
-            class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
-          >
-            <ArtSvgIcon icon="ri:time-line" class="text-[var(--el-color-info)] text-base" />
-            <span class="text-sm text-g-700">{{ $t('txLens.detail.awaitingBlockConfirm') }}</span>
-          </div>
-          <div v-else class="grid grid-cols-3 gap-4">
-            <div v-for="item in blockInfo" :key="item.label" class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-g-500 uppercase">{{
-                $t(item.label)
-              }}</span>
-              <span
-                class="text-sm font-medium"
-                :class="{
-                  'font-mono text-xs': item.mono,
-                  'text-success': item.green,
-                  'break-all': item.mono
-                }"
-                >{{ item.value }}</span
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Transaction Details -->
+      <!-- Transaction Details（仅 Tx Hash / Status） -->
       <div class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
           <span class="text-sm font-semibold text-g-900">{{ $t('txLens.detail.txDetails') }}</span>
         </div>
-        <div class="p-4 grid grid-cols-3 gap-4">
-          <div v-for="item in txDetails" :key="item.label" class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">{{ $t(item.label) }}</span>
+        <div class="p-4 grid grid-cols-3 gap-4 items-start">
+          <div class="flex flex-col gap-0.5 col-span-2">
+            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+              $t('txLens.detail.txHash')
+            }}</span>
+            <!-- 有浏览器链接时可点击跳转，无链接回退纯文本 -->
+            <a
+              v-if="txExplorerUrl"
+              :href="txExplorerUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs font-medium font-mono break-all text-[var(--el-color-primary)] hover:underline"
+            >
+              {{ props.data?.txHash }}
+              <ArtSvgIcon icon="ri:external-link-line" class="ml-0.5 align-middle" />
+            </a>
+            <span v-else class="text-sm font-medium font-mono text-xs break-all">{{
+              props.data?.txHash
+            }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+              $t('txLens.detail.txStatus')
+            }}</span>
             <span
               class="text-sm font-medium"
               :class="{
-                'font-mono text-xs': item.mono,
-                'text-success': item.green,
-                'text-[var(--el-color-danger)]': item.red,
-                'break-all': item.mono
+                'text-success': isSuccess,
+                'text-[var(--el-color-danger)]': isFailed
               }"
-              >{{ item.value }}</span
+              >{{ props.data?.status || '--' }}</span
             >
           </div>
         </div>
@@ -99,122 +84,20 @@
   import { computed } from 'vue'
   import type { OnChainTabView } from '@/features/compliance/types'
   import { toneDotStyle, toneOf } from '@/features/compliance/txState'
-  import { compactHex, formatTime } from '@/utils/format'
+  import { buildTxLink, formatTime } from '@/utils/format'
 
   const props = defineProps<{ data: OnChainTabView | null }>()
 
   // 是否有链上交易（txHash 存在）
   const hasOnchainTx = computed(() => !!props.data?.txHash)
 
-  // 是否有区块信息（blockNumber/blockHash/blockTime 任一存在）
-  const hasBlockInfo = computed(() => {
-    const d = props.data
-    return !!(d?.blockNumber || d?.blockHash || d?.blockTime)
-  })
+  const isSuccess = computed(() => props.data?.status === 'Success')
+  const isFailed = computed(() => props.data?.status === 'Failed')
 
-  const blockInfo = computed(() => {
-    const data = props.data
-    return [
-      {
-        label: 'txLens.detail.blockNetwork',
-        value: data?.network || '--',
-        mono: false,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.blockNumber',
-        value: data?.blockNumber || '--',
-        mono: true,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.blockHash',
-        value: compactHex(data?.blockHash),
-        mono: true,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.blockConfirmations',
-        value: data?.confirmations?.toString() || '--',
-        mono: false,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.blockTime',
-        value: formatTime(data?.blockTime),
-        mono: false,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.blockFinalized',
-        value: data?.finalized == null ? '--' : data.finalized ? $tYes() : $tNo(),
-        mono: false,
-        green: data?.finalized === true,
-        red: false
-      }
-    ]
-  })
-
-  function $tYes(): string {
-    return 'Yes'
-  }
-  function $tNo(): string {
-    return 'No'
-  }
-
-  const txDetails = computed(() => {
-    const data = props.data
-    const isSuccess = data?.status === 'Success'
-    return [
-      {
-        label: 'txLens.detail.txHash',
-        value: data?.txHash || '--',
-        mono: true,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.txNonce',
-        value: data?.nonce || '--',
-        mono: true,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.txStatus',
-        value: data?.status || '--',
-        mono: false,
-        green: isSuccess,
-        red: data?.status === 'Failed'
-      },
-      {
-        label: 'txLens.detail.txGasUsed',
-        value: data?.gasUsed || '--',
-        mono: true,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.txGasPrice',
-        value: data?.gasPrice || '--',
-        mono: true,
-        green: false,
-        red: false
-      },
-      {
-        label: 'txLens.detail.txFee',
-        value: data?.fee || '--',
-        mono: true,
-        green: false,
-        red: false
-      }
-    ]
-  })
+  /** 区块链浏览器链接（与 custody-manager 的 buildTxLink 同源规则） */
+  const txExplorerUrl = computed(() =>
+    buildTxLink(props.data?.txHash || '', props.data?.network || '')
+  )
 
   const timeline = computed(() => props.data?.timeline || [])
 </script>

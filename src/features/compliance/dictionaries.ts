@@ -32,11 +32,11 @@ export const SEVERITY_DICT: DictItem[] = [
   { value: 'CRITICAL', labelKey: 'rules.severities.critical' }
 ]
 
-/** 交易方向 */
+/** 交易方向（ALL = 任意方向：对出入金都生效的独立规则类别） */
 export const DIRECTION_DICT: DictItem[] = [
-  { value: 'ALL', labelKey: 'rules.all' },
   { value: 'OUTGOING', labelKey: 'rules.outgoing' },
-  { value: 'INCOMING', labelKey: 'rules.incoming' }
+  { value: 'INCOMING', labelKey: 'rules.incoming' },
+  { value: 'ALL', labelKey: 'rules.allDirections' }
 ]
 
 /**

@@ -41,11 +41,11 @@
       </div>
     </div>
 
-    <!-- ═══ Direction Tabs（ALL 为出入金通用规则）═══ -->
+    <!-- ═══ Direction Tabs（双向生效规则放最后）═══ -->
     <el-tabs v-model="direction" class="mb-5">
-      <el-tab-pane :label="$t('rules.all')" name="ALL" />
       <el-tab-pane :label="$t('rules.outgoing')" name="OUTGOING" />
       <el-tab-pane :label="$t('rules.incoming')" name="INCOMING" />
+      <el-tab-pane :label="$t('rules.allDirections')" name="ALL" />
     </el-tabs>
 
     <!-- ═══ 列表区（撑满剩余高度，可滚动）═══ -->

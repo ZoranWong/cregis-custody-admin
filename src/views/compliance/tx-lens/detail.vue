@@ -25,11 +25,25 @@
       <!-- ═══ Transaction Header Card ═══ -->
       <div class="art-card mb-4 p-4">
         <div class="flex items-start justify-between mb-4">
-          <div>
-            <div class="text-xl font-bold text-g-900">{{ amountDisplay }}</div>
-            <div class="text-xs text-g-500 font-medium">{{ fiatDisplay }}</div>
+          <div class="flex items-start gap-3">
+            <ArtSvgIcon
+              :icon="isOutgoing ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
+              :class="
+                isOutgoing ? 'text-[var(--el-color-primary)]' : 'text-[var(--el-color-success)]'
+              "
+              class="text-2xl mt-0.5"
+            />
+            <div>
+              <div class="text-xl font-bold text-g-900">{{ amountDisplay }}</div>
+              <div class="text-xs text-g-500 font-medium">{{ fiatDisplay }}</div>
+            </div>
           </div>
           <div class="text-right">
+            <div class="flex items-center justify-end gap-1 mb-1">
+              <el-tag :type="isOutgoing ? 'warning' : 'success'" size="small" effect="dark">
+                {{ isOutgoing ? $t('txLens.outgoing') : $t('txLens.incoming') }}
+              </el-tag>
+            </div>
             <div class="text-xs font-semibold text-g-700 font-mono">{{ overview.orderId }}</div>
             <div class="text-[10px] text-g-500 mt-1">{{ createTime }}</div>
           </div>
@@ -46,7 +60,6 @@
                 (overview.originator?.did ? $t('txLens.unknownVasp') : $t('txLens.unknownCustomer'))
               }}
             </div>
-            <div class="text-xs text-g-600 mt-0.5">{{ overview.originator?.detail || '--' }}</div>
             <div class="text-xs text-g-500 font-mono mt-0.5">
               {{ overview.originator?.address || '--' }}
             </div>
@@ -73,22 +86,31 @@
                   : $t('txLens.unknownCustomer'))
               }}
             </div>
-            <div class="text-xs text-g-600 mt-0.5">{{ overview.beneficiary?.detail || '--' }}</div>
             <div class="text-xs text-g-500 font-mono mt-0.5">
               {{ overview.beneficiary?.address || '--' }}
             </div>
           </div>
         </div>
 
-        <!-- Review Result -->
+        <!-- Review Result（可切换设置，当前接口只读——点击切换时提示开发中） -->
         <div class="mt-4 pt-4 border-t border-[var(--default-border)]">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-g-500 uppercase tracking-wider">{{
               $t('txLens.detail.reviewResult')
             }}</span>
-            <el-tag :type="reviewResultTag" size="small" effect="dark">{{
-              reviewResultLabelText
-            }}</el-tag>
+            <div class="flex items-center gap-1.5">
+              <el-tag
+                v-for="opt in reviewResultOptions"
+                :key="opt.value"
+                :type="overview.reviewResult === opt.value ? opt.tagType : 'info'"
+                size="small"
+                :effect="overview.reviewResult === opt.value ? 'dark' : 'plain'"
+                class="cursor-pointer"
+                @click="handleReviewResultClick"
+              >
+                {{ opt.label }}
+              </el-tag>
+            </div>
           </div>
         </div>
       </div>
@@ -136,7 +158,11 @@
         <StepOnChain :data="onchainData" />
       </div>
       <div v-show="activeStep === 'disposition'">
-        <StepDisposition :disposition="overview.disposition" :amount="amountDisplay" />
+        <StepDisposition
+          :disposition="overview.disposition"
+          :amount="amountDisplay"
+          :held-since="createTime"
+        />
       </div>
     </template>
   </div>
@@ -174,10 +200,8 @@
     COMPLIANCE_DICT,
     DISPOSITION_DICT,
     ONCHAIN_DICT,
-    REVIEW_RESULT_DICT,
     SIGNOFF_DICT,
     TRAVEL_RULE_DICT,
-    reviewResultTagType,
     toneOf,
     toneTextStyle,
     txStateLabel,
@@ -234,6 +258,9 @@
   })
   const createTime = computed(() => formatTime(overview.value?.createTime))
 
+  /** 出金方向（列表/overview 均为小写） */
+  const isOutgoing = computed(() => overview.value?.direction === 'outgoing')
+
   // ─── 状态枚举统一走 features/compliance/txState ───
   const enumMaps = {
     compliance: COMPLIANCE_DICT,
@@ -255,11 +282,18 @@
     return outgoing ? t('txLens.detail.beneficiaryCounterparty') : 'Beneficiary (Our Customer)'
   })
 
-  // Review Result 标签
-  const reviewResultLabelText = computed(() =>
-    txStateLabel(REVIEW_RESULT_DICT, overview.value?.reviewResult, t)
-  )
-  const reviewResultTag = computed(() => reviewResultTagType(overview.value?.reviewResult))
+  // Review Result：多 tag 可切换设置（当前值高亮），接口就绪前点击提示开发中
+  const reviewResultOptions = computed(() => [
+    { value: 'none', label: t('txLens.rrNone'), tagType: 'info' as const },
+    { value: 'tp', label: t('txLens.truePositive'), tagType: 'success' as const },
+    { value: 'fp', label: t('txLens.falsePositive'), tagType: 'warning' as const },
+    { value: 'fn', label: t('txLens.falseNegative'), tagType: 'danger' as const }
+  ])
+
+  function handleReviewResultClick() {
+    // TODO: 接口就绪后替换为设置 reviewResult 的调用
+    ElMessage.info(t('common.underDevelopment'))
+  }
 
   // 阶段序列与列表页同源：方向决定槽位与时序，对手方 name 决定 travelRule 是否可用
   const steps = computed(() => {
@@ -466,7 +500,8 @@
     box-shadow: 0 2px 8px rgb(0 0 0 / 12%);
   }
 
-  /* 不可用槽位（无 Travel Rule 信息）：置灰、不可点击、去 hover 反馈 */
+  /* 不可用槽位（无 Travel Rule 信息）：置灰、不可点击、去 hover 反馈；
+     与 na（未执行，实心灰点）区分：空心点 + 状态文字删除线 */
   .step-tab.disabled {
     cursor: not-allowed;
     opacity: 0.55;
@@ -480,6 +515,18 @@
 
   .step-tab.disabled .step-title {
     color: var(--el-text-color-placeholder);
+  }
+
+  .step-tab.disabled .step-indicator {
+    box-sizing: border-box;
+    background: transparent !important;
+    border: 1.5px solid var(--el-text-color-placeholder);
+    border-radius: 1px;
+  }
+
+  .step-tab.disabled .step-status {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
   }
 
   .step-indicator {

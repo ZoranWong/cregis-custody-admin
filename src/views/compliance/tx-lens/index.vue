@@ -44,7 +44,7 @@
           <span class="text-[26px] font-medium mt-1" :class="card.valueClass">{{
             card.value
           }}</span>
-          <span class="text-xs mt-1 text-g-400">{{ $t(card.subKey) }}</span>
+          <!-- 副标题依赖接口暂未提供的细分数据（settlement 率 / pending 明细等），无数据不显示 -->
         </div>
       </ElCol>
     </ElRow>
@@ -57,7 +57,6 @@
           <span class="text-[22px] font-medium mt-1" :class="card.valueClass">{{
             card.value
           }}</span>
-          <span class="text-xs mt-1 text-g-400">{{ $t(card.subKey) }}</span>
         </div>
       </ElCol>
     </ElRow>
@@ -211,7 +210,6 @@
                   partyLabel(tx.direction, 'originator')
                 }}</div>
                 <div class="text-sm font-semibold text-g-900 truncate">{{ tx.originatorName }}</div>
-                <div class="text-xs text-g-700 mt-1.5">{{ tx.originator.detail || '--' }}</div>
                 <div class="text-xs text-g-600 font-mono truncate mt-1">{{
                   tx.originator.address || '--'
                 }}</div>
@@ -241,18 +239,27 @@
                 <div class="text-sm font-semibold text-g-900 truncate">{{
                   tx.beneficiaryName
                 }}</div>
-                <div class="text-xs text-g-700 mt-1.5">{{ tx.beneficiary.detail || '--' }}</div>
                 <div class="text-xs text-g-600 font-mono truncate mt-1">{{
                   tx.beneficiary.address || '--'
                 }}</div>
               </div>
             </div>
 
-            <!-- 生命周期阶段条（阶段数随方向与对手方 name 变化） -->
+            <!-- 生命周期阶段条（阶段数随方向与对手方 did 变化；不可用与未执行区分渲染） -->
             <div class="lc-stages">
               <template v-for="(stage, i) in tx.stages" :key="stage.key">
                 <div v-if="i > 0" class="lc-sep"></div>
-                <div class="lc-stage">
+                <!-- 不可用槽位：空心点 + 删除线，区别于 na 的实心灰点 -->
+                <div v-if="stage.disabled" class="lc-stage lc-stage-unavailable">
+                  <div class="lc-stage-dot lc-stage-dot-hollow"></div>
+                  <div class="lc-stage-content">
+                    <div class="lc-stage-label">{{ $t(stage.labelKey) }}</div>
+                    <div class="lc-stage-state lc-stage-state-unavailable">
+                      {{ stage.value }}
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="lc-stage">
                   <div class="lc-stage-dot" :style="toneDotStyle(stage.tone)"></div>
                   <div class="lc-stage-content">
                     <div class="lc-stage-label">{{ $t(stage.labelKey) }}</div>
@@ -397,7 +404,7 @@
 
   const merchants = ['CryptoVault', 'PayFlow', 'ChainBridge', 'TokenGuard', 'BlockSafe']
 
-  // ─── 摘要卡片 ───
+  // ─── 摘要卡片（细分数据接口暂未提供，只显示主数值）───
   const summaryCards = computed(() => {
     const op = summary.value?.operational
     return [
@@ -405,29 +412,25 @@
         key: 'total',
         labelKey: 'txLens.totalTransactions',
         value: op?.totalTransactions ?? 0,
-        valueClass: 'text-g-900',
-        subKey: 'txLens.subLast30Days'
+        valueClass: 'text-g-900'
       },
       {
         key: 'settled',
         labelKey: 'txLens.settled',
         value: op?.settled ?? 0,
-        valueClass: 'text-success',
-        subKey: 'txLens.subSettlementRate'
+        valueClass: 'text-success'
       },
       {
         key: 'rejected',
         labelKey: 'txLens.rejected',
         value: op?.rejected ?? 0,
-        valueClass: 'text-[var(--el-color-danger)]',
-        subKey: 'txLens.subRejectionRate'
+        valueClass: 'text-[var(--el-color-danger)]'
       },
       {
         key: 'pending',
         labelKey: 'txLens.pendingReview',
         value: op?.pendingReview ?? 0,
-        valueClass: 'text-[var(--el-color-warning)]',
-        subKey: 'txLens.subPendingDetail'
+        valueClass: 'text-[var(--el-color-warning)]'
       }
     ]
   })
@@ -439,29 +442,25 @@
         key: 'tp',
         labelKey: 'txLens.truePositive',
         value: rr?.truePositive ?? 0,
-        valueClass: 'text-success',
-        subKey: 'txLens.subCorrectlyFlagged'
+        valueClass: 'text-success'
       },
       {
         key: 'tn',
         labelKey: 'txLens.trueNegative',
         value: rr?.trueNegative ?? 0,
-        valueClass: 'text-success',
-        subKey: 'txLens.subCorrectlyCleared'
+        valueClass: 'text-success'
       },
       {
         key: 'fp',
         labelKey: 'txLens.falsePositive',
         value: rr?.falsePositive ?? 0,
-        valueClass: 'text-warning',
-        subKey: 'txLens.subWronglyFlagged'
+        valueClass: 'text-warning'
       },
       {
         key: 'fn',
         labelKey: 'txLens.falseNegative',
         value: rr?.falseNegative ?? 0,
-        valueClass: 'text-purple-600',
-        subKey: 'txLens.subWronglyCleared'
+        valueClass: 'text-purple-600'
       }
     ]
   })
@@ -499,6 +498,8 @@
     labelKey: string
     value: string
     tone: Tone
+    /** 不可用（无 Travel Rule 信息）——与 na（未执行）区分渲染 */
+    disabled?: boolean
   }
 
   const displayTransactions = computed(() => {
@@ -535,6 +536,7 @@
       const stages: Stage[] = buildStages(tx).map((key) => ({
         key,
         labelKey: STAGE_LABEL_KEYS[key],
+        disabled: disabledKeys.has(key),
         ...stageOf[key]()
       }))
 
@@ -689,6 +691,28 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
+  }
+
+  /* 不可用槽位（无 Travel Rule 信息）：空心方点 + 删除线文字，区别于 na 的实心灰圆点 */
+  .lc-stage-dot-hollow {
+    box-sizing: border-box;
+    width: 6px;
+    height: 6px;
+    background: transparent;
+    border: 1.5px solid var(--el-text-color-placeholder);
+    border-radius: 1px;
+  }
+
+  .lc-stage-unavailable {
+    opacity: 0.65;
+  }
+
+  .lc-stage-state-unavailable {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--el-text-color-placeholder);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
   }
 
   /* 圆点与状态文字颜色由 toneDotStyle / toneTextStyle 内联注入 */

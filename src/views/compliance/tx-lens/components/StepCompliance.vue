@@ -14,37 +14,8 @@
       </button>
     </div>
 
-    <!-- Risk Profile -->
+    <!-- Risk Profile（Risk Score/Decision/Conclusion 均为 '--' 时整卡不显示） -->
     <div v-show="activeTab === 'assessment'">
-      <!-- Risk Score + Decision -->
-      <div class="art-card mb-4">
-        <div class="p-4 border-b border-[var(--default-border)]">
-          <span class="text-sm font-semibold text-g-900">{{
-            $t('txLens.detail.compRiskProfile')
-          }}</span>
-        </div>
-        <div class="p-4 grid grid-cols-3 gap-4">
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
-              $t('txLens.detail.riskScore')
-            }}</span>
-            <span class="text-sm text-g-800 font-medium">{{ data?.riskScore ?? '--' }}</span>
-          </div>
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
-              $t('rules.decision')
-            }}</span>
-            <span class="text-sm text-g-800 font-medium">{{ decisionText }}</span>
-          </div>
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
-              $t('alerts.conclusion')
-            }}</span>
-            <span class="text-sm text-g-800 font-medium">{{ conclusionText }}</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Rules Triggered -->
       <div class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
@@ -159,15 +130,12 @@
               <div
                 v-for="item in entityScreening"
                 :key="item.subject"
-                class="flex items-center justify-between py-1.5"
+                class="flex items-center justify-between gap-2 py-1.5"
               >
-                <span class="text-xs text-g-700">{{ item.subject }}</span>
-                <el-tag
-                  :type="item.result === 'CLEAR' ? 'success' : 'danger'"
-                  size="small"
-                  effect="dark"
-                  >{{ item.result }}</el-tag
-                >
+                <span class="text-xs text-g-700 truncate">{{ item.subject }}</span>
+                <el-tag :type="screeningTagType(item.result)" size="small" effect="dark">{{
+                  item.result
+                }}</el-tag>
               </div>
               <div v-if="entityScreening.length === 0" class="text-xs text-g-400 py-1.5">--</div>
             </div>
@@ -177,17 +145,19 @@
                 >{{ $t('txLens.detail.onChainScreening') }}</div
               >
               <div
-                v-for="item in onChainScreening"
-                :key="item.subject"
-                class="flex items-center justify-between py-1.5"
+                v-for="(item, i) in onChainScreening"
+                :key="item.partyType + (item.addresses?.[0] || '') + i"
+                class="flex items-center justify-between gap-2 py-1.5"
               >
-                <span class="text-xs text-g-700">{{ item.subject }}</span>
-                <el-tag
-                  :type="item.result === 'CLEAR' ? 'success' : 'danger'"
-                  size="small"
-                  effect="dark"
-                  >{{ item.result }}</el-tag
-                >
+                <div class="min-w-0">
+                  <div class="text-[10px] text-g-400 uppercase">{{ item.partyType }}</div>
+                  <div class="text-xs text-g-700 font-mono truncate">{{
+                    item.addresses?.join(', ') || '--'
+                  }}</div>
+                </div>
+                <el-tag :type="screeningTagType(item.result)" size="small" effect="dark">{{
+                  item.result
+                }}</el-tag>
               </div>
               <div v-if="onChainScreening.length === 0" class="text-xs text-g-400 py-1.5">--</div>
             </div>
@@ -195,52 +165,40 @@
         </div>
       </div>
 
-      <!-- Travel Rule Compliance -->
-      <div class="art-card mb-4">
+      <!-- Travel Rule Compliance（无 TR 信息的交易整卡不显示） -->
+      <div v-if="hasTravelRule" class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
           <span class="text-sm font-semibold text-g-900">{{
             $t('txLens.detail.travelRuleCompliance')
           }}</span>
         </div>
         <div class="p-4">
-          <!-- 无 Travel Rule 通知 -->
-          <div
-            v-if="!hasTravelRule"
-            class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
-          >
-            <ArtSvgIcon icon="ri:information-line" class="text-[var(--el-color-info)] text-base" />
-            <span class="text-sm text-g-700">{{
-              $t('txLens.detail.noTravelRuleNotification')
-            }}</span>
-          </div>
-          <template v-else>
-            <div class="bg-g-50 border border-[var(--default-border)] rounded-lg p-4 mb-3">
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-[11px] font-semibold text-g-500 uppercase">{{
-                    $t('travelRule.status')
-                  }}</span>
-                  <span class="text-sm text-g-800 font-medium">{{ trStatusText }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-[11px] font-semibold text-g-500 uppercase">VASP DID</span>
-                  <span class="text-xs text-g-800 font-medium font-mono break-all">{{
-                    travelRuleSummary?.vaspDid || '--'
-                  }}</span>
-                </div>
+          <div class="bg-g-50 border border-[var(--default-border)] rounded-lg p-4 mb-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+                  $t('travelRule.status')
+                }}</span>
+                <span class="text-sm text-g-800 font-medium">{{ trStatusText }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-semibold text-g-500 uppercase">VASP DID</span>
+                <span class="text-xs text-g-800 font-medium font-mono break-all">{{
+                  travelRuleSummary?.vaspDid || '--'
+                }}</span>
               </div>
             </div>
-            <div
-              class="flex items-center justify-between px-3 py-2.5 bg-g-50 border border-[var(--default-border)] rounded-md"
-            >
-              <span class="text-xs font-semibold text-g-600">{{
-                $t('txLens.detail.ivms101PiiExchange')
-              }}</span>
-              <span class="text-xs font-semibold" :class="ivms101StatusClass">
-                {{ ivms101StatusText }}
-              </span>
-            </div>
-          </template>
+          </div>
+          <div
+            class="flex items-center justify-between px-3 py-2.5 bg-g-50 border border-[var(--default-border)] rounded-md"
+          >
+            <span class="text-xs font-semibold text-g-600">{{
+              $t('txLens.detail.ivms101PiiExchange')
+            }}</span>
+            <span class="text-xs font-semibold" :class="ivms101StatusClass">
+              {{ ivms101StatusText }}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -261,30 +219,15 @@
       </div>
     </div>
 
-    <!-- Communication -->
+    <!-- Communication（功能开发中，入口保留） -->
     <div v-show="activeTab === 'communication'">
       <div class="art-card mb-4">
         <div class="p-4">
           <div
-            v-if="communication.length === 0"
             class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
           >
-            <ArtSvgIcon icon="ri:chat-3-line" class="text-[var(--el-color-info)] text-base" />
-            <span class="text-sm text-g-700">{{ $t('txLens.detail.noCommunication') }}</span>
-          </div>
-          <div
-            v-for="round in communication"
-            :key="round.roundNo"
-            class="mb-5 pb-5 border-b border-[var(--default-border)] last:border-b-0 last:mb-0 last:pb-0"
-          >
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-sm font-semibold text-g-900">{{
-                $t('txLens.detail.roundQuestionsRaised', { n: round.roundNo })
-              }}</span>
-              <span class="text-[11px] text-g-400">{{ round.requestedAt }}</span>
-            </div>
-            <div class="text-[11px] text-g-500 mb-1.5">{{ round.initiator }}</div>
-            <div class="text-xs text-g-600 mb-2.5">{{ round.status }}</div>
+            <ArtSvgIcon icon="ri:hammer-line" class="text-[var(--el-color-info)] text-base" />
+            <span class="text-sm text-g-700">{{ $t('common.underDevelopment') }}</span>
           </div>
         </div>
       </div>
@@ -336,8 +279,7 @@
     CONCLUSION_DICT,
     DECISION_DICT,
     toneDotStyle,
-    toneOf,
-    txStateLabel
+    toneOf
   } from '@/features/compliance/txState'
 
   const { t } = useI18n()
@@ -382,9 +324,12 @@
     return conditionText(cond, t)
   }
 
-  // ─── 风险概览（决策/结论走统一字典）───
-  const decisionText = computed(() => txStateLabel(DECISION_DICT, props.data?.decision, t))
-  const conclusionText = computed(() => txStateLabel(CONCLUSION_DICT, props.data?.conclusion, t))
+  /** 筛查结果 → el-tag type（实测取值：VERIFIED / CLEAR / HIT / UNKNOWN …） */
+  function screeningTagType(result: string): TagType {
+    if (result === 'CLEAR' || result === 'VERIFIED') return 'success'
+    if (result === 'HIT' || result === 'FAILED') return 'danger'
+    return 'info'
+  }
 
   // ─── 跳转规则详情（接口已直接返回规则 id）───
   function openRule(ruleId: number) {
@@ -397,7 +342,6 @@
     if (!s) return false
     return (s.entity && s.entity.length > 0) || (s.onchain && s.onchain.length > 0)
   })
-  const communication = computed(() => props.data?.communication || [])
   const timeline = computed(() => props.data?.timeline || [])
   const travelRuleSummary = computed(() => props.data?.travelRuleSummary || null)
 

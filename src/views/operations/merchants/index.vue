@@ -313,7 +313,7 @@
     selectedRows.value = rows
   }
 
-  function handleTabChange(tab: string) {
+  function handleTabChange(tab: string | number) {
     if (tab === 'applications' && applications.value.length === 0) {
       loadApplications()
     } else if (tab === 'list' && merchants.value.length === 0) {
@@ -388,40 +388,46 @@
   .status-badge {
     display: inline-block;
     padding: 4px 12px;
-    border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
+    border-radius: 6px;
   }
+
   .status-badge.onboarded {
-    background: var(--el-color-success-light-8);
     color: var(--el-color-success);
+    background: var(--el-color-success-light-8);
   }
+
   .status-badge.pending {
-    background: var(--el-color-warning-light-8);
     color: var(--el-color-warning-dark-2);
+    background: var(--el-color-warning-light-8);
   }
+
   .status-badge.frozen {
-    background: var(--el-color-primary-light-8);
     color: var(--el-color-primary);
+    background: var(--el-color-primary-light-8);
   }
+
   .status-badge.offboarded {
-    background: var(--el-color-danger-light-8);
     color: var(--el-color-danger);
+    background: var(--el-color-danger-light-8);
   }
 
   .screening-badge {
     display: inline-block;
     padding: 4px 10px;
-    border-radius: 6px;
     font-size: 11px;
     font-weight: 600;
+    border-radius: 6px;
   }
+
   .screening-badge.clear {
-    background: var(--el-color-success-light-8);
     color: var(--el-color-success);
+    background: var(--el-color-success-light-8);
   }
+
   .screening-badge.hits {
-    background: var(--el-color-danger-light-8);
     color: var(--el-color-danger);
+    background: var(--el-color-danger-light-8);
   }
 </style>

@@ -7,7 +7,7 @@
     </template>
 
     <template v-else-if="detail">
-      <!-- ═══ Breadcrumb + Header ═══ -->
+      <!-- ═══ Merchant Header（对齐原型：名称+徽章 + meta 行，无四格网格）═══ -->
       <div class="art-card p-5 mb-4">
         <div class="flex items-start justify-between mb-3">
           <div>
@@ -19,37 +19,24 @@
             </div>
             <div class="flex items-center gap-4 text-sm text-g-500 mt-1.5">
               <span
-                >{{ $t('merchantDetail.code') }}:
-                <strong class="text-g-700 font-mono">{{ detail.ecode }}</strong></span
+                >{{ $t('merchantDetail.jurisdiction') }}:
+                <strong class="text-g-700">{{ headerJurisdiction }}</strong></span
               >
-              <span>{{ detail.email }}</span>
+              <span
+                >{{ $t('merchantDetail.businessType') }}:
+                <strong class="text-g-700">{{
+                  merchantTypeLabel(detail.merchantType)
+                }}</strong></span
+              >
               <span v-if="detail.appliedAt">
                 {{
                   isOnboarded ? $t('merchantDetail.onboardedAt') : $t('merchantDetail.appliedAt')
                 }}:
-                {{ formatDateTime(detail.appliedAt) }}
+                <strong class="text-g-700">{{ formatDateTime(detail.appliedAt) }}</strong>
               </span>
             </div>
           </div>
           <ElButton @click="backToList">{{ $t('merchantDetail.backToList') }}</ElButton>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('merchantDetail.type') }}</div>
-            <div class="text-sm text-g-900">{{ merchantTypeLabel(detail.merchantType) }}</div>
-          </div>
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('merchantDetail.industry') }}</div>
-            <div class="text-sm text-g-900">{{ detail.industryType || '-' }}</div>
-          </div>
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('merchantDetail.kybStatus') }}</div>
-            <div class="text-sm text-g-900">{{ kybStatusLabel(detail.kybStatus) }}</div>
-          </div>
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('merchantDetail.kybCaseNo') }}</div>
-            <div class="text-sm text-g-900 font-mono">{{ detail.kybCaseNo || '-' }}</div>
-          </div>
         </div>
       </div>
 
@@ -270,7 +257,7 @@
       <!-- ═══════════════════════════════════════════ -->
       <template v-else>
         <el-tabs v-model="activeTab">
-          <!-- Tab 1: Compliance Status（onboarded 后可编辑：切换入驻状态/风险等级） -->
+          <!-- Tab 1: Compliance Status（onboarded 后可编辑，对齐原型五张 summary-card） -->
           <el-tab-pane :label="$t('merchantDetail.tabCompliance')" name="compliance">
             <div class="screening-grid">
               <!-- Onboarding Status -->
@@ -278,7 +265,6 @@
                 <div class="summary-card-title">
                   {{ $t('merchantDetail.cddOnboardingStatus') }}
                 </div>
-                <!-- 编辑模式：下拉切换；只读模式：徽章展示 -->
                 <el-select
                   v-if="complianceEditing"
                   v-model="complianceForm.merchantStatus"
@@ -299,7 +285,7 @@
                 </div>
               </div>
 
-              <!-- Risk Level（问卷暂无此字段，先本地维护） -->
+              <!-- Risk Level -->
               <div class="summary-card">
                 <div class="summary-card-title">{{ $t('merchantDetail.riskLevel') }}</div>
                 <el-select
@@ -322,17 +308,82 @@
                 </div>
               </div>
 
-              <!-- KYB Status（只读） -->
+              <!-- CRS/FATCA Status -->
               <div class="summary-card">
-                <div class="summary-card-title">{{ $t('merchantDetail.kybStatus') }}</div>
-                <div class="summary-card-value">{{ kybStatusLabel(detail.kybStatus) }}</div>
+                <div class="summary-card-title">{{ $t('merchantDetail.crsFatcaStatus') }}</div>
+                <el-select
+                  v-if="complianceEditing"
+                  v-model="complianceForm.crsFatcaStatus"
+                  size="default"
+                  class="!w-full"
+                >
+                  <el-option
+                    v-for="opt in CRS_FATCA_OPTIONS"
+                    :key="opt.value"
+                    :label="t(opt.labelKey)"
+                    :value="opt.value"
+                  />
+                </el-select>
+                <div v-else class="summary-card-value">
+                  {{ crsFatcaLabel(complianceForm.crsFatcaStatus) }}
+                </div>
               </div>
 
-              <!-- 客户类型（只读） -->
+              <!-- Source of Wealth -->
               <div class="summary-card">
-                <div class="summary-card-title">{{ $t('merchantDetail.type') }}</div>
-                <div class="summary-card-value">
-                  {{ merchantTypeLabel(detail.merchantType) }}
+                <div class="summary-card-title">{{ $t('merchantDetail.sourceOfWealth') }}</div>
+                <el-select
+                  v-if="complianceEditing"
+                  v-model="complianceForm.sourceOfWealth"
+                  size="default"
+                  class="!w-full"
+                >
+                  <el-option
+                    v-for="opt in VERIFY_STATUS_OPTIONS"
+                    :key="opt.value"
+                    :label="t(opt.labelKey)"
+                    :value="opt.value"
+                  />
+                </el-select>
+                <div
+                  v-else
+                  class="summary-card-value"
+                  :class="{ 'text-success': complianceForm.sourceOfWealth === 'VERIFIED' }"
+                >
+                  {{
+                    complianceForm.sourceOfWealth === 'VERIFIED'
+                      ? '✓ ' + verifyStatusLabel(complianceForm.sourceOfWealth)
+                      : verifyStatusLabel(complianceForm.sourceOfWealth)
+                  }}
+                </div>
+              </div>
+
+              <!-- Source of Funds -->
+              <div class="summary-card">
+                <div class="summary-card-title">{{ $t('merchantDetail.sourceOfFundsStatus') }}</div>
+                <el-select
+                  v-if="complianceEditing"
+                  v-model="complianceForm.sourceOfFunds"
+                  size="default"
+                  class="!w-full"
+                >
+                  <el-option
+                    v-for="opt in VERIFY_STATUS_OPTIONS"
+                    :key="opt.value"
+                    :label="t(opt.labelKey)"
+                    :value="opt.value"
+                  />
+                </el-select>
+                <div
+                  v-else
+                  class="summary-card-value"
+                  :class="{ 'text-success': complianceForm.sourceOfFunds === 'VERIFIED' }"
+                >
+                  {{
+                    complianceForm.sourceOfFunds === 'VERIFIED'
+                      ? '✓ ' + verifyStatusLabel(complianceForm.sourceOfFunds)
+                      : verifyStatusLabel(complianceForm.sourceOfFunds)
+                  }}
                 </div>
               </div>
             </div>
@@ -352,121 +403,198 @@
             </div>
           </el-tab-pane>
 
-          <!-- Tab 2: Business Information -->
+          <!-- Tab 2: Business Information（对齐原型：三页分页，每页两个分区） -->
           <el-tab-pane :label="$t('merchantDetail.tabBusiness')" name="business">
-            <div class="screening-grid">
-              <div v-for="f in allQuestionnaireFields" :key="f.key" class="summary-card">
-                <div class="summary-card-title">{{ f.label }}</div>
-                <div class="summary-card-value" :class="{ 'whitespace-normal': f.wide }">
-                  {{ questionnaireValue(f.key, f.boolean) }}
+            <div class="flex flex-col gap-6">
+              <div v-for="section in bizPageSections(bizPage)" :key="section.titleKey">
+                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                  {{ $t(section.titleKey) }}
                 </div>
-              </div>
-            </div>
-          </el-tab-pane>
-
-          <!-- Tab 3: Identity Verification & Screening -->
-          <el-tab-pane :label="$t('merchantDetail.tabIdentity')" name="identity">
-            <!-- Beneficiaries with screening -->
-            <div class="art-card p-4 mb-4">
-              <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-semibold text-g-700">{{
-                  $t('merchantDetail.beneficiaries')
-                }}</span>
-                <span class="text-xs text-g-500"
-                  >{{ (detail.beneficiaries || []).length }} {{ $t('merchantDetail.people') }}</span
-                >
-              </div>
-              <div class="flex flex-col gap-3">
-                <div
-                  v-for="b in detail.beneficiaries || []"
-                  :key="b.id"
-                  class="flex items-center gap-3 p-3 rounded-lg bg-g-50"
-                >
+                <div class="screening-grid">
                   <div
-                    class="w-9 h-9 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--el-color-primary)] flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                    v-for="f in section.fields"
+                    :key="f.key"
+                    class="summary-card"
+                    :class="{ 'col-span-2': f.wide }"
                   >
-                    {{ initialsOf(b.name) }}
+                    <div class="summary-card-title">{{ f.label }}</div>
+                    <div class="summary-card-value" :class="{ 'whitespace-normal': f.wide }">
+                      {{ questionnaireValue(f.key, f.boolean) }}
+                    </div>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm font-semibold text-g-900">{{ b.name }}</span>
-                      <el-tag size="small" type="info">{{ beneficiaryTypeLabel(b.type) }}</el-tag>
-                      <span v-if="b.shareSize != null" class="text-xs text-g-500"
-                        >{{ b.shareSize }}%</span
+                </div>
+              </div>
+            </div>
+            <!-- 分页（问卷字段只读，原型同款 Back/Next + 页码指示） -->
+            <div class="flex flex-col gap-3 items-center mt-6">
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-g-500">
+                  {{ $t('merchantDetail.pageOf', { page: bizPage, total: 3 }) }}
+                </span>
+                <el-button v-if="bizPage > 1" size="small" @click="bizPage--">
+                  {{ $t('merchantDetail.back') }}
+                </el-button>
+                <el-button v-if="bizPage < 3" size="small" @click="bizPage++">
+                  {{ $t('merchantDetail.next') }}
+                </el-button>
+              </div>
+            </div>
+          </el-tab-pane>
+
+          <!-- Tab 3: Identity Verification & Screening（对齐原型：验证卡片 + 筛查名单 chips） -->
+          <el-tab-pane :label="$t('merchantDetail.tabIdentity')" name="identity">
+            <!-- 身份验证 -->
+            <div class="mb-6">
+              <div class="text-[13px] font-semibold text-g-700 mb-3">
+                {{ $t('merchantDetail.identityVerification') }}
+              </div>
+              <div class="p-4 bg-g-50 rounded-lg">
+                <div class="text-sm font-semibold text-g-900 mb-3">
+                  {{ detail.merchantName }}
+                </div>
+                <div class="flex flex-col gap-2">
+                  <!-- Corporate Identity 行 -->
+                  <div class="flex items-center gap-3">
+                    <span class="text-[13px] font-medium text-g-700 min-w-[140px]">
+                      {{ $t('merchantDetail.corporateIdentity') }}
+                    </span>
+                    <span class="text-xs text-success font-medium">
+                      {{ $t('merchantDetail.verified') }} ✓
+                    </span>
+                  </div>
+                  <!-- 受益人缩进行 -->
+                  <div
+                    v-for="b in detail.beneficiaries || []"
+                    :key="'v-' + b.id"
+                    class="flex items-center gap-3 ml-6"
+                  >
+                    <span class="text-[13px] font-medium text-g-700 min-w-[140px]">
+                      {{ b.name
+                      }}<template v-if="b.shareSize != null"> ({{ b.shareSize }}%)</template>
+                    </span>
+                    <span
+                      class="text-xs font-medium"
+                      :class="b.status === 'KYC_PASSED' ? 'text-success' : 'text-g-500'"
+                    >
+                      {{
+                        b.status === 'KYC_PASSED'
+                          ? $t('merchantDetail.verified') + ' ✓'
+                          : beneficiaryStatusLabel(b.status)
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 筛查（CLEAR 徽章 or 名单 chips，对齐原型） -->
+            <div class="mb-6">
+              <div class="text-[13px] font-semibold text-g-700 mb-3">
+                {{ $t('merchantDetail.screening') }}
+              </div>
+              <div class="p-4 bg-g-50 rounded-lg">
+                <div class="flex flex-col gap-4">
+                  <!-- 企业主体 -->
+                  <div>
+                    <div class="text-[13px] font-semibold text-g-900 mb-2">
+                      {{ detail.merchantName }}
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span
+                        class="text-xs font-semibold text-success px-2 py-1 bg-[var(--el-color-success-light-9)] rounded"
                       >
-                    </div>
-                    <div class="text-xs text-g-500 mt-0.5 truncate">
-                      {{ [b.country, b.dateOfBirth, b.email].filter(Boolean).join(' · ') || '-' }}
+                        CLEAR
+                      </span>
+                      <span class="text-[11px] text-g-500">or</span>
+                      <span
+                        v-for="list in SCREENING_LISTS"
+                        :key="list"
+                        class="text-[11px] px-1.5 py-0.5 bg-g-100 text-g-600 rounded cursor-pointer hover:bg-g-200"
+                      >
+                        {{ list }}
+                      </span>
                     </div>
                   </div>
-                  <el-tag :type="beneficiaryStatusTag(b.status)" size="small">
-                    {{ beneficiaryStatusLabel(b.status) }}
-                  </el-tag>
-                </div>
-                <div
-                  v-if="(detail.beneficiaries || []).length === 0"
-                  class="py-6 text-center text-g-400 text-sm"
-                >
-                  {{ $t('merchantDetail.noBeneficiaries') }}
+                  <!-- 受益人 -->
+                  <div
+                    v-for="b in detail.beneficiaries || []"
+                    :key="'s-' + b.id"
+                    class="border-t border-[var(--default-border)] pt-3 ml-6"
+                  >
+                    <div class="text-[13px] font-semibold text-g-900 mb-2">{{ b.name }}</div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span
+                        class="text-xs font-semibold text-success px-2 py-1 bg-[var(--el-color-success-light-9)] rounded"
+                      >
+                        CLEAR
+                      </span>
+                      <span class="text-[11px] text-g-500">or</span>
+                      <span
+                        v-for="list in SCREENING_LISTS"
+                        :key="list"
+                        class="text-[11px] px-1.5 py-0.5 bg-g-100 text-g-600 rounded cursor-pointer hover:bg-g-200"
+                      >
+                        {{ list }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </el-tab-pane>
 
-          <!-- Tab 4: Team Members -->
-          <el-tab-pane :label="$t('merchantDetail.tabTeam')" name="team">
-            <div class="team-grid">
-              <div v-for="b in detail.beneficiaries || []" :key="b.id" class="team-card">
-                <div class="text-sm font-semibold text-g-900 mb-1.5">{{ b.name }}</div>
-                <div class="text-xs text-g-600 mb-0.5">
-                  <span class="text-g-500">Email:</span> {{ b.email || '-' }}
-                </div>
-                <div class="text-xs text-g-600">
-                  <span class="text-g-500">Phone:</span> {{ b.phone || '-' }}
-                </div>
-              </div>
-              <div
-                v-if="(detail.beneficiaries || []).length === 0"
-                class="py-6 text-center text-g-400 text-sm col-span-full"
-              >
-                {{ $t('merchantDetail.noTeamMembers') }}
-              </div>
-            </div>
-          </el-tab-pane>
-
-          <el-tab-pane :label="$t('merchantDetail.tabAliases')" name="aliases">
-            <div class="flex items-center justify-between mb-4">
-              <div class="text-sm text-g-500">{{ $t('merchantDetail.aliasesDescription') }}</div>
-              <el-button type="primary" size="small" @click="showAddAliasDialog = true">
-                <ArtSvgIcon icon="ri:add-line" class="mr-1" />{{ $t('merchantDetail.addAlias') }}
+            <!-- Re-screen / Re-verify 操作（接口待支持，先占位） -->
+            <div class="flex justify-end gap-2">
+              <el-button @click="handleRescreen">{{ $t('merchantDetail.rescreen') }}</el-button>
+              <el-button type="primary" @click="handleReverifyRescreen">
+                {{ $t('merchantDetail.reverifyRescreen') }}
               </el-button>
             </div>
+          </el-tab-pane>
 
-            <!-- Aliases List -->
-            <div v-if="aliases.length > 0" class="flex flex-col gap-3">
+          <!-- Tab 4: Team Members（企业用户接口 /merchant/{ecode}/user/page） -->
+          <el-tab-pane :label="$t('merchantDetail.tabTeam')" name="team">
+            <div class="flex flex-col gap-3">
               <div
-                v-for="(alias, index) in aliases"
-                :key="index"
-                class="flex items-center justify-between p-4 border border-[var(--default-border)] rounded-lg"
+                v-for="u in merchantUsers"
+                :key="u.userId"
+                class="flex items-center gap-3 p-3 bg-g-50 rounded-lg"
               >
-                <div class="flex-1">
-                  <div class="text-sm font-medium text-g-900">{{ alias }}</div>
+                <div
+                  class="w-9 h-9 rounded-full bg-[var(--el-color-primary)] text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
+                >
+                  {{ initialsOf(u.username) }}
                 </div>
-                <div class="flex gap-2">
-                  <el-button size="small" text type="primary" @click="editAlias(index)">
-                    <ArtSvgIcon icon="ri:edit-line" />
-                  </el-button>
-                  <el-button size="small" text type="danger" @click="deleteAlias(index)">
-                    <ArtSvgIcon icon="ri:delete-bin-line" />
-                  </el-button>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-g-900 truncate">{{ u.username }}</span>
+                    <span
+                      class="text-[11px] px-2 py-0.5 rounded font-medium flex-shrink-0"
+                      :class="
+                        u.state === 'ACTIVE'
+                          ? 'bg-[var(--el-color-success-light-9)] text-success'
+                          : 'bg-g-100 text-g-500'
+                      "
+                    >
+                      {{ userStateLabel(u.state) }}
+                    </span>
+                  </div>
+                  <div class="text-xs text-g-600 truncate mt-0.5">
+                    {{ u.email
+                    }}<template v-if="u.loginTime">
+                      · {{ $t('merchantDetail.lastLogin') }}:
+                      {{ formatDateTime(u.loginTime) }}</template
+                    >
+                  </div>
                 </div>
+                <span
+                  class="text-[11px] px-2 py-0.5 bg-[var(--el-color-primary-light-9)] text-[var(--el-color-primary)] rounded font-medium flex-shrink-0"
+                >
+                  {{ userRoleLabel(u.role) }}
+                </span>
               </div>
-            </div>
-
-            <!-- Empty State -->
-            <div v-else class="text-center py-10">
-              <div class="text-g-400 text-sm mb-2">{{ $t('merchantDetail.noAliases') }}</div>
-              <div class="text-g-400 text-xs">{{ $t('merchantDetail.noAliasesHint') }}</div>
+              <div v-if="merchantUsers.length === 0" class="py-6 text-center text-g-400 text-sm">
+                {{ $t('merchantDetail.noTeamMembers') }}
+              </div>
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -497,32 +625,6 @@
         </el-button>
       </template>
     </el-dialog>
-
-    <!-- ═══ Alias Dialog ═══ -->
-    <el-dialog
-      v-model="showAddAliasDialog"
-      :title="
-        editingAliasIndex !== null ? $t('merchantDetail.editAlias') : $t('merchantDetail.addAlias')
-      "
-      width="440px"
-      @close="closeAliasDialog"
-    >
-      <el-form @submit.prevent="saveAlias">
-        <el-form-item :label="$t('merchantDetail.aliasName')">
-          <el-input
-            v-model="aliasForm.name"
-            :placeholder="$t('merchantDetail.aliasPlaceholder')"
-            @keyup.enter="saveAlias"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="closeAliasDialog">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="saveAlias">
-          {{ $t('common.confirm') }}
-        </el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -530,8 +632,14 @@
   import { computed, onMounted, reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
-  import { ElMessage, ElMessageBox } from 'element-plus'
-  import { fetchMerchantKybDetail, approveKybScreening, rejectKybScreening } from '@/api/merchant'
+  import { ElMessage } from 'element-plus'
+  import {
+    fetchMerchantKybDetail,
+    approveKybScreening,
+    rejectKybScreening,
+    fetchMerchantUsers,
+    type AdminMerchantUserVO
+  } from '@/api/merchant'
   import type { AdminMerchantKybDetailView, KybQuestionnaire } from '@/api/merchant'
 
   defineOptions({ name: 'MerchantDetail' })
@@ -549,26 +657,88 @@
   const rejectReason = ref('')
   const deciding = ref(false)
 
-  // Aliases management
-  const aliases = ref<string[]>([])
-  const showAddAliasDialog = ref(false)
-  const aliasForm = ref({ name: '' })
-  const editingAliasIndex = ref<number | null>(null)
+  // ─── Team Members（企业用户接口）───
+  const merchantUsers = ref<AdminMerchantUserVO[]>([])
 
-  // ─── Compliance Status 编辑（onboarded 后可切换入驻状态 / 风险等级）───
+  /** 企业内角色 → 标签 */
+  function userRoleLabel(role: string): string {
+    const map: Record<string, string> = {
+      MERCHANT_OWNER: t('merchantDetail.roleOwner'),
+      MERCHANT_ADMIN: t('merchantDetail.roleAdmin'),
+      MERCHANT_STAFF: t('merchantDetail.roleStaff'),
+      MERCHANT_FUND_OPERATOR: t('merchantDetail.roleFundOperator'),
+      MERCHANT_ANYCALL_OPERATOR: t('merchantDetail.roleAnycallOperator')
+    }
+    return map[role] || role || '-'
+  }
+
+  /** 企业内状态 → 标签 */
+  function userStateLabel(state: string): string {
+    const map: Record<string, string> = {
+      ACTIVE: t('merchantDetail.userActive'),
+      INACTIVE: t('merchantDetail.userInactive'),
+      SUSPENDING: t('merchantDetail.userSuspending')
+    }
+    return map[state] || state || '-'
+  }
+
+  async function loadMerchantUsers() {
+    const ecode = detail.value?.ecode
+    if (!ecode) return
+    try {
+      const res = await fetchMerchantUsers(ecode, { pageIndex: 1, pageSize: 100 })
+      merchantUsers.value = res.records || []
+    } catch {
+      merchantUsers.value = []
+    }
+  }
+
+  // ─── Compliance Status 编辑（onboarded 后可编辑，对齐原型五张卡）───
   const complianceEditing = ref(false)
   const complianceSaving = ref(false)
-  const complianceForm = reactive({ merchantStatus: '', riskLevel: '' })
+  const complianceForm = reactive({
+    merchantStatus: '',
+    riskLevel: '',
+    crsFatcaStatus: '',
+    sourceOfWealth: '',
+    sourceOfFunds: ''
+  })
 
   /** 入驻状态可切换的取值（原型：Pending/Onboarded/Frozen/Offboarded） */
   const MERCHANT_STATUS_OPTIONS = ['PENDING', 'ACTIVE', 'FROZEN', 'CANCELLED']
 
-  /** 风险等级三档；问卷暂无该字段，先本地维护，接口就绪后接入 */
+  /** 风险等级三档；接口暂无该字段，先本地维护，接口就绪后接入 */
   const RISK_LEVEL_OPTIONS = [
     { value: 'LOW', labelKey: 'merchantDetail.riskLevelLow' },
     { value: 'MEDIUM', labelKey: 'merchantDetail.riskLevelMedium' },
     { value: 'HIGH', labelKey: 'merchantDetail.riskLevelHigh' }
   ]
+
+  /** CRS/FATCA 分类（原型取值）；接口暂无该字段 */
+  const CRS_FATCA_OPTIONS = [
+    { value: 'DEPOSITORY', labelKey: 'merchantDetail.crsFatcaDepository' },
+    { value: 'CUSTODIAL', labelKey: 'merchantDetail.crsFatcaCustodial' },
+    { value: 'INVESTMENT', labelKey: 'merchantDetail.crsFatcaInvestment' },
+    { value: 'ACTIVE_NFE', labelKey: 'merchantDetail.crsFatcaActiveNfe' },
+    { value: 'PASSIVE_NFE', labelKey: 'merchantDetail.crsFatcaPassiveNfe' }
+  ]
+
+  /** 验证状态（财富来源 / 资金来源共用） */
+  const VERIFY_STATUS_OPTIONS = [
+    { value: 'VERIFIED', labelKey: 'merchantDetail.verified' },
+    { value: 'PENDING', labelKey: 'merchantDetail.pendingStatus' },
+    { value: 'NOT_VERIFIED', labelKey: 'merchantDetail.notVerified' }
+  ]
+
+  function crsFatcaLabel(value: string): string {
+    const hit = CRS_FATCA_OPTIONS.find((o) => o.value === value)
+    return hit ? t(hit.labelKey) : value || '-'
+  }
+
+  function verifyStatusLabel(value: string): string {
+    const hit = VERIFY_STATUS_OPTIONS.find((o) => o.value === value)
+    return hit ? t(hit.labelKey) : value || '-'
+  }
 
   function riskLevelLabel(value: string): string {
     const hit = RISK_LEVEL_OPTIONS.find((o) => o.value === value)
@@ -586,6 +756,9 @@
     if (!detail.value) return
     complianceForm.merchantStatus = detail.value.merchantStatus?.toUpperCase() || 'ACTIVE'
     complianceForm.riskLevel = complianceForm.riskLevel || 'LOW'
+    complianceForm.crsFatcaStatus = complianceForm.crsFatcaStatus || 'CUSTODIAL'
+    complianceForm.sourceOfWealth = complianceForm.sourceOfWealth || 'VERIFIED'
+    complianceForm.sourceOfFunds = complianceForm.sourceOfFunds || 'VERIFIED'
     complianceEditing.value = true
   }
 
@@ -596,7 +769,7 @@
   }
 
   async function saveCompliance() {
-    // TODO: 接口就绪后对接（更新入驻状态 / 风险等级）
+    // TODO: 接口就绪后对接（入驻状态 / 风险等级 / CRS/FATCA / 财富来源 / 资金来源）
     complianceSaving.value = true
     try {
       if (detail.value && complianceForm.merchantStatus) {
@@ -609,6 +782,20 @@
     } finally {
       complianceSaving.value = false
     }
+  }
+
+  // ─── Identity Verification 占位操作（接口待支持）───
+  /** 筛查名单 chips（对齐原型：OFAC SDN / EU List / UN Security / PEP / Adverse Media / Criminal） */
+  const SCREENING_LISTS = ['OFAC SDN', 'EU List', 'UN Security', 'PEP', 'Adverse Media', 'Criminal']
+
+  function handleRescreen() {
+    // TODO: 接口就绪后对接重新筛查
+    ElMessage.info(t('merchantDetail.rescreen'))
+  }
+
+  function handleReverifyRescreen() {
+    // TODO: 接口就绪后对接重新验证并筛查
+    ElMessage.info(t('merchantDetail.reverifyRescreen'))
   }
 
   // ─── State-derived view ───
@@ -632,6 +819,12 @@
       ? t('merchantDetail.statusOnboarded')
       : t('merchantDetail.qualificationScreening')
   )
+
+  /** 头部注册地：问卷 jurisdiction 优先，缺失回退 countryCode */
+  const headerJurisdiction = computed(() => {
+    const q = detail.value?.questionnaire as KybQuestionnaire | null | undefined
+    return q?.jurisdiction || q?.countryCode || '-'
+  })
 
   // Stepper states (screening = step 2, verification = step 3)
   const screeningStepClass = computed(() => {
@@ -676,6 +869,8 @@
     loading.value = true
     try {
       detail.value = await fetchMerchantKybDetail(ecode)
+      // 企业用户独立加载，失败不阻塞详情
+      loadMerchantUsers()
     } catch {
       errorMessage.value = t('merchantDetail.notFound')
     } finally {
@@ -714,58 +909,6 @@
     } finally {
       deciding.value = false
     }
-  }
-
-  // ─── Alias Management ───
-  function editAlias(index: number) {
-    editingAliasIndex.value = index
-    aliasForm.value.name = aliases.value[index]
-    showAddAliasDialog.value = true
-  }
-
-  function deleteAlias(index: number) {
-    ElMessageBox.confirm(t('merchantDetail.confirmDeleteAlias'), t('common.confirm'), {
-      confirmButtonText: t('common.confirm'),
-      cancelButtonText: t('common.cancel'),
-      type: 'warning'
-    })
-      .then(() => {
-        aliases.value.splice(index, 1)
-        ElMessage.success(t('common.deleteSuccess'))
-        // TODO: Call API to delete alias
-      })
-      .catch(() => {
-        // Cancelled
-      })
-  }
-
-  function saveAlias() {
-    if (!aliasForm.value.name.trim()) {
-      ElMessage.warning(t('merchantDetail.aliasName') + ' ' + t('common.required'))
-      return
-    }
-
-    if (editingAliasIndex.value !== null) {
-      // Edit existing alias
-      aliases.value[editingAliasIndex.value] = aliasForm.value.name
-      ElMessage.success(t('common.updateSuccess'))
-      // TODO: Call API to update alias
-    } else {
-      // Add new alias
-      aliases.value.push(aliasForm.value.name)
-      ElMessage.success(t('common.addSuccess'))
-      // TODO: Call API to add alias
-    }
-
-    showAddAliasDialog.value = false
-    aliasForm.value.name = ''
-    editingAliasIndex.value = null
-  }
-
-  function closeAliasDialog() {
-    showAddAliasDialog.value = false
-    aliasForm.value.name = ''
-    editingAliasIndex.value = null
   }
 
   // ─── Questionnaire field groups ───
@@ -807,14 +950,34 @@
     { key: 'regulated', label: t('merchantDetail.qRegulated'), boolean: true },
     { key: 'regulatoryAction', label: t('merchantDetail.qRegulatoryAction'), boolean: true }
   ])
-  const allQuestionnaireFields = computed<Field[]>(() => [
-    ...entityFields.value,
-    ...structureFields.value,
-    ...activityFields.value,
-    ...ownershipFields.value,
-    ...financialFields.value,
-    ...regulatoryFields.value
-  ])
+
+  // ─── Business Information 三页分页（对齐原型：每页两个分区）───
+  const bizPage = ref(1)
+
+  /**
+   * 页码 → 分区列表（沿用 onboarding 问卷分组）：
+   *   Page 1  企业实体信息 + 企业结构
+   *   Page 2  业务活动 + 股权结构
+   *   Page 3  财务信息 + 监管与合规
+   */
+  function bizPageSections(page: number): Array<{ titleKey: string; fields: Field[] }> {
+    if (page === 1) {
+      return [
+        { titleKey: 'merchantDetail.bizEntityInfo', fields: entityFields.value },
+        { titleKey: 'merchantDetail.bizStructure', fields: structureFields.value }
+      ]
+    }
+    if (page === 2) {
+      return [
+        { titleKey: 'merchantDetail.bizActivities', fields: activityFields.value },
+        { titleKey: 'merchantDetail.ownershipStructure', fields: ownershipFields.value }
+      ]
+    }
+    return [
+      { titleKey: 'merchantDetail.financialInfo', fields: financialFields.value },
+      { titleKey: 'merchantDetail.regulatoryCompliance', fields: regulatoryFields.value }
+    ]
+  }
 
   function questionnaireValue(key: string, boolean?: boolean): string {
     const q = detail.value?.questionnaire as KybQuestionnaire | null | undefined
@@ -890,14 +1053,6 @@
       KYC_PASSED: 'KYC Passed'
     }
     return map[s] || s || '-'
-  }
-  function beneficiaryStatusTag(s: string) {
-    const map: Record<string, string> = {
-      KYC_PASSED: 'success',
-      LINKED: 'primary',
-      PENDING: 'warning'
-    }
-    return (map[s] || 'info') as any
   }
   function initialsOf(name: string): string {
     return (name || '')
@@ -1108,19 +1263,5 @@
 
   .cdd-item:last-child {
     margin-bottom: 0;
-  }
-
-  /* Team grid */
-  .team-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
-  }
-
-  .team-card {
-    padding: 14px;
-    background: var(--el-fill-color-light);
-    border: 1px solid var(--el-border-color-light);
-    border-radius: 8px;
   }
 </style>

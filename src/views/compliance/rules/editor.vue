@@ -520,13 +520,15 @@
       loadDetail()
       return
     }
-    // 新增：从 query 读取 stage 编号与方向编号
+    // 新增：从 query 读取 stage 编号与方向编号（direction 与列表 tab 一致：OUTGOING/INCOMING/ALL）
     const stageCode = route.query.stage as string
     const directionCode = route.query.direction as string
     if (stageCode) form.stage = stageCode
-    if (directionCode === 'INCOMING') {
-      form.direction = 'INCOMING'
-      form.decision = 'HOLD'
+    const VALID_DIRECTIONS = ['OUTGOING', 'INCOMING', 'ALL']
+    if (directionCode && VALID_DIRECTIONS.includes(directionCode)) {
+      form.direction = directionCode
+      // 入金默认决策 Hold；出金/任意方向保持表单默认 SUBMIT_FOR_REVIEW
+      if (directionCode === 'INCOMING') form.decision = 'HOLD'
     }
   })
 </script>
