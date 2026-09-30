@@ -449,27 +449,54 @@ export interface CheckItemView {
   label: string
   value: string | null
   passed: boolean
+  /** 后端是否有数据源：false 表示未接入，value 恒为 null，前端展示占位而非空白 */
+  available?: boolean
 }
 
-/** 实体筛查项（/compliance/transactions/{id}/compliance 实测） */
-export interface ScreeningItemView {
+/** 实体筛查项（对手方主体；结果由 Notabene VASP 目录属性推断，非名单命中） */
+export interface EntityScreeningItemView {
+  /** COUNTERPARTY-对手方 */
+  partyType: string
+  /** 对手方名称（无 PII 时回退地址） */
   subject: string
-  /** OUR_MERCHANT / ORIGINATOR / BENEFICIARY … */
-  partyType: string
-  /** VERIFIED / CLEAR / HIT / UNKNOWN … */
+  addresses?: string[]
+  /** CLEAR-目录 regulated / REVIEW-unregulated / UNKNOWN-无 TR 记录 */
   result: string
+  /** 是否需人工复核（result=REVIEW 时为 true） */
+  hit?: boolean
+  vaspName?: string | null
+  vaspJurisdiction?: string | null
+  /** regulated / unregulated */
+  vaspRegulatory?: string | null
+  /** yes / no */
+  trCapable?: string | null
+  unavailableFields?: string[]
 }
 
-/** 链上地址筛查项：主体为地址数组，无 subject */
+/**
+ * 链上筛查项。出金与入金结构互相独立，不同时出现：
+ *   出金：txId/txLevel 为 null，展示 originator / beneficiary 地址与地址级风险等级（KYA）
+ *   入金：有 txId/txLevel（整笔交易 KYT），地址级等级为 null
+ */
 export interface OnchainScreeningItemView {
-  addresses: string[]
-  partyType: string
-  level: string | null
+  /** 链上交易哈希：入金有值，出金为 null */
+  txId: string | null
+  /** 发起方地址：出金为我方出金地址，入金为对手方付款地址 */
+  originatorAddresses: string[]
+  /** 接收方地址：出金为对手方收款地址，入金为我方收款地址 */
+  beneficiaryAddresses: string[]
+  /** 交易级风险等级（入金 KYT）；出金为 null */
+  txLevel: string | null
+  /** 发起方地址风险等级（出金 KYA）；入金为 null */
+  originatorLevel: string | null
+  /** 接收方地址风险等级（出金 KYA）；入金为 null */
+  beneficiaryLevel: string | null
+  /** CLEAR / HIT / UNKNOWN / NOT_REQUIRED */
   result: string
 }
 
 export interface ScreeningView {
-  entity: ScreeningItemView[]
+  entity: EntityScreeningItemView[]
   onchain: OnchainScreeningItemView[]
 }
 

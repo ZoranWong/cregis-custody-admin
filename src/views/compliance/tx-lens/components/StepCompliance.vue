@@ -95,13 +95,19 @@
           <div
             v-for="item in cddItems"
             :key="item.label"
-            class="flex items-center gap-1.5 text-xs text-g-700"
+            class="flex items-center gap-1.5 text-xs"
+            :class="item.available === false ? 'text-g-400' : 'text-g-700'"
           >
-            <span :class="item.passed ? 'text-success font-bold' : 'text-g-400'">
+            <!-- available=false：后端无数据源，展示占位而非 ✗ -->
+            <span v-if="item.available === false" class="text-g-300">—</span>
+            <span v-else :class="item.passed ? 'text-success font-bold' : 'text-g-400'">
               {{ item.passed ? '✓' : '✗' }}</span
             >
             <span>{{ cddLabel(item.label) }}</span>
-            <span v-if="item.value" class="text-g-400 ml-1">{{ item.value }}</span>
+            <span v-if="item.available === false" class="text-g-400 ml-1">{{
+              $t('txLens.detail.notAvailable')
+            }}</span>
+            <span v-else-if="item.value" class="text-g-400 ml-1">{{ item.value }}</span>
           </div>
         </div>
       </div>
@@ -130,12 +136,21 @@
               <div
                 v-for="item in entityScreening"
                 :key="item.subject"
-                class="flex items-center justify-between gap-2 py-1.5"
+                class="py-1.5 border-b border-[var(--default-border)] last:border-b-0"
               >
-                <span class="text-xs text-g-700 truncate">{{ item.subject }}</span>
-                <el-tag :type="screeningTagType(item.result)" size="small" effect="dark">{{
-                  item.result
-                }}</el-tag>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-medium text-g-800 truncate">{{ item.subject }}</span>
+                  <el-tag :type="screeningTagType(item.result)" size="small" effect="plain">{{
+                    screeningLabel(item.result)
+                  }}</el-tag>
+                </div>
+                <!-- 对手方地址（PII 缺失时 subject 已回退为地址，避免重复展示） -->
+                <div
+                  v-if="item.addresses?.length && !item.addresses.includes(item.subject)"
+                  class="text-[11px] text-g-400 font-mono break-all mt-0.5"
+                >
+                  {{ item.addresses.join(', ') }}
+                </div>
               </div>
               <div v-if="entityScreening.length === 0" class="text-xs text-g-400 py-1.5">--</div>
             </div>
@@ -144,21 +159,69 @@
                 class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-[var(--default-border)]"
                 >{{ $t('txLens.detail.onChainScreening') }}</div
               >
-              <div
-                v-for="(item, i) in onChainScreening"
-                :key="item.partyType + (item.addresses?.[0] || '') + i"
-                class="flex items-center justify-between gap-2 py-1.5"
-              >
-                <div class="min-w-0">
-                  <div class="text-[10px] text-g-400 uppercase">{{ item.partyType }}</div>
-                  <div class="text-xs text-g-700 font-mono truncate">{{
-                    item.addresses?.join(', ') || '--'
+              <!-- 出金：双方地址 + 地址级风险等级（KYA） -->
+              <template v-if="isOutgoing">
+                <div
+                  v-for="(item, i) in onChainScreening"
+                  :key="'og-' + i"
+                  class="py-1.5 border-b border-[var(--default-border)] last:border-b-0"
+                >
+                  <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="text-[10px] font-semibold text-g-500 uppercase">{{
+                      $t('txLens.detail.originatorAddress')
+                    }}</span>
+                    <el-tag
+                      :type="levelTagType(item.originatorLevel)"
+                      size="small"
+                      effect="plain"
+                      >{{ levelLabel(item.originatorLevel) }}</el-tag
+                    >
+                  </div>
+                  <div class="text-xs text-g-700 font-mono break-all">{{
+                    item.originatorAddresses?.join(', ') || '--'
+                  }}</div>
+                  <div class="flex items-center justify-between gap-2 mb-1 mt-2.5">
+                    <span class="text-[10px] font-semibold text-g-500 uppercase">{{
+                      $t('txLens.detail.beneficiaryAddress')
+                    }}</span>
+                    <el-tag
+                      :type="levelTagType(item.beneficiaryLevel)"
+                      size="small"
+                      effect="plain"
+                      >{{ levelLabel(item.beneficiaryLevel) }}</el-tag
+                    >
+                  </div>
+                  <div class="text-xs text-g-700 font-mono break-all">{{
+                    item.beneficiaryAddresses?.join(', ') || '--'
                   }}</div>
                 </div>
-                <el-tag :type="screeningTagType(item.result)" size="small" effect="dark">{{
-                  item.result
-                }}</el-tag>
-              </div>
+              </template>
+              <!-- 入金：整笔交易哈希 + 交易级风险等级（KYT） -->
+              <template v-else>
+                <div
+                  v-for="(item, i) in onChainScreening"
+                  :key="'in-' + i"
+                  class="py-1.5 border-b border-[var(--default-border)] last:border-b-0"
+                >
+                  <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="text-[10px] font-semibold text-g-500 uppercase">{{
+                      $t('txLens.detail.txHashLabel')
+                    }}</span>
+                    <el-tag :type="levelTagType(item.txLevel)" size="small" effect="plain">{{
+                      levelLabel(item.txLevel)
+                    }}</el-tag>
+                  </div>
+                  <div class="text-xs text-g-700 font-mono break-all mb-1">{{
+                    item.txId || '--'
+                  }}</div>
+                  <div class="flex items-center justify-between gap-2 text-[11px]">
+                    <span class="text-g-400 font-mono truncate">{{ txAddressSummary(item) }}</span>
+                    <el-tag :type="screeningTagType(item.result)" size="small" effect="plain">{{
+                      screeningLabel(item.result)
+                    }}</el-tag>
+                  </div>
+                </div>
+              </template>
               <div v-if="onChainScreening.length === 0" class="text-xs text-g-400 py-1.5">--</div>
             </div>
           </template>
@@ -267,7 +330,11 @@
   import { computed, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
-  import type { ComplianceTabView, RuleTriggerView } from '@/features/compliance/types'
+  import type {
+    ComplianceTabView,
+    OnchainScreeningItemView,
+    RuleTriggerView
+  } from '@/features/compliance/types'
   import { formatTime } from '@/utils/format'
   import {
     conditionText,
@@ -291,6 +358,9 @@
     acting?: boolean
   }>()
   const emit = defineEmits<{ (e: 'approve'): void; (e: 'reject'): void }>()
+
+  /** 出金方向：链上筛查按地址级（KYA）展示，入金按交易级（KYT） */
+  const isOutgoing = computed(() => String(props.direction).toLowerCase() === 'outgoing')
 
   const activeTab = ref('assessment')
 
@@ -324,11 +394,59 @@
     return conditionText(cond, t)
   }
 
-  /** 筛查结果 → el-tag type（实测取值：VERIFIED / CLEAR / HIT / UNKNOWN …） */
+  /** 筛查结果 → el-tag type（实测取值：CLEAR / REVIEW / HIT / UNKNOWN …） */
   function screeningTagType(result: string): TagType {
-    if (result === 'CLEAR' || result === 'VERIFIED') return 'success'
+    if (result === 'CLEAR' || result === 'VERIFIED' || result === 'NOT_REQUIRED') return 'success'
     if (result === 'HIT' || result === 'FAILED') return 'danger'
+    if (result === 'REVIEW') return 'warning'
     return 'info'
+  }
+
+  /** 筛查结果 → 前端描述文案（不直接展示后端枚举） */
+  function screeningLabel(result: string): string {
+    const map: Record<string, string> = {
+      CLEAR: 'txLens.detail.screeningClear',
+      VERIFIED: 'txLens.detail.screeningClear',
+      REVIEW: 'txLens.detail.screeningReview',
+      HIT: 'txLens.detail.screeningHit',
+      FAILED: 'txLens.detail.screeningHit',
+      UNKNOWN: 'txLens.detail.screeningUnknown',
+      NOT_REQUIRED: 'txLens.detail.screeningNotRequired'
+    }
+    const key = map[result]
+    return key ? t(key) : result || '--'
+  }
+
+  /** 风险等级 → el-tag type（LOW / MEDIUM / HIGH / SEVERE …）；空值走灰色 */
+  function levelTagType(level: string | null): TagType {
+    if (!level) return 'info'
+    const v = level.toUpperCase()
+    if (v === 'LOW' || v === 'CLEAR') return 'success'
+    if (v === 'MEDIUM') return 'warning'
+    if (v === 'HIGH' || v === 'SEVERE' || v === 'CRITICAL') return 'danger'
+    return 'info'
+  }
+
+  /** 风险等级 → 前端描述文案；无值显示"未知" */
+  function levelLabel(level: string | null): string {
+    if (!level) return t('txLens.detail.unknownLevel')
+    const map: Record<string, string> = {
+      LOW: 'txLens.detail.levelLow',
+      MEDIUM: 'txLens.detail.levelMedium',
+      HIGH: 'txLens.detail.levelHigh',
+      SEVERE: 'txLens.detail.levelSevere'
+    }
+    const key = map[level.toUpperCase()]
+    return key ? t(key) : level
+  }
+
+  /** 入金：把双方地址压成一行摘要（txId 为主，地址仅作副信息） */
+  function txAddressSummary(item: OnchainScreeningItemView): string {
+    const from = item.originatorAddresses?.[0]
+    const to = item.beneficiaryAddresses?.[0]
+    if (!from && !to) return ''
+    const short = (a: string) => (a.length > 14 ? `${a.slice(0, 8)}…${a.slice(-6)}` : a)
+    return `${short(from || '--')} → ${short(to || '--')}`
   }
 
   // ─── 跳转规则详情（接口已直接返回规则 id）───

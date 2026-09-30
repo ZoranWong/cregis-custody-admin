@@ -143,6 +143,24 @@ export interface KybBeneficiary {
   updateTime?: string
 }
 
+/** 企业合规状态（字段为 null 表示不修改，提交时可用） */
+export interface ComplianceStatus {
+  onboardingStatus?: 'PENDING' | 'ACTIVE' | 'FROZEN' | 'CANCELLED' | string | null
+  riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | string | null
+  crsFatcaStatus?:
+    | 'DEPOSITORY_INSTITUTION'
+    | 'CUSTODIAL_INSTITUTION'
+    | 'INVESTMENT_ENTITY'
+    | 'ACTIVE_NFE'
+    | 'PASSIVE_NFE'
+    | string
+    | null
+  sourceOfWealthStatus?: 'VERIFIED' | 'PENDING' | 'NOT_VERIFIED' | string | null
+  sourceOfFundsStatus?: 'VERIFIED' | 'PENDING' | 'NOT_VERIFIED' | string | null
+  operatorId?: number
+  updateTime?: string
+}
+
 export interface AdminMerchantKybDetailView {
   merchantId: number
   ecode: string
@@ -166,6 +184,7 @@ export interface AdminMerchantKybDetailView {
   appliedAt?: string | null
   questionnaire?: KybQuestionnaire | null
   beneficiaries?: KybBeneficiary[]
+  complianceStatus?: ComplianceStatus | null
 }
 
 /**
@@ -177,6 +196,20 @@ export async function fetchMerchantKybDetail(ecode: string): Promise<AdminMercha
     `/merchant/detail/${encodeURIComponent(ecode)}`,
     { method: 'POST', body: {} }
   )) as AdminMerchantKybDetailView
+}
+
+/**
+ * 修改企业合规状态
+ * POST /merchant/{ecode}/compliance-status
+ */
+export async function updateComplianceStatus(
+  ecode: string,
+  data: Partial<ComplianceStatus>
+): Promise<ComplianceStatus> {
+  return (await apiRequest<ComplianceStatus>(
+    `/merchant/${encodeURIComponent(ecode)}/compliance-status`,
+    { method: 'POST', body: data }
+  )) as ComplianceStatus
 }
 
 /**

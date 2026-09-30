@@ -205,13 +205,13 @@
     toneOf,
     toneTextStyle,
     txStateLabel,
-    type Tone,
-    type TxStateItem
+    type Tone
   } from '@/features/compliance/txState'
   import {
     STAGE_LABEL_KEYS,
     buildStages,
     isStageDisabled,
+    stageStateOf,
     type StageKey
   } from '@/features/compliance/txStages'
   import { formatCoinBalance, formatTime } from '@/utils/format'
@@ -269,9 +269,6 @@
     onchain: ONCHAIN_DICT,
     disposition: DISPOSITION_DICT
   }
-  function enumLabel(map: TxStateItem[], v?: string): string {
-    return txStateLabel(map, v, t)
-  }
 
   const originatorLabelText = computed(() => {
     const outgoing = overview.value?.direction === 'outgoing'
@@ -295,34 +292,20 @@
     ElMessage.info(t('common.underDevelopment'))
   }
 
-  // 阶段序列与列表页同源：方向决定槽位与时序，对手方 name 决定 travelRule 是否可用
+  // 阶段序列与列表页同源：方向决定槽位与时序；N/A 阶段统一置灰不可点击
   const steps = computed(() => {
     const o = overview.value
     if (!o) return []
-    const stateOf: Record<StageKey, string> = {
-      compliance: enumLabel(enumMaps.compliance, o.compliance),
-      travelRule: enumLabel(enumMaps.travelRule, o.travelRule),
-      signoff: enumLabel(enumMaps.signoff, o.signoff),
-      onchain: enumLabel(enumMaps.onchain, o.onchain),
-      disposition: enumLabel(enumMaps.disposition, o.disposition)
-    }
-    const rawOf: Record<StageKey, string | undefined> = {
-      compliance: o.compliance,
-      travelRule: o.travelRule,
-      signoff: o.signoff,
-      onchain: o.onchain,
-      disposition: o.disposition
-    }
     return buildStages(o).map((key) => {
+      // stageStateOf 统一取值：无 Travel Rule 信息时 travelRule 按 na 处理
+      const rawState = stageStateOf(o, key)
       const disabled = isStageDisabled(o, key)
-      // 不可用槽位固定灰色 na，状态文案提示"无 Travel Rule 信息"
-      const tone = disabled ? 'na' : toneOf(rawOf[key])
-      const state = disabled ? t('txLens.stageNoTravelRule') : stateOf[key]
+      const state = txStateLabel(enumMaps[key], rawState, t)
       return {
         key,
         label: t(STAGE_LABEL_KEYS[key]),
         state,
-        tone,
+        tone: toneOf(rawState),
         disabled
       }
     })
@@ -519,14 +502,7 @@
 
   .step-tab.disabled .step-indicator {
     box-sizing: border-box;
-    background: transparent !important;
-    border: 1.5px solid var(--el-text-color-placeholder);
-    border-radius: 1px;
-  }
-
-  .step-tab.disabled .step-status {
-    text-decoration: line-through;
-    text-decoration-thickness: 1px;
+    background: var(--el-text-color-placeholder) !important;
   }
 
   .step-indicator {

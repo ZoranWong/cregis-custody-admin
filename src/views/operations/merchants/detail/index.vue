@@ -324,7 +324,7 @@
                     :value="opt.value"
                   />
                 </el-select>
-                <div v-else class="summary-card-value">
+                <div v-else class="summary-card-value text-g-800">
                   {{ crsFatcaLabel(complianceForm.crsFatcaStatus) }}
                 </div>
               </div>
@@ -348,13 +348,9 @@
                 <div
                   v-else
                   class="summary-card-value"
-                  :class="{ 'text-success': complianceForm.sourceOfWealth === 'VERIFIED' }"
+                  :class="verifyStatusClass(complianceForm.sourceOfWealth)"
                 >
-                  {{
-                    complianceForm.sourceOfWealth === 'VERIFIED'
-                      ? '✓ ' + verifyStatusLabel(complianceForm.sourceOfWealth)
-                      : verifyStatusLabel(complianceForm.sourceOfWealth)
-                  }}
+                  {{ verifyStatusDisplay(complianceForm.sourceOfWealth) }}
                 </div>
               </div>
 
@@ -377,13 +373,9 @@
                 <div
                   v-else
                   class="summary-card-value"
-                  :class="{ 'text-success': complianceForm.sourceOfFunds === 'VERIFIED' }"
+                  :class="verifyStatusClass(complianceForm.sourceOfFunds)"
                 >
-                  {{
-                    complianceForm.sourceOfFunds === 'VERIFIED'
-                      ? '✓ ' + verifyStatusLabel(complianceForm.sourceOfFunds)
-                      : verifyStatusLabel(complianceForm.sourceOfFunds)
-                  }}
+                  {{ verifyStatusDisplay(complianceForm.sourceOfFunds) }}
                 </div>
               </div>
             </div>
@@ -638,6 +630,7 @@
     approveKybScreening,
     rejectKybScreening,
     fetchMerchantUsers,
+    updateComplianceStatus,
     type AdminMerchantUserVO
   } from '@/api/merchant'
   import type { AdminMerchantKybDetailView, KybQuestionnaire } from '@/api/merchant'
@@ -714,11 +707,11 @@
     { value: 'HIGH', labelKey: 'merchantDetail.riskLevelHigh' }
   ]
 
-  /** CRS/FATCA 分类（原型取值）；接口暂无该字段 */
+  /** CRS/FATCA 分类（接口取值） */
   const CRS_FATCA_OPTIONS = [
-    { value: 'DEPOSITORY', labelKey: 'merchantDetail.crsFatcaDepository' },
-    { value: 'CUSTODIAL', labelKey: 'merchantDetail.crsFatcaCustodial' },
-    { value: 'INVESTMENT', labelKey: 'merchantDetail.crsFatcaInvestment' },
+    { value: 'DEPOSITORY_INSTITUTION', labelKey: 'merchantDetail.crsFatcaDepository' },
+    { value: 'CUSTODIAL_INSTITUTION', labelKey: 'merchantDetail.crsFatcaCustodial' },
+    { value: 'INVESTMENT_ENTITY', labelKey: 'merchantDetail.crsFatcaInvestment' },
     { value: 'ACTIVE_NFE', labelKey: 'merchantDetail.crsFatcaActiveNfe' },
     { value: 'PASSIVE_NFE', labelKey: 'merchantDetail.crsFatcaPassiveNfe' }
   ]
@@ -740,6 +733,19 @@
     return hit ? t(hit.labelKey) : value || '-'
   }
 
+  /** 核验状态 → 文字颜色（已核验=绿 / 待核验=琥珀 / 未核验=灰） */
+  function verifyStatusClass(value: string): string {
+    if (value === 'VERIFIED') return 'text-success'
+    if (value === 'PENDING') return 'text-[var(--el-color-warning)]'
+    return 'text-g-500'
+  }
+
+  /** 核验状态 → 展示文案（已核验带对勾） */
+  function verifyStatusDisplay(value: string): string {
+    const label = verifyStatusLabel(value)
+    return value === 'VERIFIED' ? `✓ ${label}` : label
+  }
+
   function riskLevelLabel(value: string): string {
     const hit = RISK_LEVEL_OPTIONS.find((o) => o.value === value)
     return hit ? t(hit.labelKey) : value || '-'
@@ -756,7 +762,7 @@
     if (!detail.value) return
     complianceForm.merchantStatus = detail.value.merchantStatus?.toUpperCase() || 'ACTIVE'
     complianceForm.riskLevel = complianceForm.riskLevel || 'LOW'
-    complianceForm.crsFatcaStatus = complianceForm.crsFatcaStatus || 'CUSTODIAL'
+    complianceForm.crsFatcaStatus = complianceForm.crsFatcaStatus || 'CUSTODIAL_INSTITUTION'
     complianceForm.sourceOfWealth = complianceForm.sourceOfWealth || 'VERIFIED'
     complianceForm.sourceOfFunds = complianceForm.sourceOfFunds || 'VERIFIED'
     complianceEditing.value = true
@@ -769,12 +775,33 @@
   }
 
   async function saveCompliance() {
-    // TODO: 接口就绪后对接（入驻状态 / 风险等级 / CRS/FATCA / 财富来源 / 资金来源）
+    if (!detail.value?.ecode) return
     complianceSaving.value = true
     try {
-      if (detail.value && complianceForm.merchantStatus) {
-        detail.value.merchantStatus = complianceForm.merchantStatus
+      // 构建 API 请求数据，发送所有字段
+      const requestData = {
+        onboardingStatus: complianceForm.merchantStatus || null,
+        riskLevel: complianceForm.riskLevel || null,
+        crsFatcaStatus: complianceForm.crsFatcaStatus || null,
+        sourceOfWealthStatus: complianceForm.sourceOfWealth || null,
+        sourceOfFundsStatus: complianceForm.sourceOfFunds || null
       }
+
+      // 调用 API 保存
+      const updatedStatus = await updateComplianceStatus(detail.value.ecode, requestData)
+
+      // 更新本地数据
+      if (!detail.value.complianceStatus) {
+        detail.value.complianceStatus = updatedStatus
+      } else {
+        Object.assign(detail.value.complianceStatus, updatedStatus)
+      }
+
+      // 同步 merchantStatus（onboardingStatus 会同步到 merchantStatus）
+      if (updatedStatus.onboardingStatus) {
+        detail.value.merchantStatus = updatedStatus.onboardingStatus
+      }
+
       complianceEditing.value = false
       ElMessage.success(t('merchantDetail.editSuccess'))
     } catch {
@@ -869,12 +896,33 @@
     loading.value = true
     try {
       detail.value = await fetchMerchantKybDetail(ecode)
+      // 初始化合规状态表单
+      initComplianceForm()
       // 企业用户独立加载，失败不阻塞详情
       loadMerchantUsers()
     } catch {
       errorMessage.value = t('merchantDetail.notFound')
     } finally {
       loading.value = false
+    }
+  }
+
+  function initComplianceForm() {
+    if (!detail.value) return
+    const cs = detail.value.complianceStatus
+    if (cs) {
+      complianceForm.merchantStatus = cs.onboardingStatus || detail.value.merchantStatus || 'ACTIVE'
+      complianceForm.riskLevel = cs.riskLevel || 'LOW'
+      complianceForm.crsFatcaStatus = cs.crsFatcaStatus || ''
+      complianceForm.sourceOfWealth = cs.sourceOfWealthStatus || ''
+      complianceForm.sourceOfFunds = cs.sourceOfFundsStatus || ''
+    } else {
+      // 如果没有 complianceStatus 数据，使用默认值
+      complianceForm.merchantStatus = detail.value.merchantStatus || 'ACTIVE'
+      complianceForm.riskLevel = 'LOW'
+      complianceForm.crsFatcaStatus = ''
+      complianceForm.sourceOfWealth = ''
+      complianceForm.sourceOfFunds = ''
     }
   }
 

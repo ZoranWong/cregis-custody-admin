@@ -36,15 +36,12 @@
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
         <div
-          class="art-card h-32 px-5 mb-5 flex flex-col justify-center summary-filter-card"
+          class="art-card h-20 px-4 mb-3 flex flex-col justify-center summary-filter-card"
           :class="{ active: activeSummaryFilter === card.key }"
           @click="toggleSummaryFilter(card.key)"
         >
-          <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-          <span class="text-[26px] font-medium mt-1" :class="card.valueClass">{{
-            card.value
-          }}</span>
-          <!-- 副标题依赖接口暂未提供的细分数据（settlement 率 / pending 明细等），无数据不显示 -->
+          <span class="text-g-700 text-xs">{{ $t(card.labelKey) }}</span>
+          <span class="text-xl font-medium mt-0.5" :class="card.valueClass">{{ card.value }}</span>
         </div>
       </ElCol>
     </ElRow>
@@ -52,11 +49,9 @@
     <!-- ═══ 审查结果卡片 ═══ -->
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="6" v-for="card in reviewCards" :key="card.key">
-        <div class="art-card h-32 px-5 mb-5 flex flex-col justify-center">
-          <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-          <span class="text-[22px] font-medium mt-1" :class="card.valueClass">{{
-            card.value
-          }}</span>
+        <div class="art-card h-20 px-4 mb-3 flex flex-col justify-center">
+          <span class="text-g-700 text-xs">{{ $t(card.labelKey) }}</span>
+          <span class="text-lg font-medium mt-0.5" :class="card.valueClass">{{ card.value }}</span>
         </div>
       </ElCol>
     </ElRow>
@@ -160,11 +155,11 @@
           <el-skeleton :rows="6" animated />
         </template>
         <template v-else>
-          <div v-for="tx in displayTransactions" :key="tx.orderId" class="tx-card mb-4 last:mb-0">
+          <div v-for="tx in displayTransactions" :key="tx.orderId" class="tx-card mb-2.5 last:mb-0">
             <!-- 顶部：金额 + 方向 + 结果 -->
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <div class="flex items-center gap-2 mb-1">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
                   <ArtSvgIcon
                     :icon="tx.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
                     :class="
@@ -172,17 +167,17 @@
                         ? 'text-[var(--el-color-primary)]'
                         : 'text-[var(--el-color-success)]'
                     "
-                    class="text-lg"
+                    class="text-base flex-shrink-0"
                   />
-                  <span class="text-lg font-semibold text-g-900">{{ tx.amountDisplay }}</span>
-                  <span class="text-sm text-g-400">{{ tx.fiatDisplay }}</span>
+                  <span class="text-base font-semibold text-g-900">{{ tx.amountDisplay }}</span>
+                  <span class="text-xs text-g-400">{{ tx.fiatDisplay }}</span>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-xs text-g-500">{{ tx.orderId }}</span>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-xs text-g-500 truncate">{{ tx.orderId }}</span>
                   <span class="text-xs text-g-400">· {{ tx.createTime }}</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 flex-shrink-0">
                 <el-tag :type="tx.direction === 'outgoing' ? 'warning' : 'success'" size="small">{{
                   directionLabel(tx.direction)
                 }}</el-tag>
@@ -197,24 +192,24 @@
             </div>
 
             <!-- parties 两侧 -->
-            <div class="flex items-stretch gap-3 mb-3 py-3">
+            <div class="flex items-stretch gap-2 mb-2">
               <div
-                class="flex-1 min-w-0 rounded-lg p-3"
+                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
                 :class="
                   tx.direction === 'outgoing'
                     ? 'bg-[var(--el-color-primary-light-9)]'
                     : 'bg-[var(--el-color-success-light-9)]'
                 "
               >
-                <div class="text-xs text-g-600 mb-1.5 font-medium">{{
+                <div class="text-[10px] text-g-500 font-medium">{{
                   partyLabel(tx.direction, 'originator')
                 }}</div>
-                <div class="text-sm font-semibold text-g-900 truncate">{{ tx.originatorName }}</div>
-                <div class="text-xs text-g-600 font-mono truncate mt-1">{{
+                <div class="text-xs font-semibold text-g-900 truncate">{{ tx.originatorName }}</div>
+                <div class="text-[10px] text-g-600 font-mono truncate">{{
                   tx.originator.address || '--'
                 }}</div>
               </div>
-              <div class="flex items-center px-2">
+              <div class="flex items-center">
                 <ArtSvgIcon
                   icon="ri:arrow-right-long-line"
                   :class="
@@ -222,60 +217,53 @@
                       ? 'text-[var(--el-color-primary)]'
                       : 'text-[var(--el-color-success)]'
                   "
-                  class="text-2xl"
+                  class="text-lg"
                 />
               </div>
               <div
-                class="flex-1 min-w-0 rounded-lg p-3"
+                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
                 :class="
                   tx.direction === 'outgoing'
                     ? 'bg-[var(--el-color-success-light-9)]'
                     : 'bg-[var(--el-color-primary-light-9)]'
                 "
               >
-                <div class="text-xs text-g-600 mb-1.5 font-medium">{{
+                <div class="text-[10px] text-g-500 font-medium">{{
                   partyLabel(tx.direction, 'beneficiary')
                 }}</div>
-                <div class="text-sm font-semibold text-g-900 truncate">{{
+                <div class="text-xs font-semibold text-g-900 truncate">{{
                   tx.beneficiaryName
                 }}</div>
-                <div class="text-xs text-g-600 font-mono truncate mt-1">{{
+                <div class="text-[10px] text-g-600 font-mono truncate">{{
                   tx.beneficiary.address || '--'
                 }}</div>
               </div>
             </div>
 
-            <!-- 生命周期阶段条（阶段数随方向与对手方 did 变化；不可用与未执行区分渲染） -->
-            <div class="lc-stages">
-              <template v-for="(stage, i) in tx.stages" :key="stage.key">
-                <div v-if="i > 0" class="lc-sep"></div>
-                <!-- 不可用槽位：空心点 + 删除线，区别于 na 的实心灰点 -->
-                <div v-if="stage.disabled" class="lc-stage lc-stage-unavailable">
-                  <div class="lc-stage-dot lc-stage-dot-hollow"></div>
-                  <div class="lc-stage-content">
-                    <div class="lc-stage-label">{{ $t(stage.labelKey) }}</div>
-                    <div class="lc-stage-state lc-stage-state-unavailable">
-                      {{ stage.value }}
+            <!-- 生命周期阶段条 + Inspect 操作同行 -->
+            <div class="flex items-center gap-3">
+              <div class="lc-stages flex-1 min-w-0">
+                <template v-for="(stage, i) in tx.stages" :key="stage.key">
+                  <div v-if="i > 0" class="lc-sep"></div>
+                  <div class="lc-stage">
+                    <div class="lc-stage-dot" :style="toneDotStyle(stage.tone)"></div>
+                    <div class="lc-stage-content">
+                      <div class="lc-stage-label">{{ $t(stage.labelKey) }}</div>
+                      <div class="lc-stage-state" :style="toneTextStyle(stage.tone)">
+                        {{ stage.value }}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div v-else class="lc-stage">
-                  <div class="lc-stage-dot" :style="toneDotStyle(stage.tone)"></div>
-                  <div class="lc-stage-content">
-                    <div class="lc-stage-label">{{ $t(stage.labelKey) }}</div>
-                    <div class="lc-stage-state" :style="toneTextStyle(stage.tone)">
-                      {{ stage.value }}
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </div>
-
-            <!-- 操作 -->
-            <div class="flex justify-end mt-3 pt-3 border-t border-[var(--default-border)]">
-              <el-button size="small" type="primary" @click="inspect(tx.orderId)">{{
-                $t('txLens.inspect')
-              }}</el-button>
+                </template>
+              </div>
+              <el-button
+                size="small"
+                plain
+                type="primary"
+                class="flex-shrink-0"
+                @click="inspect(tx.orderId)"
+                >{{ $t('txLens.inspect') }} →</el-button
+              >
             </div>
           </div>
           <div
@@ -338,6 +326,7 @@
     STAGE_LABEL_KEYS,
     buildStages,
     isStageDisabled,
+    stageStateOf,
     type StageKey
   } from '@/features/compliance/txStages'
   import { formatCoinBalance, formatTime } from '@/utils/format'
@@ -498,7 +487,7 @@
     labelKey: string
     value: string
     tone: Tone
-    /** 不可用（无 Travel Rule 信息）——与 na（未执行）区分渲染 */
+    /** 不可点击（状态 N/A） */
     disabled?: boolean
   }
 
@@ -510,35 +499,24 @@
       const fiat = usdRate != null && decimals ? new BigNumber(amount).times(usdRate) : null
       const fiatDisplay = fiat != null ? `≈ $${fiat.toFormat(2, BigNumber.ROUND_HALF_UP)}` : '--'
 
-      // 阶段序列由方向决定槽位与时序；颜色由各自状态值决定；
-      // travelRule 槽位恒保留，无对手方 did 时置灰并提示"无 Travel Rule 信息"
-      const disabledKeys = new Set<StageKey>(
-        buildStages(tx).filter((key) => isStageDisabled(tx, key))
-      )
-      const stageOf: Record<StageKey, () => { value: string; tone: Tone }> = {
-        compliance: () => ({
-          value: complianceLabel(tx.compliance),
-          tone: toneOf(tx.compliance)
-        }),
-        travelRule: () => ({
-          value: disabledKeys.has('travelRule')
-            ? t('txLens.stageNoTravelRule')
-            : travelRuleLabel(tx.travelRule),
-          tone: disabledKeys.has('travelRule') ? 'na' : toneOf(tx.travelRule)
-        }),
-        signoff: () => ({ value: signoffLabel(tx.signoff), tone: toneOf(tx.signoff) }),
-        onchain: () => ({ value: onchainLabel(tx.onchain), tone: toneOf(tx.onchain) }),
-        disposition: () => ({
-          value: dispositionLabel(tx.disposition),
-          tone: toneOf(tx.disposition)
-        })
-      }
-      const stages: Stage[] = buildStages(tx).map((key) => ({
-        key,
-        labelKey: STAGE_LABEL_KEYS[key],
-        disabled: disabledKeys.has(key),
-        ...stageOf[key]()
-      }))
+      // 状态取值统一走 stageStateOf：无 Travel Rule 信息时 travelRule 按 na 处理
+      const stages: Stage[] = buildStages(tx).map((key) => {
+        const rawState = stageStateOf(tx, key)
+        const labelMap: Record<StageKey, (v: string) => string> = {
+          compliance: complianceLabel,
+          travelRule: travelRuleLabel,
+          signoff: signoffLabel,
+          onchain: onchainLabel,
+          disposition: dispositionLabel
+        }
+        return {
+          key,
+          labelKey: STAGE_LABEL_KEYS[key],
+          value: labelMap[key](rawState || ''),
+          tone: toneOf(rawState),
+          disabled: isStageDisabled(tx, key)
+        }
+      })
 
       return {
         ...tx,
@@ -642,9 +620,9 @@
 
 <style scoped>
   .tx-card {
-    padding: 16px;
+    padding: 10px 12px;
     border: 1px solid var(--default-border);
-    border-radius: 12px;
+    border-radius: 10px;
     transition: border-color 0.2s;
   }
 
@@ -671,11 +649,11 @@
   /* 阶段条：横向排布，圆点 + 标签/状态两行；阶段数随场景变化，自适应 */
   .lc-stages {
     display: flex;
-    gap: 16px;
+    gap: 10px;
     align-items: center;
-    padding: 8px 12px;
+    padding: 5px 8px;
     background: var(--art-gray-100);
-    border-radius: 8px;
+    border-radius: 6px;
   }
 
   .lc-stage {
@@ -691,28 +669,6 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-  }
-
-  /* 不可用槽位（无 Travel Rule 信息）：空心方点 + 删除线文字，区别于 na 的实心灰圆点 */
-  .lc-stage-dot-hollow {
-    box-sizing: border-box;
-    width: 6px;
-    height: 6px;
-    background: transparent;
-    border: 1.5px solid var(--el-text-color-placeholder);
-    border-radius: 1px;
-  }
-
-  .lc-stage-unavailable {
-    opacity: 0.65;
-  }
-
-  .lc-stage-state-unavailable {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--el-text-color-placeholder);
-    text-decoration: line-through;
-    text-decoration-thickness: 1px;
   }
 
   /* 圆点与状态文字颜色由 toneDotStyle / toneTextStyle 内联注入 */
