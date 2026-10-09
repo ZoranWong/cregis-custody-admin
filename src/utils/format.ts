@@ -2,18 +2,26 @@ import { translateUiText } from '@/utils/text'
 import BigNumber from 'bignumber.js'
 
 /**
- * 统一时间格式："2026-09-21 15:42"（到分钟，浏览器本地时区）。
+ * 统一时间格式："2026-09-21 15:42"（到分钟）。
  *
- * 接口返回的时间串（如 "2026-09-21T15:42:31"）为 UTC 存储，
- * 无时区后缀时补 Z 再解析，保证按本地时区正确换算显示。
+ * 后端返回的时间串（"2026-09-21T15:42:31" / "2026-09-21 15:42:31.008"）
+ * 已是本地时间，直接取字符串分量、**不做时区换算** ——
+ * 一旦补 Z 当 UTC 解析再转本地，会比真实时间多出一个时区偏移（显示成未来时间）。
+ * 仅当输入显式携带 Z / ±HH:mm 时才走 Date 解析。
  */
 function formatLocalMinute(input: string): string {
-  // 无时区后缀的 UTC 串：补 Z 后按本地时区解析
-  const normalized = /[Zz]|[+-]\d{2}:?\d{2}$/.test(input) ? input : `${input.replace(' ', 'T')}Z`
-  const date = new Date(normalized)
-  if (Number.isNaN(date.getTime())) return input
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+  // 显式带时区：交给 Date 正确换算
+  if (/[Zz]|[+-]\d{2}:?\d{2}$/.test(input)) {
+    const d = new Date(input)
+    if (Number.isNaN(d.getTime())) return input
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+  // 无时区：按本地时间原样截取（YYYY-MM-DD HH:mm），忽略秒与毫秒
+  const m = input.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/)
+  if (!m) return input
+  const [, y, mo, d, h, mi] = m
+  return `${y}-${mo}-${d} ${h}:${mi}`
 }
 
 /** "2026-09-21 15:42"（到分钟，本地时区） */

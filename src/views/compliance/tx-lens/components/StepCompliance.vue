@@ -128,31 +128,25 @@
             <span class="text-sm text-g-700">{{ $t('txLens.detail.noScreeningResult') }}</span>
           </div>
           <template v-else>
-            <div class="mb-4">
+            <!-- Entity Screening：VASP / Beneficiary 两行（对齐原型）
+                 subject 为空不显示该行；result 为 NA 时展示 Clear -->
+            <div v-if="entityRows.length" class="mb-4">
               <div
                 class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-[var(--default-border)]"
                 >{{ $t('txLens.detail.entityScreening') }}</div
               >
               <div
-                v-for="item in entityScreening"
-                :key="item.subject"
-                class="py-1.5 border-b border-[var(--default-border)] last:border-b-0"
+                v-for="row in entityRows"
+                :key="row.labelKey"
+                class="flex items-center justify-between gap-2 py-1.5"
               >
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-xs font-medium text-g-800 truncate">{{ item.subject }}</span>
-                  <el-tag :type="screeningTagType(item.result)" size="small" effect="plain">{{
-                    screeningLabel(item.result)
-                  }}</el-tag>
-                </div>
-                <!-- 对手方地址（PII 缺失时 subject 已回退为地址，避免重复展示） -->
-                <div
-                  v-if="item.addresses?.length && !item.addresses.includes(item.subject)"
-                  class="text-[11px] text-g-400 font-mono break-all mt-0.5"
-                >
-                  {{ item.addresses.join(', ') }}
-                </div>
+                <span class="text-xs font-medium text-g-800 truncate">
+                  {{ $t(row.labelKey) }}<template v-if="row.subject"> — {{ row.subject }}</template>
+                </span>
+                <el-tag :type="screeningTagType(row.result)" size="small" effect="plain">{{
+                  screeningLabel(row.result)
+                }}</el-tag>
               </div>
-              <div v-if="entityScreening.length === 0" class="text-xs text-g-400 py-1.5">--</div>
             </div>
             <div>
               <div
@@ -196,7 +190,7 @@
                   }}</div>
                 </div>
               </template>
-              <!-- 入金：整笔交易哈希 + 交易级风险等级（KYT） -->
+              <!-- 入金：整笔交易哈希 + 交易级结论（KYT） -->
               <template v-else>
                 <div
                   v-for="(item, i) in onChainScreening"
@@ -207,18 +201,18 @@
                     <span class="text-[10px] font-semibold text-g-500 uppercase">{{
                       $t('txLens.detail.txHashLabel')
                     }}</span>
-                    <el-tag :type="levelTagType(item.txLevel)" size="small" effect="plain">{{
-                      levelLabel(item.txLevel)
-                    }}</el-tag>
+                    <!-- 入金展示 result（NA/UNKNOWN/LOW 统一为 Clear），不展示 txLevel -->
+                    <el-tag
+                      :type="screeningTagType(normalizeResult(item.result))"
+                      size="small"
+                      effect="plain"
+                    >
+                      {{ screeningLabel(normalizeResult(item.result)) }}
+                    </el-tag>
                   </div>
-                  <div class="text-xs text-g-700 font-mono break-all mb-1">{{
-                    item.txId || '--'
-                  }}</div>
-                  <div class="flex items-center justify-between gap-2 text-[11px]">
-                    <span class="text-g-400 font-mono truncate">{{ txAddressSummary(item) }}</span>
-                    <el-tag :type="screeningTagType(item.result)" size="small" effect="plain">{{
-                      screeningLabel(item.result)
-                    }}</el-tag>
+                  <div class="text-xs text-g-700 font-mono break-all">{{ item.txId || '--' }}</div>
+                  <div class="text-[11px] text-g-400 font-mono truncate mt-0.5">
+                    {{ txAddressSummary(item) }}
                   </div>
                 </div>
               </template>
@@ -228,7 +222,7 @@
         </div>
       </div>
 
-      <!-- Travel Rule Compliance（无 TR 信息的交易整卡不显示） -->
+      <!-- Travel Rule（对齐原型：VASP Identity 多字段 + IVMS101 PII Exchange 状态） -->
       <div v-if="hasTravelRule" class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
           <span class="text-sm font-semibold text-g-900">{{
@@ -236,24 +230,9 @@
           }}</span>
         </div>
         <div class="p-4">
-          <div class="bg-g-50 border border-[var(--default-border)] rounded-lg p-4 mb-3">
-            <div class="grid grid-cols-2 gap-3">
-              <div class="flex flex-col gap-0.5">
-                <span class="text-[11px] font-semibold text-g-500 uppercase">{{
-                  $t('travelRule.status')
-                }}</span>
-                <span class="text-sm text-g-800 font-medium">{{ trStatusText }}</span>
-              </div>
-              <div class="flex flex-col gap-0.5">
-                <span class="text-[11px] font-semibold text-g-500 uppercase">VASP DID</span>
-                <span class="text-xs text-g-800 font-medium font-mono break-all">{{
-                  travelRuleSummary?.vaspDid || '--'
-                }}</span>
-              </div>
-            </div>
-          </div>
+          <!-- IVMS101 PII Exchange（仅保留状态行，对齐原型；有效绿 / 无效红并附缺失字段数） -->
           <div
-            class="flex items-center justify-between px-3 py-2.5 bg-g-50 border border-[var(--default-border)] rounded-md"
+            class="flex items-center justify-between px-3.5 py-2.5 bg-g-50 border border-[var(--default-border)] rounded-md"
           >
             <span class="text-xs font-semibold text-g-600">{{
               $t('txLens.detail.ivms101PiiExchange')
@@ -272,10 +251,11 @@
       >
         <span class="text-xs text-g-600">{{ $t('txLens.detail.pendingReviewHint') }}</span>
         <div class="flex gap-2 flex-shrink-0">
-          <el-button type="danger" :loading="acting" @click="emit('reject')">{{
+          <!-- 两个按钮各自独立 loading，避免点一个时另一个也转圈 -->
+          <el-button type="danger" :loading="rejecting" @click="emit('reject')">{{
             $t('txLens.detail.reject')
           }}</el-button>
-          <el-button type="success" :loading="acting" @click="emit('approve')">{{
+          <el-button type="success" :loading="approving" @click="emit('approve')">{{
             $t('txLens.detail.approve')
           }}</el-button>
         </div>
@@ -355,7 +335,10 @@
   const props = defineProps<{
     data: ComplianceTabView | null
     direction: string
-    acting?: boolean
+    /** 放行中（独立控制，避免与拒绝共用 loading） */
+    approving?: boolean
+    /** 拒绝中 */
+    rejecting?: boolean
   }>()
   const emit = defineEmits<{ (e: 'approve'): void; (e: 'reject'): void }>()
 
@@ -380,8 +363,36 @@
 
   const rulesTriggered = computed(() => props.data?.rulesTriggered || [])
   const cddItems = computed(() => props.data?.cddChecklist || [])
-  const entityScreening = computed(() => props.data?.screening?.entity || [])
   const onChainScreening = computed(() => props.data?.screening?.onchain || [])
+
+  /**
+   * Entity Screening 两行（VASP / Beneficiary，对齐原型）：
+   *   - subject 为空 → 该行不展示
+   *   - result 为 NA → 语义等同 Clear
+   */
+  const entityRows = computed(() => {
+    const e = props.data?.screening?.entity
+    if (!e) return [] as Array<{ labelKey: string; subject: string | null; result: string }>
+    const rows = [
+      { labelKey: 'txLens.detail.entityVasp', ...e.vasp },
+      { labelKey: 'txLens.detail.entityBeneficiary', ...e.beneficiary }
+    ]
+    return rows.filter((r) => !!r.subject).map((r) => ({ ...r, result: normalizeResult(r.result) }))
+  })
+
+  /**
+   * 筛查结论归一：NA / UNKNOWN / LOW 均视为无风险 → CLEAR
+   * （无 TR 记录、目录属性缺失、低风险等级在展示上等价于通过）
+   */
+  /**
+   * 筛查结论归一。文档取值域：CLEAR / HIT / UNKNOWN / NOT_REQUIRED
+   *   HIT                              → Hit（命中）
+   *   CLEAR / UNKNOWN / NOT_REQUIRED   → Clear（无风险 / 无记录 / 无需筛查）
+   * 注意：MEDIUM / HIGH 属于 *Level 字段的值域，不会出现在 result 中。
+   */
+  function normalizeResult(result: string): string {
+    return (result || '').toUpperCase() === 'HIT' ? 'HIT' : 'CLEAR'
+  }
 
   // ─── 规则展示统一走 dictionaries 的格式化函数 ───
   function severityTag(severity: string): TagType {
@@ -394,12 +405,11 @@
     return conditionText(cond, t)
   }
 
-  /** 筛查结果 → el-tag type（实测取值：CLEAR / REVIEW / HIT / UNKNOWN …） */
+  /** 筛查结论 → el-tag type：命中红 / 其余（Clear 等）绿 */
   function screeningTagType(result: string): TagType {
-    if (result === 'CLEAR' || result === 'VERIFIED' || result === 'NOT_REQUIRED') return 'success'
     if (result === 'HIT' || result === 'FAILED') return 'danger'
     if (result === 'REVIEW') return 'warning'
-    return 'info'
+    return 'success'
   }
 
   /** 筛查结果 → 前端描述文案（不直接展示后端枚举） */
@@ -417,27 +427,24 @@
     return key ? t(key) : result || '--'
   }
 
-  /** 风险等级 → el-tag type（LOW / MEDIUM / HIGH / SEVERE …）；空值走灰色 */
+  /**
+   * 地址风险等级 → el-tag type
+   * 命中（红）：MEDIUM / HIGH / SEVERE / CRITICAL / HIT
+   * 未命中（绿）：null / LOW / CLEAR
+   */
   function levelTagType(level: string | null): TagType {
-    if (!level) return 'info'
-    const v = level.toUpperCase()
-    if (v === 'LOW' || v === 'CLEAR') return 'success'
-    if (v === 'MEDIUM') return 'warning'
-    if (v === 'HIGH' || v === 'SEVERE' || v === 'CRITICAL') return 'danger'
-    return 'info'
+    return isLevelHit(level) ? 'danger' : 'success'
   }
 
-  /** 风险等级 → 前端描述文案；无值显示"未知" */
+  /** 地址风险等级 → 展示文案：命中显示 Hit，未命中显示 Clear */
   function levelLabel(level: string | null): string {
-    if (!level) return t('txLens.detail.unknownLevel')
-    const map: Record<string, string> = {
-      LOW: 'txLens.detail.levelLow',
-      MEDIUM: 'txLens.detail.levelMedium',
-      HIGH: 'txLens.detail.levelHigh',
-      SEVERE: 'txLens.detail.levelSevere'
-    }
-    const key = map[level.toUpperCase()]
-    return key ? t(key) : level
+    return isLevelHit(level) ? t('txLens.detail.screeningHit') : t('txLens.detail.screeningClear')
+  }
+
+  /** 该等级是否判定为命中（MEDIUM 及以上 / HIT） */
+  function isLevelHit(level: string | null): boolean {
+    const v = (level || '').toUpperCase()
+    return ['MEDIUM', 'HIGH', 'SEVERE', 'CRITICAL', 'HIT'].includes(v)
   }
 
   /** 入金：把双方地址压成一行摘要（txId 为主，地址仅作副信息） */
@@ -454,49 +461,61 @@
     router.push({ name: 'ComplianceRuleDetail', params: { id: ruleId } })
   }
 
-  // 是否有筛查结果（entity/onchain 均为 null 视为无筛查数据）
+  // 是否有筛查结果（entity 两行 + onchain 列表均无内容视为无数据）
   const hasScreening = computed(() => {
     const s = props.data?.screening
     if (!s) return false
-    return (s.entity && s.entity.length > 0) || (s.onchain && s.onchain.length > 0)
+    return entityRows.value.length > 0 || (s.onchain && s.onchain.length > 0)
   })
   const timeline = computed(() => props.data?.timeline || [])
   const travelRuleSummary = computed(() => props.data?.travelRuleSummary || null)
 
-  // 是否收到 Travel Rule 通知（status/vaspDid 均无值视为未收到）
+  // 是否展示 Travel Rule 卡：
+  //   - 无 summary / status 为 N/A → 无 TR
+  //   - status 为 UNMATCHED → 对手方未匹配，无可展示的 VASP/PII 信息，整卡隐藏
+  //   - 其余状态视为有 TR 记录
+  /**
+   * 是否展示 Travel Rule 卡。
+   * 新版接口的 travelRuleSummary 有两种形态：
+   *   有 TR → { ivms101Valid, ivms101MissingFields, ivms101Pii:{originator,beneficiary} }（无 status）
+   *   无 TR → 三字段全 null
+   * 因此以 ivms101Pii 是否有数据为主判据；旧版仍可回退 status 判定。
+   */
   const hasTravelRule = computed(() => {
     const s = travelRuleSummary.value
     if (!s) return false
-    return (s.status && s.status !== 'N/A') || (s.vaspDid && s.vaspDid.trim() !== '')
+    if (s.ivms101Pii && Object.keys(s.ivms101Pii).length > 0) return true
+    if (typeof s.ivms101Valid === 'boolean') return true
+    const status = (s.status || '').toUpperCase()
+    return !!status && status !== 'N/A' && status !== 'UNMATCHED'
   })
 
-  const trStatusText = computed(() => {
-    const s = travelRuleSummary.value?.status
-    if (!s || s === 'N/A') return '--'
-    const map: Record<string, string> = {
-      CREATED: 'travelRule.stCreated',
-      PII_APPENDED: 'travelRule.stPiiAppended',
-      UNMATCHED: 'travelRule.stUnmatched',
-      AUTHORIZED: 'travelRule.stAuthorized',
-      ACCEPTED: 'travelRule.stAccepted',
-      REJECTED: 'travelRule.stRejected',
-      SETTLING: 'travelRule.stSettling',
-      SETTLED: 'travelRule.stSettled',
-      REVERTED: 'travelRule.stReverted'
-    }
-    return map[s] ? t(map[s]) : s
+  /** IVMS101 校验状态：兼容新版 ivms101Valid(boolean) 与旧版 ivms101Status(字符串) */
+  const ivms101State = computed<'VALID' | 'INVALID' | null>(() => {
+    const s = travelRuleSummary.value
+    if (!s) return null
+    if (typeof s.ivms101Valid === 'boolean') return s.ivms101Valid ? 'VALID' : 'INVALID'
+    if (s.ivms101Status === 'VALID') return 'VALID'
+    if (s.ivms101Status === 'INVALID') return 'INVALID'
+    return null
   })
 
   const ivms101StatusText = computed(() => {
-    const s = travelRuleSummary.value?.ivms101Status
-    if (!s || s === 'N/A') return '--'
-    return s
+    const state = ivms101State.value
+    if (!state) return '--'
+    if (state === 'VALID') return `${t('txLens.detail.ivmsValid')} ✓`
+    // 无效：对齐原型 "Invalid — N Missing Fields"，字段数取缺失列表长度或缺失计数
+    const missing = travelRuleSummary.value?.ivms101MissingFields
+    const n = missing?.length || travelRuleSummary.value?.ivms101MissingFieldCount
+    return n
+      ? `${t('txLens.detail.ivmsInvalid')} — ${n} ${t('txLens.detail.missingFields')}`
+      : t('txLens.detail.ivmsInvalid')
   })
 
   const ivms101StatusClass = computed(() => {
-    const s = travelRuleSummary.value?.ivms101Status
-    if (s === 'VALID') return 'text-success'
-    if (s === 'INVALID') return 'text-danger'
+    const state = ivms101State.value
+    if (state === 'VALID') return 'text-success'
+    if (state === 'INVALID') return 'text-danger'
     return 'text-g-600'
   })
 

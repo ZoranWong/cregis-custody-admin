@@ -81,6 +81,34 @@ export function isStageDisabled(tx: StageSource, key: StageKey): boolean {
   return !state || state === 'na'
 }
 
+/** 已完成态：这些状态值表示该阶段已走完，可继续往后找进行中的阶段 */
+const COMPLETED_STATES = new Set([
+  'clear',
+  'complete',
+  'completed',
+  'approved',
+  'settled',
+  'confirmed',
+  'released',
+  'success'
+])
+
+/**
+ * 当前进行到哪一步 —— 用于从列表进入详情时直接定位。
+ * 取第一个「未完成且可进入」的阶段；全部完成时取最后一个可进入阶段。
+ * na（未执行/不适用）阶段跳过。
+ */
+export function currentStage(tx: StageSource): StageKey | null {
+  const stages = buildStages(tx).filter((k) => !isStageDisabled(tx, k))
+  if (stages.length === 0) return null
+  for (const key of stages) {
+    const state = (stageStateOf(tx, key) || '').toLowerCase()
+    if (state && !COMPLETED_STATES.has(state)) return key
+  }
+  // 全部已完成：停在最后一步
+  return stages[stages.length - 1]
+}
+
 /** 阶段 → 展示标签的 i18n 键 */
 export const STAGE_LABEL_KEYS: Record<StageKey, string> = {
   compliance: 'txLens.detail.tabCompliance',

@@ -19,7 +19,13 @@
 
     <!-- 锁屏弹窗 -->
     <div v-if="!isLock">
-      <ElDialog v-model="visible" :width="370" :show-close="false" @open="handleDialogOpen">
+      <ElDialog
+        v-model="visible"
+        :width="370"
+        :show-close="true"
+        :close-on-click-modal="true"
+        @open="handleDialogOpen"
+      >
         <div class="flex-c flex-col">
           <img class="w-16 h-16 rounded-full" src="@imgs/user/avatar.webp" alt="用户头像" />
           <div class="mt-7.5 mb-3.5 text-base font-medium">{{ userInfo.userName }}</div>

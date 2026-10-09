@@ -56,19 +56,14 @@
           :value="d.value"
         />
       </el-select>
-      <el-button type="primary" @click="handleFilterChange">{{ $t('common.search') }}</el-button>
-      <el-button text @click="resetFilters">{{ $t('common.reset') }}</el-button>
+      <!-- 条件变更即刷新，无需单独搜索按钮；Reset 清空全部筛选 -->
+      <el-button plain @click="resetFilters">{{ $t('common.reset') }}</el-button>
     </div>
 
     <!-- ═══ 告警卡片列表 ═══ -->
     <div class="art-card mb-5">
       <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-        <div class="flex items-center gap-4 text-sm">
-          <span class="text-g-700 font-medium">{{ $t('alerts.pageTitle') }}</span>
-          <span class="text-g-400"
-            >{{ $t('alerts.tabAll') }}: <strong class="text-g-900">{{ total }}</strong></span
-          >
-        </div>
+        <span class="text-g-700 font-medium">{{ $t('alerts.pageTitle') }}</span>
         <el-button text size="small">
           <ArtSvgIcon icon="ri:download-line" class="mr-1" />{{ $t('common.export') }}
         </el-button>
@@ -82,13 +77,13 @@
           <div
             v-for="alert in alerts"
             :key="alert.id"
-            class="tx-card mb-4 last:mb-0 cursor-pointer"
+            class="tx-card mb-2.5 last:mb-0 cursor-pointer"
             @click="openAlert(alert)"
           >
-            <!-- 顶部：金额 + 订单号 + 标签 -->
-            <div class="flex items-start justify-between gap-4 mb-3">
+            <!-- 顶部：金额 + 订单号 + 标签（对齐 tx-lens 密度） -->
+            <div class="flex items-start justify-between gap-3 mb-2">
               <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center gap-2">
                   <ArtSvgIcon
                     :icon="
                       alert.direction === 'INCOMING' ? 'ri:arrow-down-line' : 'ri:arrow-up-line'
@@ -98,71 +93,70 @@
                         ? 'text-[var(--el-color-success)]'
                         : 'text-[var(--el-color-primary)]'
                     "
-                    class="text-lg flex-shrink-0"
+                    class="text-base flex-shrink-0"
                   />
-                  <span class="text-lg font-semibold text-g-900">{{ displayAmount(alert) }}</span>
-                  <span class="text-sm text-g-400">{{ alert.currency }}</span>
+                  <span class="text-base font-semibold text-g-900">{{ displayAmount(alert) }}</span>
+                  <span class="text-xs text-g-400">{{ alert.currency }}</span>
                 </div>
-                <div class="flex items-center gap-2 text-xs">
+                <div class="flex items-center gap-2 text-xs mt-0.5">
                   <el-tooltip :content="alert.bizRefId" placement="top">
                     <span class="text-g-500 font-mono truncate max-w-52">{{ alert.bizRefId }}</span>
                   </el-tooltip>
                   <span class="text-g-400">· {{ formatTime(alert.createTime) }}</span>
                   <span class="text-g-400">· {{ $t('alerts.merchantName') }}:</span>
-                  <span class="text-g-600">{{ merchantName(alert.merchantEcode) }}</span>
+                  <span class="text-g-600 truncate">{{ merchantName(alert.merchantEcode) }}</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <el-tag :type="alert.direction === 'INCOMING' ? 'success' : 'primary'" size="small">
+              <!-- 徽章（对齐原型：方向 → 处置状态 → 严重级别） -->
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <el-tag
+                  :type="alert.direction === 'INCOMING' ? 'success' : 'primary'"
+                  size="small"
+                  effect="light"
+                >
                   {{
                     alert.direction === 'INCOMING' ? $t('alerts.incoming') : $t('alerts.outgoing')
                   }}
                 </el-tag>
-                <el-tag :type="decisionTagType(alert.decision)" size="small">{{
-                  txStateLabel(DECISION_DICT, alert.decision, t)
-                }}</el-tag>
                 <el-tag
                   :type="dispositionTagType(alert.dispositionStatus)"
                   size="small"
-                  effect="plain"
+                  effect="light"
                 >
                   {{ txStateLabel(DISPOSITION_STATUS_DICT, alert.dispositionStatus, t) }}
                 </el-tag>
                 <el-tag
-                  v-if="alert.riskScore != null && alert.riskScore !== 0"
-                  :type="riskScoreTagType(alert.riskScore)"
+                  v-if="alert.maxSeverity"
+                  :type="severityTagType(alert.maxSeverity)"
                   size="small"
                   effect="light"
                 >
-                  {{ $t('alerts.riskScore') }}: {{ alert.riskScore }}
+                  {{ severityLabelOf(alert.maxSeverity) }}
                 </el-tag>
               </div>
             </div>
 
-            <!-- 出入金双方 -->
-            <div class="flex items-stretch gap-3 mb-3">
+            <!-- 出入金双方（三行结构，与 tx-lens / travel-rule 一致） -->
+            <div class="flex items-stretch gap-2 mb-2">
               <div
-                class="flex-1 min-w-0 rounded-lg p-3"
+                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
                 :class="
                   alert.direction === 'OUTGOING'
                     ? 'bg-[var(--el-color-primary-light-9)]'
                     : 'bg-[var(--el-color-success-light-9)]'
                 "
               >
-                <div class="text-xs text-g-600 mb-1.5 font-medium">
+                <div class="text-[10px] text-g-500 font-medium">
                   {{ partyLabel(alert.direction, 'originator') }}
                 </div>
-                <div class="text-sm font-semibold text-g-900 truncate">
+                <div class="text-xs font-semibold text-g-900 truncate">
                   {{ partyName(alert.originator) }}
                 </div>
-                <div v-if="alert.originator?.detail" class="text-xs text-g-700 mt-1.5">
-                  {{ alert.originator.detail }}
-                </div>
-                <div class="text-xs text-g-600 font-mono truncate mt-1">
+                <div class="text-[10px] text-g-600 font-mono truncate">
                   {{ alert.originator?.address || '--' }}
                 </div>
               </div>
-              <div class="flex items-center px-1">
+              <div class="flex items-center">
                 <ArtSvgIcon
                   icon="ri:arrow-right-long-line"
                   :class="
@@ -170,38 +164,35 @@
                       ? 'text-[var(--el-color-success)]'
                       : 'text-[var(--el-color-primary)]'
                   "
-                  class="text-2xl"
+                  class="text-lg"
                 />
               </div>
               <div
-                class="flex-1 min-w-0 rounded-lg p-3"
+                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
                 :class="
                   alert.direction === 'OUTGOING'
                     ? 'bg-[var(--el-color-success-light-9)]'
                     : 'bg-[var(--el-color-primary-light-9)]'
                 "
               >
-                <div class="text-xs text-g-600 mb-1.5 font-medium">
+                <div class="text-[10px] text-g-500 font-medium">
                   {{ partyLabel(alert.direction, 'beneficiary') }}
                 </div>
-                <div class="text-sm font-semibold text-g-900 truncate">
+                <div class="text-xs font-semibold text-g-900 truncate">
                   {{ partyName(alert.beneficiary) }}
                 </div>
-                <div v-if="alert.beneficiary?.detail" class="text-xs text-g-700 mt-1.5">
-                  {{ alert.beneficiary.detail }}
-                </div>
-                <div class="text-xs text-g-600 font-mono truncate mt-1">
+                <div class="text-[10px] text-g-600 font-mono truncate">
                   {{ alert.beneficiary?.address || '--' }}
                 </div>
               </div>
             </div>
 
-            <!-- 命中规则 / 结论 -->
+            <!-- 命中规则 + 结论 + Full Review 同行（对齐原型 footer） -->
             <div
-              class="flex flex-wrap items-start gap-x-6 gap-y-2 mb-3 py-2.5 px-3 bg-g-100 rounded-lg"
+              class="flex items-center justify-between gap-4 pt-3 border-t border-[var(--default-border)]"
             >
-              <div class="flex items-center gap-2 flex-wrap min-w-0">
-                <span class="text-xs text-g-400 flex-shrink-0">{{ $t('alerts.ruleHits') }}:</span>
+              <div class="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                <span class="text-xs text-g-500 flex-shrink-0">{{ $t('alerts.ruleHits') }}:</span>
                 <template v-if="alert.ruleHits?.length">
                   <el-tag
                     v-for="hit in alert.ruleHits"
@@ -214,18 +205,18 @@
                   </el-tag>
                 </template>
                 <span v-else class="text-sm text-g-600">{{ $t('alerts.noRuleHit') }}</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="text-xs text-g-400">{{ $t('alerts.conclusion') }}:</span>
+                <span class="text-xs text-g-500 ml-2">{{ $t('alerts.conclusion') }}:</span>
                 <span class="text-sm text-g-700 font-medium">{{
                   txStateLabel(CONCLUSION_DICT, alert.conclusion, t)
                 }}</span>
               </div>
-            </div>
-
-            <!-- 操作 -->
-            <div class="flex justify-end pt-3 border-t border-[var(--default-border)]">
-              <el-button size="small" type="primary" @click.stop="openAlert(alert)">
+              <el-button
+                size="small"
+                type="primary"
+                plain
+                class="flex-shrink-0"
+                @click.stop="openAlert(alert)"
+              >
                 {{ $t('alerts.fullReview') }} →
               </el-button>
             </div>
@@ -268,12 +259,10 @@
     CONCLUSION_DICT,
     DECISION_DICT,
     DISPOSITION_STATUS_DICT,
-    decisionTagType,
     dispositionTagType,
-    riskScoreTagType,
     txStateLabel
   } from '@/features/compliance/txState'
-  import { severityTagType } from '@/features/compliance/dictionaries'
+  import { severityLabel, severityTagType } from '@/features/compliance/dictionaries'
   import { formatCoinBalance, formatTime } from '@/utils/format'
 
   defineOptions({ name: 'ComplianceAlerts' })
@@ -311,6 +300,10 @@
 
   function merchantName(ecode: string): string {
     return merchantMap.value[ecode] || ecode || '--'
+  }
+
+  function severityLabelOf(severity: string): string {
+    return severityLabel(severity, t)
   }
 
   /** 出入金双方：本方（我们的客户）为发起方还是受益方，取决于交易方向 */
@@ -423,9 +416,9 @@
 
 <style scoped>
   .tx-card {
-    padding: 16px;
+    padding: 10px 12px;
     border: 1px solid var(--default-border);
-    border-radius: 12px;
+    border-radius: 10px;
     transition: border-color 0.2s;
   }
 

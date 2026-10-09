@@ -162,7 +162,7 @@
                         <span class="text-g-500"
                           >{{ $t('merchantDetail.beneficiaryCountry') }}:</span
                         >
-                        <span>{{ b.country }}</span>
+                        <span>{{ countryStore.countryName(b.country) }}</span>
                       </div>
                       <div v-if="b.dateOfBirth" class="flex items-center gap-2">
                         <span class="text-g-500">{{ $t('merchantDetail.beneficiaryDob') }}:</span>
@@ -634,12 +634,14 @@
     type AdminMerchantUserVO
   } from '@/api/merchant'
   import type { AdminMerchantKybDetailView, KybQuestionnaire } from '@/api/merchant'
+  import { useCountryStore } from '@/store/modules/country'
 
   defineOptions({ name: 'MerchantDetail' })
 
   const route = useRoute()
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const countryStore = useCountryStore()
 
   const loading = ref(false)
   const detail = ref<AdminMerchantKybDetailView | null>(null)
@@ -850,7 +852,8 @@
   /** 头部注册地：问卷 jurisdiction 优先，缺失回退 countryCode */
   const headerJurisdiction = computed(() => {
     const q = detail.value?.questionnaire as KybQuestionnaire | null | undefined
-    return q?.jurisdiction || q?.countryCode || '-'
+    const raw = q?.jurisdiction || q?.countryCode
+    return raw ? countryStore.countryName(raw) : '-'
   })
 
   // Stepper states (screening = step 2, verification = step 3)
@@ -1027,6 +1030,9 @@
     ]
   }
 
+  /** 问卷中属于国家/地区编码的字段（展示时需转成国家名） */
+  const COUNTRY_FIELDS = new Set(['jurisdiction', 'countryCode', 'country'])
+
   function questionnaireValue(key: string, boolean?: boolean): string {
     const q = detail.value?.questionnaire as KybQuestionnaire | null | undefined
     if (!q) return '-'
@@ -1038,6 +1044,9 @@
     }
     if (raw == null || raw === '') return '-'
     const str = String(raw)
+
+    // 国家/地区类字段：ISO 编码 → 当前语言的国家名
+    if (COUNTRY_FIELDS.has(key)) return countryStore.countryName(str)
 
     // Map enum values to i18n keys
     const enumMap: Record<string, string> = {
@@ -1116,6 +1125,7 @@
   }
 
   onMounted(() => {
+    void countryStore.ensureLoaded(locale.value)
     void load()
   })
 </script>

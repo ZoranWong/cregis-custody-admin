@@ -94,12 +94,14 @@ export const DECISION_DICT: TxStateItem[] = [
 
 /**
  * 处置状态（/compliance/alerts 接口实测取值）。
+ * 后端定义：CLEAR / PENDING / DECLINED / BLOCKED
  * 与台账时间线的事件类型（APPROVE / REJECT / RELEASE）不是同一套枚举，勿混用。
  */
 export const DISPOSITION_STATUS_DICT: TxStateItem[] = [
   { value: 'PENDING', labelKey: 'alerts.dispositionPending' },
-  { value: 'APPROVED', labelKey: 'alerts.dispositionApproved' },
-  { value: 'REJECTED', labelKey: 'alerts.dispositionRejected' }
+  { value: 'CLEAR', labelKey: 'alerts.dispositionCleared' },
+  { value: 'DECLINED', labelKey: 'alerts.dispositionDeclined' },
+  { value: 'BLOCKED', labelKey: 'alerts.dispositionBlocked' }
 ]
 
 /**
@@ -290,10 +292,17 @@ export function decisionTagType(value: string | null | undefined): TagType {
 }
 
 /** 处置状态 → el-tag type */
+/**
+ * 处置状态 → el-tag type（对齐原型 badge 配色）
+ *   PENDING  待审核  warning（原型 status-pending）
+ *   CLEAR    已通过  success（原型 status-approved）
+ *   DECLINED 已拒绝  danger（原型 status-rejected）
+ *   BLOCKED  已阻断  danger（同为终态拒绝，原型未单列）
+ */
 export function dispositionTagType(value: string | null | undefined): TagType {
-  if (value === 'REJECTED') return 'danger'
-  if (value === 'APPROVED') return 'success'
+  if (value === 'CLEAR') return 'success'
   if (value === 'PENDING') return 'warning'
+  if (value === 'DECLINED' || value === 'BLOCKED') return 'danger'
   return 'info'
 }
 

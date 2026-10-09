@@ -203,12 +203,8 @@
   import countriesEn from '@/data/countries-en.json'
   import countriesZh from '@/data/countries-zh.json'
   import { fetchMerchantList } from '@/api/merchant'
-  import {
-    fetchComplianceFactors,
-    fetchComplianceRuleDetail,
-    createComplianceRule,
-    updateComplianceRule
-  } from '@/api/compliance'
+  // createComplianceRule / updateComplianceRule 待接口开放后重新引入
+  import { fetchComplianceFactors, fetchComplianceRuleDetail } from '@/api/compliance'
   import type { RuleCondition, FactorView } from '@/features/compliance/types'
   import {
     DECISION_DICT,
@@ -416,6 +412,8 @@
   }
 
   // ─── conditions ↔ activeFactors 映射（operator/valueType 用接口数据）───
+  // 供 saveRule 提交时使用；接口开放后恢复调用
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function buildConditions(): RuleCondition[] {
     const conds: RuleCondition[] = []
     let sort = 1
@@ -477,39 +475,14 @@
     }
   }
 
-  async function saveRule() {
+  /** 提交：接口暂未开放，先提示开发中（表单校验保留，便于后续直接接入） */
+  function saveRule() {
     if (!form.ruleName.trim()) {
       ElMessage.warning(t('rules.ruleName') + ' is required')
       return
     }
-    saving.value = true
-    try {
-      const payload = {
-        ruleName: form.ruleName,
-        description: form.description || undefined,
-        direction: form.direction,
-        scopeType: form.scopeType,
-        scopeValue: form.scopeType === 'MERCHANT' ? form.scopeValue : undefined,
-        decision: form.decision,
-        severity: form.severity,
-        minAmountUsd: form.minAmountUsd ?? null,
-        enabled: form.enabled,
-        conditions: buildConditions()
-      }
-
-      if (isEdit.value) {
-        await updateComplianceRule(ruleId.value, payload)
-        ElMessage.success('Rule updated')
-      } else {
-        await createComplianceRule(payload)
-        ElMessage.success('Rule created')
-      }
-      router.push({ name: 'ComplianceRules' })
-    } catch (err) {
-      ElMessage.error(err instanceof Error ? err.message : 'Failed to save rule')
-    } finally {
-      saving.value = false
-    }
+    // TODO: 接口就绪后恢复 createComplianceRule / updateComplianceRule 调用
+    ElMessage.info(t('common.underDevelopment'))
   }
 
   onMounted(async () => {

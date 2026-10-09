@@ -18,7 +18,9 @@
           >
         </el-table-column>
         <el-table-column prop="title" :label="$t('audit.reportTitle')" min-width="200" />
-        <el-table-column prop="jurisdiction" :label="$t('audit.jurisdiction')" width="140" />
+        <el-table-column :label="$t('audit.jurisdiction')" width="140">
+          <template #default="{ row }">{{ countryName(row.jurisdiction) }}</template>
+        </el-table-column>
         <el-table-column :label="$t('audit.status')" width="120">
           <template #default="{ row }"
             ><el-tag :type="reportStatusTag(row.status)" size="small">{{
@@ -64,10 +66,20 @@
 
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import { fetchAuditRegulatoryReports } from '@/api/audit'
   import type { AuditRegulatoryReport } from '@/features/audit/types'
+  import { useCountryStore } from '@/store/modules/country'
 
   defineOptions({ name: 'AuditRegulatoryReport' })
+  const { locale } = useI18n()
+  const countryStore = useCountryStore()
+
+  /** ISO 国家/地区编码 → 当前语言的国家名 */
+  function countryName(code: string | null | undefined): string {
+    return code ? countryStore.countryName(code) : '-'
+  }
+
   const loading = ref(false)
   const reports = ref<AuditRegulatoryReport[]>([])
   const pagination = ref({ page: 1, pageSize: 20, totalPages: 0, totalCount: 0 })
@@ -93,7 +105,9 @@
     filterPage.value = p
     load()
   }
-  function downloadReport(row: AuditRegulatoryReport) {
+  // 下载功能待接口开放；参数类型放宽以匹配 el-table 插槽的 DefaultRow
+  function downloadReport(row: unknown): void {
+    void row
     /* stub */
   }
 
@@ -108,6 +122,7 @@
   }
 
   onMounted(() => {
+    void countryStore.ensureLoaded(locale.value)
     load()
   })
 </script>

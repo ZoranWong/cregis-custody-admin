@@ -138,40 +138,7 @@
               </div>
             </div>
 
-            <!-- 底部操作栏固定 -->
-            <div
-              class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[var(--default-border)] h-[40px]"
-              @click.stop
-            >
-              <div class="flex gap-1">
-                <el-button
-                  v-if="rule.enabled"
-                  size="small"
-                  text
-                  type="danger"
-                  @click="toggleRuleStatus(rule, false)"
-                >
-                  {{ $t('rules.cancel') }}
-                </el-button>
-                <el-button
-                  v-else
-                  size="small"
-                  text
-                  type="success"
-                  @click="toggleRuleStatus(rule, true)"
-                >
-                  {{ $t('rules.recover') }}
-                </el-button>
-              </div>
-              <div class="flex gap-1">
-                <el-button size="small" text @click="editRule(rule)">
-                  {{ $t('rules.edit') }}
-                </el-button>
-                <el-button size="small" text @click="goDetail(rule.id)">
-                  {{ $t('rules.detail') }}
-                </el-button>
-              </div>
-            </div>
+            <!-- 操作按钮已移至详情页，列表仅展示，整卡可点击进入详情 -->
           </div>
         </div>
 
@@ -209,8 +176,7 @@
   import { ref, computed, reactive, onMounted, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
-  import { ElMessage } from 'element-plus'
-  import { fetchComplianceRules, updateComplianceRuleEnabled } from '@/api/compliance'
+  import { fetchComplianceRules } from '@/api/compliance'
   import type { ComplianceRuleItem } from '@/features/compliance/types'
   import {
     decisionLabel,
@@ -358,22 +324,8 @@
     })
   }
 
-  function editRule(rule: ComplianceRuleItem) {
-    router.push({ name: 'ComplianceRuleEditor', params: { id: String(rule.id) } })
-  }
-
   function goDetail(id: number) {
     router.push({ name: 'ComplianceRuleDetail', params: { id: String(id) } })
-  }
-
-  async function toggleRuleStatus(rule: ComplianceRuleItem, enabled: boolean) {
-    try {
-      await updateComplianceRuleEnabled(rule.id, { enabled })
-      rule.enabled = enabled
-      ElMessage.success(enabled ? t('rules.enabled') : t('rules.disabled'))
-    } catch (err) {
-      ElMessage.error(err instanceof Error ? err.message : 'Failed to update')
-    }
   }
 
   function updatePage(patch: { page?: number; pageSize?: number }) {

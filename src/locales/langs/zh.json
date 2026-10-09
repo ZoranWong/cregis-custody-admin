@@ -381,7 +381,15 @@
       "levelLow": "低风险",
       "levelMedium": "中风险",
       "levelHigh": "高风险",
-      "levelSevere": "严重风险"
+      "levelSevere": "严重风险",
+      "vaspJurisdiction": "司法辖区",
+      "vaspRegulatory": "监管状态",
+      "trCapableLabel": "TR 支持",
+      "regulated": "已监管",
+      "unregulated": "未监管",
+      "entityVasp": "VASP",
+      "entityBeneficiary": "受益方",
+      "missingFields": "个字段缺失"
     },
     "soRejected": "已拒绝",
     "stageNoTravelRule": "无 Travel Rule 信息",
@@ -443,7 +451,7 @@
     "decisionHold": "挂起",
     "decisionAutoReject": "自动拒绝",
     "decisionApprove": "批准",
-    "dispositionPending": "待处置",
+    "dispositionPending": "待审核",
     "dispositionDisposed": "已处置",
     "bizTypeInbound": "入金订单",
     "bizTypeOutbound": "出金订单",
@@ -470,9 +478,10 @@
     "conclusionPass": "通过",
     "conclusionHold": "挂起",
     "conclusionBlock": "阻断",
-    "dispositionApproved": "已放行",
-    "dispositionRejected": "已拒绝",
-    "rrTrueNegative": "真阴性"
+    "rrTrueNegative": "真阴性",
+    "dispositionCleared": "已通过",
+    "dispositionDeclined": "已拒绝",
+    "dispositionBlocked": "已阻断"
   },
   "rules": {
     "title": "合规规则",
@@ -1569,7 +1578,7 @@
     "stFailed": "结算失败",
     "channel": "通道",
     "chNetwork": "网络",
-    "chOffNetwork": "离线",
+    "chOffNetwork": "离线网络",
     "originator": "发起方",
     "beneficiary": "受益方",
     "viewTrace": "查看追踪",
@@ -1613,7 +1622,16 @@
     "rejectComment": "备注",
     "confirmAccept": "确认接受该入金通知？将触发 Notabene 侧授权。",
     "confirmReject": "确认拒绝该入金通知？将触发 Notabene 侧拒绝。",
-    "piiNationalId": "国民身份识别号"
+    "piiNationalId": "国民身份识别号",
+    "descCreated": "已创建 Travel Rule 报文，等待补充 PII",
+    "descPiiAppended": "已附加 PII，等待对手方响应",
+    "descUnmatched": "对手方不在 Travel Rule 网络 — 已生成分享链接，等待响应",
+    "descAuthorized": "对手方已授权 — PII 交换完成",
+    "descAccepted": "对手方已接受 — PII 交换完成",
+    "descRejected": "对手方已拒绝该转账",
+    "descSettling": "链上结算中",
+    "descSettled": "链上转账已确认 — 已结算",
+    "descReverted": "转账已回滚"
   },
   "notifications": {
     "title": "消息通知",

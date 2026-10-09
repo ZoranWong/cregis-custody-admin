@@ -51,7 +51,7 @@ export const headerBarConfig: HeaderBarFeatureConfig = {
     description: '多语言切换功能'
   },
   settings: {
-    enabled: true,
+    enabled: false,
     description: '系统设置面板'
   },
   themeToggle: {

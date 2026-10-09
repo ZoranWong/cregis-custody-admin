@@ -368,10 +368,26 @@ export async function fetchTransactionLensList(
 /**
  * 查询交易透镜统计
  * GET /compliance/transactions/summary
+ * 注：接口目前不接受筛选参数（传参被忽略），保留形参以便后端补齐后直接生效
  */
-export async function fetchTransactionLensSummary(): Promise<TransactionLensSummaryView> {
+export async function fetchTransactionLensSummary(
+  query: TransactionLensQuery = {}
+): Promise<TransactionLensSummaryView> {
+  const q = queryString({
+    direction: query.direction,
+    compliance: query.compliance,
+    travelRule: query.travelRule,
+    signoff: query.signoff,
+    onchain: query.onchain,
+    outcome: query.outcome,
+    reviewResult: query.reviewResult,
+    merchantEcode: query.merchantEcode,
+    dateFrom: query.dateFrom,
+    dateTo: query.dateTo,
+    keyword: query.keyword
+  })
   return (await apiRequest<TransactionLensSummaryView>(
-    '/compliance/transactions/summary'
+    `/compliance/transactions/summary${q}`
   )) as TransactionLensSummaryView
 }
 

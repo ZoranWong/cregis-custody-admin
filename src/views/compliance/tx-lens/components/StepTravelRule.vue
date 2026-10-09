@@ -10,58 +10,7 @@
     </div>
 
     <template v-else>
-      <!-- VASP Identity（对齐原型：名称 + 双列网格 + IVMS 状态行） -->
-      <div class="art-card mb-4">
-        <div class="p-4 border-b border-[var(--default-border)]">
-          <span class="text-sm font-semibold text-g-900">{{
-            $t('txLens.detail.vaspIdentity')
-          }}</span>
-        </div>
-        <div class="p-4">
-          <div v-if="!data?.vaspIdentity" class="py-6 text-center text-g-400 text-sm">--</div>
-          <template v-else>
-            <div class="vasp-identity-box">
-              <div class="text-sm font-semibold text-g-900 mb-2">{{ vaspDisplayName }}</div>
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col gap-0.5">
-                  <span class="field-label">{{ $t('txLens.detail.trStatus') }}</span>
-                  <span class="text-sm text-g-800 font-medium">{{
-                    trStatusText(data.vaspIdentity.status)
-                  }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
-                  <span class="field-label">{{ $t('travelRule.notabeneTxId') }}</span>
-                  <span class="text-xs text-g-800 font-medium font-mono break-all">{{
-                    data.notabeneTxId || '--'
-                  }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
-                  <span class="field-label">{{ $t('travelRule.originatorDid') }}</span>
-                  <span class="text-xs text-g-800 font-medium font-mono break-all">{{
-                    data.vaspIdentity.originatorDid || '--'
-                  }}</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
-                  <span class="field-label">{{ $t('travelRule.beneficiaryDid') }}</span>
-                  <span class="text-xs text-g-800 font-medium font-mono break-all">{{
-                    data.vaspIdentity.beneficiaryDid || '--'
-                  }}</span>
-                </div>
-              </div>
-            </div>
-            <div
-              class="flex items-center justify-between px-3 py-2.5 bg-g-100 border border-[var(--default-border)] rounded-md"
-            >
-              <span class="text-xs font-semibold text-g-600">{{
-                $t('txLens.detail.ivms101PiiExchange')
-              }}</span>
-              <span class="text-xs font-semibold" :class="ivms101StatusClass">{{
-                ivms101StatusText
-              }}</span>
-            </div>
-          </template>
-        </div>
-      </div>
+      <!-- VASP Identity 卡已移除：接口不再下发 VASP 机构信息（仅 {name:null}），无数据不展示 -->
 
       <!-- IVMS101 PII Details（对齐原型：双列语义化字段） -->
       <div class="art-card mb-4">
@@ -198,17 +147,16 @@
   import { parseIvms101Party } from '@/features/compliance/ivms101'
   import { useCountryStore } from '@/store/modules/country'
   import { formatTime } from '@/utils/format'
+  // rejectInboundNotification 待接口开放后重新引入
   import {
     acceptInboundNotification,
     fetchInboundNotifications,
-    rejectInboundNotification,
     rejectTransaction
   } from '@/api/compliance'
 
   const props = defineProps<{
     data: TravelRuleTabView | null
     direction?: string
-    ivms101Status?: string | null
     orderId?: string
   }>()
 
@@ -244,14 +192,19 @@
   })
 
   // 是否收到 Travel Rule 通知
+  /**
+   * 是否有 Travel Rule 数据。
+   * 注意：vaspIdentity 现在恒为 {name:null}（接口已不下发 VASP 机构信息），
+   * 不能再作为判据，改看真正有内容的字段。
+   */
   const hasTravelRule = computed(() => {
     const d = props.data
     if (!d) return false
     return !!(
-      d.vaspIdentity ||
       d.notabeneTxId ||
       d.status ||
       d.ivms101Status ||
+      typeof d.ivms101Valid === 'boolean' ||
       (d.ivms101Pii && Object.keys(d.ivms101Pii).length > 0) ||
       (d.networkTrace && d.networkTrace.length > 0)
     )
@@ -325,28 +278,10 @@
     }
   }
 
-  /** Reject：拒绝入金通知 */
-  async function handleReject() {
-    if (!notificationId.value || !props.orderId) return
-    try {
-      await ElMessageBox.confirm(t('travelRule.confirmReject'), t('travelRule.reject'), {
-        confirmButtonText: t('common.confirm'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning'
-      })
-    } catch {
-      return
-    }
-    acting.value = true
-    try {
-      await rejectInboundNotification(notificationId.value)
-      ElMessage.success(t('travelRule.reject') + ' OK')
-      emit('reviewed')
-    } catch (err) {
-      ElMessage.error(err instanceof Error ? err.message : 'Failed to reject')
-    } finally {
-      acting.value = false
-    }
+  /** Reject：拒绝入金通知（接口暂未开放，先提示开发中，不发起请求） */
+  function handleReject() {
+    // TODO: 接口就绪后恢复 rejectInboundNotification 调用
+    ElMessage.info(t('common.underDevelopment'))
   }
 
   /** Cancel Transfer：取消出金交易（仅出金交易显示） */
@@ -404,53 +339,6 @@
 
   const networkTrace = computed(() => props.data?.networkTrace || [])
   const manualTrace = computed(() => props.data?.manualTrace || [])
-
-  // ─── VASP 名称：接口 name 字段是 DID 而非可读名，从 PII 里取对手方名称兜底 ───
-  const vaspDisplayName = computed(() => {
-    const raw = props.data?.vaspIdentity?.name || ''
-    if (raw && !raw.startsWith('did:')) return raw
-    // 入金时对手方是 originator，出金时是 beneficiary
-    const outgoing = props.direction === 'outgoing'
-    const p = outgoing ? beneficiaryPii.value : originatorPii.value
-    return p?.name || raw || '--'
-  })
-
-  // ─── Travel Rule 状态枚举（CREATED / PII_APPENDED / … / SETTLED）───
-  const TR_STATUS_KEYS: Record<string, string> = {
-    CREATED: 'travelRule.stCreated',
-    PII_APPENDED: 'travelRule.stPiiAppended',
-    UNMATCHED: 'travelRule.stUnmatched',
-    AUTHORIZED: 'travelRule.stAuthorized',
-    ACCEPTED: 'travelRule.stAccepted',
-    SETTLING: 'travelRule.stSettling',
-    SETTLED: 'travelRule.stSettled',
-    REJECTED: 'travelRule.stRejected',
-    REVERTED: 'travelRule.stReverted',
-    INCOMING: 'txLens.incoming',
-    OUTGOING: 'txLens.outgoing'
-  }
-
-  function trStatusText(status: string | null | undefined): string {
-    if (!status) return '--'
-    const key = TR_STATUS_KEYS[status]
-    return key ? t(key) : status
-  }
-
-  // ─── IVMS101 交换状态：优先用 prop（来自 compliance tab），兜底用 travel-rule tab 的数据 ───
-  const ivms101StatusText = computed(() => {
-    const s = props.ivms101Status || props.data?.ivms101Status
-    if (!s) return '--'
-    if (s === 'VALID') return `${t('txLens.detail.ivmsValid')} ✓`
-    if (s === 'INVALID') return `${t('txLens.detail.ivmsInvalid')} ✗`
-    return s
-  })
-
-  const ivms101StatusClass = computed(() => {
-    const s = props.ivms101Status || props.data?.ivms101Status
-    if (s === 'VALID') return 'text-success'
-    if (s === 'INVALID') return 'text-danger'
-    return 'text-g-600'
-  })
 
   // ─── 网络追踪 label：后端返回 i18n key（notification.* / tap.*），统一翻译 ───
   const TRACE_LABEL_KEYS: Record<string, string> = {

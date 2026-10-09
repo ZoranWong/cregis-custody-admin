@@ -7,9 +7,11 @@
         v-model="filters.merchant"
         :placeholder="$t('txLens.merchant')"
         clearable
+        filterable
         class="!w-48"
+        @change="handleSearch"
       >
-        <el-option v-for="m in merchants" :key="m" :label="m" :value="m" />
+        <el-option v-for="m in merchants" :key="m.ecode" :label="m.name" :value="m.ecode" />
       </el-select>
       <el-date-picker
         v-model="filters.dateRange"
@@ -17,19 +19,19 @@
         :start-placeholder="$t('txLens.startDate')"
         :end-placeholder="$t('txLens.endDate')"
         class="!w-64"
-        @change="loadList"
+        @change="handleSearch"
       />
       <el-input
         v-model="filters.keyword"
         :placeholder="$t('txLens.searchPlaceholder')"
         clearable
         class="!w-64"
-        @keyup.enter="loadList"
-        @clear="loadList"
+        @keyup.enter="handleSearch"
+        @clear="handleSearch"
       >
         <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
       </el-input>
-      <el-button type="primary" @click="loadList">{{ $t('console.refresh') }}</el-button>
+      <el-button type="primary" @click="handleSearch">{{ $t('console.refresh') }}</el-button>
     </div>
 
     <!-- ═══ 摘要卡片（可点击筛选：all ↔ 各状态，切换时独立发请求）═══ -->
@@ -72,7 +74,7 @@
             :placeholder="$t('txLens.direction')"
             clearable
             class="!w-36"
-            @change="loadList"
+            @change="handleSearch"
           >
             <el-option :label="$t('txLens.outgoing')" value="outgoing" />
             <el-option :label="$t('txLens.incoming')" value="incoming" />
@@ -82,7 +84,7 @@
             :placeholder="$t('txLens.compliance')"
             clearable
             class="!w-36"
-            @change="loadList"
+            @change="handleSearch"
           >
             <el-option :label="$t('txLens.clear')" value="clear" />
             <el-option :label="$t('txLens.flagged')" value="flagged" />
@@ -93,7 +95,7 @@
             :placeholder="$t('txLens.travelRule')"
             clearable
             class="!w-36"
-            @change="loadList"
+            @change="handleSearch"
           >
             <el-option :label="$t('txLens.trComplete')" value="complete" />
             <el-option :label="$t('txLens.trPending')" value="pending" />
@@ -105,7 +107,7 @@
             :placeholder="$t('txLens.signOff')"
             clearable
             class="!w-36"
-            @change="loadList"
+            @change="handleSearch"
           >
             <el-option :label="$t('txLens.soApproved')" value="approved" />
             <el-option :label="$t('txLens.soRejected')" value="rejected" />
@@ -117,7 +119,7 @@
             :placeholder="$t('txLens.onChain')"
             clearable
             class="!w-36"
-            @change="loadList"
+            @change="handleSearch"
           >
             <el-option :label="$t('txLens.broadcasted')" value="broadcasted" />
             <el-option :label="$t('txLens.confirmed')" value="confirmed" />
@@ -129,7 +131,7 @@
             :placeholder="$t('txLens.fundDisposition')"
             clearable
             class="!w-36"
-            @change="loadList"
+            @change="handleSearch"
           >
             <el-option :label="$t('txLens.fdReleased')" value="released" />
             <el-option :label="$t('txLens.fdHeld')" value="held" />
@@ -141,7 +143,7 @@
             :placeholder="$t('txLens.reviewResult')"
             clearable
             class="!w-36"
-            @change="loadList"
+            @change="handleSearch"
           >
             <el-option :label="$t('txLens.rrNone')" value="none" />
             <el-option :label="$t('txLens.truePositive')" value="tp" />
@@ -303,6 +305,7 @@
     fetchTravelRuleCoinRates
   } from '@/api/compliance'
   import { fetchCoinList } from '@/api/coin'
+  import { fetchMerchantList } from '@/api/merchant'
   import type {
     TransactionLensItemView,
     TransactionLensSummaryView
@@ -325,6 +328,7 @@
   import {
     STAGE_LABEL_KEYS,
     buildStages,
+    currentStage,
     isStageDisabled,
     stageStateOf,
     type StageKey
@@ -391,7 +395,21 @@
     }
   }
 
-  const merchants = ['CryptoVault', 'PayFlow', 'ChainBridge', 'TokenGuard', 'BlockSafe']
+  // ─── 商户下拉：走接口（ecode 作为查询值，名称仅展示）───
+  const merchants = ref<Array<{ ecode: string; name: string }>>([])
+
+  async function loadMerchants() {
+    try {
+      const res = await fetchMerchantList({ pageSize: 200 })
+      const map = new Map<string, string>()
+      for (const m of res.records ?? []) {
+        if (m.code) map.set(m.code, m.merchantName || m.code)
+      }
+      merchants.value = [...map.entries()].map(([ecode, name]) => ({ ecode, name }))
+    } catch {
+      merchants.value = []
+    }
+  }
 
   // ─── 摘要卡片（细分数据接口暂未提供，只显示主数值）───
   const summaryCards = computed(() => {
@@ -570,9 +588,35 @@
     }
   }
 
+  /** date-picker 的 Date → "YYYY-MM-DD" 查询参数 */
+  function toDateParam(v: unknown): string | undefined {
+    if (!v) return undefined
+    const d = v instanceof Date ? v : new Date(String(v))
+    if (Number.isNaN(d.getTime())) return undefined
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  }
+
+  /** 当前筛选条件（统计与列表共用，保证口径一致） */
+  function buildQueryParams() {
+    return {
+      direction: filters.direction || undefined,
+      compliance: filters.compliance || undefined,
+      travelRule: filters.travelRule || undefined,
+      signoff: filters.signOff || undefined,
+      onchain: filters.onChain || undefined,
+      outcome: filters.fundDisposition || undefined,
+      reviewResult: filters.reviewResult || undefined,
+      merchantEcode: filters.merchant || undefined,
+      dateFrom: toDateParam(filters.dateRange?.[0]),
+      dateTo: toDateParam(filters.dateRange?.[1]),
+      keyword: filters.keyword || undefined
+    }
+  }
+
   async function loadSummary() {
     try {
-      summary.value = await fetchTransactionLensSummary()
+      summary.value = await fetchTransactionLensSummary(buildQueryParams())
     } catch {
       summary.value = null
     }
@@ -584,13 +628,7 @@
       const result = await fetchTransactionLensList({
         pageNum: pagination.pageNum,
         pageSize: pagination.pageSize,
-        direction: filters.direction || undefined,
-        compliance: filters.compliance || undefined,
-        travelRule: filters.travelRule || undefined,
-        signoff: filters.signOff || undefined,
-        onchain: filters.onChain || undefined,
-        outcome: filters.fundDisposition || undefined,
-        keyword: filters.keyword || undefined
+        ...buildQueryParams()
       })
       transactions.value = result.records || []
       pagination.total = result.total || 0
@@ -602,17 +640,32 @@
     }
   }
 
+  /** 顶部筛选变化：重置页码，同时刷新统计数据与交易列表 */
+  function handleSearch() {
+    pagination.pageNum = 1
+    loadSummary()
+    loadList()
+  }
+
   function handleSizeChange() {
     pagination.pageNum = 1
     loadList()
   }
 
+  /** 进入详情：默认定位到「当前进行到」的阶段（全部完成则停在最后一步） */
   function inspect(orderId: string) {
-    router.push({ name: 'TransactionLensDetail', params: { id: orderId } })
+    const tx = transactions.value.find((t) => t.orderId === orderId)
+    const step = tx ? currentStage(tx) : null
+    router.push({
+      name: 'TransactionLensDetail',
+      params: { id: orderId },
+      query: step ? { step } : undefined
+    })
   }
 
   onMounted(() => {
     loadCoinMeta()
+    loadMerchants()
     loadSummary()
     loadList()
   })

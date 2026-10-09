@@ -22,14 +22,6 @@
     </div>
 
     <template v-else-if="currentRule">
-      <!-- Read-only Notice -->
-      <div
-        class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-warning-light-9)] border border-[var(--el-color-warning-light-5)] rounded-lg text-sm text-[var(--el-color-warning)] mb-5"
-      >
-        <ArtSvgIcon icon="ri:lock-line" class="text-base" />
-        <span>{{ $t('rules.readonlyNotice') }}</span>
-      </div>
-
       <!-- Rule Detail Card -->
       <div class="art-card mb-5">
         <div class="p-5 border-b border-[var(--default-border)] flex items-center justify-between">
@@ -41,9 +33,26 @@
             <el-tag :type="currentRule.enabled ? 'success' : 'info'" size="default" effect="light">
               {{ currentRule.enabled ? $t('rules.enabled') : $t('rules.disabled') }}
             </el-tag>
+            <!-- built-in 提示仅内置规则显示 -->
             <el-tag v-if="currentRule.builtIn" type="warning" size="default" effect="plain">
               {{ $t('rules.builtIn') }}
             </el-tag>
+            <!-- 操作（原列表页按钮移入详情） -->
+            <el-button
+              v-if="currentRule.enabled"
+              size="small"
+              text
+              type="danger"
+              @click="handleToggleStatus(false)"
+            >
+              {{ $t('rules.cancel') }}
+            </el-button>
+            <el-button v-else size="small" text type="success" @click="handleToggleStatus(true)">
+              {{ $t('rules.recover') }}
+            </el-button>
+            <el-button size="small" text type="primary" @click="handleEdit">
+              {{ $t('rules.edit') }}
+            </el-button>
           </div>
         </div>
         <div class="p-5">
@@ -171,7 +180,8 @@
   import { computed, ref, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
-  import { fetchComplianceRuleDetail } from '@/api/compliance'
+  import { ElMessage } from 'element-plus'
+  import { fetchComplianceRuleDetail, updateComplianceRuleEnabled } from '@/api/compliance'
   import type { ComplianceRuleView } from '@/features/compliance/types'
   import {
     conditionDomainLabel,
@@ -209,6 +219,26 @@
     } finally {
       loading.value = false
     }
+  }
+
+  // ─── 操作（原列表页按钮，移入详情）───
+  /** 启用/停用：停用=Cancel，启用=Recover */
+  async function handleToggleStatus(enabled: boolean) {
+    const rule = currentRule.value
+    if (!rule) return
+    try {
+      await updateComplianceRuleEnabled(rule.id, { enabled })
+      rule.enabled = enabled
+      ElMessage.success(enabled ? t('rules.enabled') : t('rules.disabled'))
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : 'Failed to update')
+    }
+  }
+
+  /** 编辑：接口暂未开放，先提示开发中 */
+  function handleEdit() {
+    // TODO: 接口就绪后跳转 ComplianceRuleEditor
+    ElMessage.info(t('common.underDevelopment'))
   }
 
   // ─── 枚举展示统一走 dictionaries（此处仅绑定 t）───

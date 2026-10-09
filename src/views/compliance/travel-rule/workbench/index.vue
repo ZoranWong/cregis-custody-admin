@@ -88,13 +88,13 @@
           <div
             v-for="event in displayEvents"
             :key="event.id"
-            class="tx-card mb-4 last:mb-0 cursor-pointer"
+            class="tx-card mb-2.5 last:mb-0 cursor-pointer"
             @click="openDetail(event)"
           >
             <!-- Header: Amount + Meta -->
-            <div class="flex items-start justify-between gap-4 mb-3">
+            <div class="flex items-start justify-between gap-3 mb-2">
               <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center gap-2">
                   <ArtSvgIcon
                     :icon="
                       event.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'
@@ -104,11 +104,11 @@
                         ? 'text-[var(--el-color-primary)]'
                         : 'text-[var(--el-color-success)]'
                     "
-                    class="text-lg flex-shrink-0"
+                    class="text-base flex-shrink-0"
                   />
-                  <span class="text-lg font-semibold text-g-900">{{ event.amount }}</span>
+                  <span class="text-base font-semibold text-g-900">{{ event.amount }}</span>
                 </div>
-                <div class="flex items-center gap-2 text-xs">
+                <div class="flex items-center gap-2 text-xs mt-0.5">
                   <el-tooltip :content="event.transferId" placement="top">
                     <span class="text-g-500 font-mono truncate max-w-52">{{
                       event.transferId
@@ -119,45 +119,53 @@
                   <span class="text-g-600 truncate">{{ event.enterpriseName || '--' }}</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <el-tag :type="event.direction === 'outgoing' ? 'warning' : 'success'" size="small">
+              <!-- 三个 badge（对齐原型）：方向 + 通道 + 状态 -->
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <el-tag
+                  :type="event.direction === 'outgoing' ? 'warning' : 'success'"
+                  size="small"
+                  effect="light"
+                >
                   {{
                     event.direction === 'outgoing'
                       ? $t('travelRule.outgoing')
                       : $t('travelRule.incoming')
                   }}
                 </el-tag>
-                <el-tag :type="notificationTagType(event.status)" size="small">{{
-                  txStateLabel(NOTIFICATION_STATUS_DICT, event.status, t)
-                }}</el-tag>
+                <el-tag :type="channelTagType(event.status)" size="small" effect="light">
+                  {{
+                    isOffNetwork(event.status)
+                      ? $t('travelRule.chOffNetwork')
+                      : $t('travelRule.chNetwork')
+                  }}
+                </el-tag>
+                <el-tag :type="prototypeStateTagType(event.status)" size="small" effect="light">
+                  {{ prototypeStateLabel(event.status) }}
+                </el-tag>
               </div>
             </div>
 
-            <!-- Parties -->
-            <div class="flex items-stretch gap-3 mb-3">
+            <!-- Parties（三行结构，与 tx-lens / alerts 一致） -->
+            <div class="flex items-stretch gap-2 mb-2">
               <div
-                class="flex-1 min-w-0 rounded-lg p-3"
+                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
                 :class="
                   event.direction === 'outgoing'
                     ? 'bg-[var(--el-color-primary-light-9)]'
                     : 'bg-[var(--el-color-success-light-9)]'
                 "
               >
-                <div class="text-xs text-g-600 mb-1.5 font-medium">
+                <div class="text-[10px] text-g-500 font-medium">
                   {{ partyLabel(event.direction, 'originator') }}
                 </div>
-                <div class="text-sm font-semibold text-g-900 truncate">{{
+                <div class="text-xs font-semibold text-g-900 truncate">{{
                   event.originator.name
                 }}</div>
-                <div class="text-xs text-g-600 mt-1 truncate">
-                  {{ event.originator.country
-                  }}{{ event.originator.townName ? ' · ' + event.originator.townName : '' }}
-                </div>
-                <div class="text-xs text-g-500 font-mono truncate mt-0.5">
+                <div class="text-[10px] text-g-600 font-mono truncate">
                   {{ event.originator.address }}
                 </div>
               </div>
-              <div class="flex items-center px-1">
+              <div class="flex items-center">
                 <ArtSvgIcon
                   icon="ri:arrow-right-long-line"
                   :class="
@@ -165,41 +173,46 @@
                       ? 'text-[var(--el-color-primary)]'
                       : 'text-[var(--el-color-success)]'
                   "
-                  class="text-2xl"
+                  class="text-lg"
                 />
               </div>
               <div
-                class="flex-1 min-w-0 rounded-lg p-3"
+                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
                 :class="
                   event.direction === 'outgoing'
                     ? 'bg-[var(--el-color-success-light-9)]'
                     : 'bg-[var(--el-color-primary-light-9)]'
                 "
               >
-                <div class="text-xs text-g-600 mb-1.5 font-medium">
+                <div class="text-[10px] text-g-500 font-medium">
                   {{ partyLabel(event.direction, 'beneficiary') }}
                 </div>
-                <div class="text-sm font-semibold text-g-900 truncate">
+                <div class="text-xs font-semibold text-g-900 truncate">
                   {{ event.beneficiary.name }}
                 </div>
-                <div class="text-xs text-g-600 mt-1 truncate">
-                  {{ event.beneficiary.country
-                  }}{{ event.beneficiary.townName ? ' · ' + event.beneficiary.townName : '' }}
-                </div>
-                <div class="text-xs text-g-500 font-mono truncate mt-0.5">
+                <div class="text-[10px] text-g-600 font-mono truncate">
                   {{ event.beneficiary.address }}
                 </div>
               </div>
             </div>
 
-            <!-- Footer: Status text + View Trace -->
+            <!-- Footer: 状态描述 + View Trace（对齐原型 .tr-status-text） -->
             <div
-              class="flex items-center justify-between pt-2.5 border-t border-[var(--default-border)]"
+              class="flex items-center justify-between gap-3 pt-2.5 border-t border-[var(--default-border)]"
             >
-              <div class="text-[11px] font-medium" :style="toneTextStyle(toneOf(event.status))">
-                {{ $t('travelRule.notabeneTxId') }}: {{ event.notabeneTxId || '--' }}
+              <div
+                class="text-[11px] font-medium truncate"
+                :style="toneTextStyle(toneOf(event.status))"
+              >
+                {{ statusDescription(event.status) }}
               </div>
-              <el-button size="small" type="primary" plain @click.stop="openDetail(event)">
+              <el-button
+                size="small"
+                type="primary"
+                plain
+                class="flex-shrink-0"
+                @click.stop="openDetail(event)"
+              >
                 {{ $t('travelRule.viewTrace') }} →
               </el-button>
             </div>
@@ -238,13 +251,7 @@
   import { fetchMerchantList } from '@/api/merchant'
   import { useCoinStore } from '@/store/modules/coins'
   import type { InboundNotificationItem } from '@/features/compliance/types'
-  import {
-    NOTIFICATION_STATUS_DICT,
-    notificationTagType,
-    toneOf,
-    toneTextStyle,
-    txStateLabel
-  } from '@/features/compliance/txState'
+  import { NOTIFICATION_STATUS_DICT, toneOf, toneTextStyle } from '@/features/compliance/txState'
   import { parseIvms101Party } from '@/features/compliance/ivms101'
   import { formatCoinBalance, formatTime } from '@/utils/format'
 
@@ -270,8 +277,6 @@
   // ─── 展示对象（保留原卡片结构所需字段）───
   interface DisplayParty {
     name: string
-    country: string
-    townName: string
     /** 链上地址（PII 账户号缺失时回退 DID，仍无则用链上来源/结算地址） */
     address: string
   }
@@ -299,8 +304,6 @@
     const chainAddress = side === 'originator' ? n.sourceAddress : n.settlementAddress
     return {
       name: pii?.name || shortDid(did) || '--',
-      country: pii?.country || '--',
-      townName: pii?.townName || '',
       address: pii?.accountNumber || chainAddress || '--'
     }
   }
@@ -340,6 +343,76 @@
       return outgoing ? t('alerts.originatorOurCustomer') : t('alerts.originatorCounterparty')
     }
     return outgoing ? t('alerts.beneficiaryCounterparty') : t('alerts.beneficiaryOurCustomer')
+  }
+
+  // ─── 三个 badge 的映射（对齐原型 direction / channel / state）───
+
+  /** 后端状态 → 原型 state 分组：waiting / approved / rejected / settled / failed */
+  function prototypeStateKey(status: string): string {
+    switch (status) {
+      case 'CREATED':
+      case 'PII_APPENDED':
+      case 'UNMATCHED':
+        return 'waiting'
+      case 'AUTHORIZED':
+      case 'ACCEPTED':
+      case 'SETTLING':
+        return 'approved'
+      case 'REJECTED':
+        return 'rejected'
+      case 'SETTLED':
+        return 'settled'
+      case 'REVERTED':
+        return 'failed'
+      default:
+        return 'waiting'
+    }
+  }
+
+  /** 通道：对手方不在 Travel Rule 网络（UNMATCHED）视为 Off-Network */
+  function isOffNetwork(status: string): boolean {
+    return status === 'UNMATCHED'
+  }
+
+  /** 原型 state badge 文案 */
+  function prototypeStateLabel(status: string): string {
+    const map: Record<string, string> = {
+      waiting: t('travelRule.stWaiting'),
+      approved: t('travelRule.stApproved'),
+      rejected: t('travelRule.stRejected'),
+      settled: t('travelRule.stSettled'),
+      failed: t('travelRule.stFailed')
+    }
+    return map[prototypeStateKey(status)]
+  }
+
+  /** 原型 state badge 配色：waiting=琥珀 / approved·settled=绿 / rejected·failed=红 */
+  function prototypeStateTagType(status: string): 'warning' | 'success' | 'danger' {
+    const key = prototypeStateKey(status)
+    if (key === 'approved' || key === 'settled') return 'success'
+    if (key === 'rejected' || key === 'failed') return 'danger'
+    return 'warning'
+  }
+
+  /** 通道 badge 配色：Network=靛蓝 / Off-Network=紫 */
+  function channelTagType(status: string): 'primary' | 'info' {
+    return isOffNetwork(status) ? 'info' : 'primary'
+  }
+
+  /** 状态 → 描述文案（对齐原型 .tr-status-text，取代原 Notabene Tx ID 展示） */
+  function statusDescription(status: string): string {
+    const map: Record<string, string> = {
+      CREATED: 'travelRule.descCreated',
+      PII_APPENDED: 'travelRule.descPiiAppended',
+      UNMATCHED: 'travelRule.descUnmatched',
+      AUTHORIZED: 'travelRule.descAuthorized',
+      ACCEPTED: 'travelRule.descAccepted',
+      REJECTED: 'travelRule.descRejected',
+      SETTLING: 'travelRule.descSettling',
+      SETTLED: 'travelRule.descSettled',
+      REVERTED: 'travelRule.descReverted'
+    }
+    return map[status] ? t(map[status]) : status || '--'
   }
 
   // ─── 数据加载 ───

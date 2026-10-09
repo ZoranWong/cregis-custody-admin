@@ -92,7 +92,7 @@
           </div>
         </div>
 
-        <!-- Review Result（可切换设置，当前接口只读——点击切换时提示开发中） -->
+        <!-- Review Result（前端固定 none：接口实现有误，暂不取接口值；点击提示开发中） -->
         <div class="mt-4 pt-4 border-t border-[var(--default-border)]">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-g-500 uppercase tracking-wider">{{
@@ -102,9 +102,9 @@
               <el-tag
                 v-for="opt in reviewResultOptions"
                 :key="opt.value"
-                :type="overview.reviewResult === opt.value ? opt.tagType : 'info'"
+                :type="reviewResult === opt.value ? opt.tagType : 'info'"
                 size="small"
-                :effect="overview.reviewResult === opt.value ? 'dark' : 'plain'"
+                :effect="reviewResult === opt.value ? 'dark' : 'plain'"
                 class="cursor-pointer"
                 @click="handleReviewResultClick"
               >
@@ -137,7 +137,8 @@
         <StepCompliance
           :data="complianceData"
           :direction="overview.direction"
-          :acting="acting"
+          :approving="approving"
+          :rejecting="rejecting"
           @approve="handleApprove"
           @reject="handleReject"
         />
@@ -146,7 +147,6 @@
         <StepTravelRule
           :data="travelRuleData"
           :direction="overview.direction"
-          :ivms101Status="complianceData?.travelRuleSummary?.ivms101Status"
           :orderId="overview.orderId"
           @reviewed="loadDetail"
         />
@@ -237,7 +237,8 @@
 
   // 初始步骤从 URL query 读取，默认为 'compliance'
   const activeStep = ref((route.query.step as string) || 'compliance')
-  const acting = ref(false)
+  const approving = ref(false)
+  const rejecting = ref(false)
 
   // ─── 金额/法币 ───
   const amountDisplay = computed(() => {
@@ -279,7 +280,11 @@
     return outgoing ? t('txLens.detail.beneficiaryCounterparty') : 'Beneficiary (Our Customer)'
   })
 
-  // Review Result：多 tag 可切换设置（当前值高亮），接口就绪前点击提示开发中
+  // Review Result：多 tag 可切换设置（当前值高亮）。
+  // 固定为 none —— 接口当前的 reviewResult 实现有误，暂不取用；
+  // 后端修复后改为 `ref(overview.value?.reviewResult || 'none')` 即可。
+  const reviewResult = ref('none')
+
   const reviewResultOptions = computed(() => [
     { value: 'none', label: t('txLens.rrNone'), tagType: 'info' as const },
     { value: 'tp', label: t('txLens.truePositive'), tagType: 'success' as const },
@@ -406,9 +411,9 @@
     }
   }
 
-  // ─── 放行/拒绝 ───
+  // ─── 放行/拒绝（各自独立 loading，互不影响）───
   async function handleApprove() {
-    acting.value = true
+    approving.value = true
     try {
       await approveTransaction(orderId)
       ElMessage.success(t('txLens.detail.approve') + ' OK')
@@ -416,12 +421,12 @@
     } catch (err) {
       ElMessage.error(err instanceof Error ? err.message : 'Failed to approve')
     } finally {
-      acting.value = false
+      approving.value = false
     }
   }
 
   async function handleReject() {
-    acting.value = true
+    rejecting.value = true
     try {
       await rejectTransaction(orderId)
       ElMessage.success(t('txLens.detail.reject') + ' OK')
@@ -429,7 +434,7 @@
     } catch (err) {
       ElMessage.error(err instanceof Error ? err.message : 'Failed to reject')
     } finally {
-      acting.value = false
+      rejecting.value = false
     }
   }
 

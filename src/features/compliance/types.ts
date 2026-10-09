@@ -401,6 +401,8 @@ export interface TransactionLensQuery {
   onchain?: string
   settlement?: string
   outcome?: string
+  /** 人工复核结果：none / tp / fp / fn */
+  reviewResult?: string
   merchantEcode?: string
   dateFrom?: string
   dateTo?: string
@@ -453,24 +455,18 @@ export interface CheckItemView {
   available?: boolean
 }
 
-/** 实体筛查项（对手方主体；结果由 Notabene VASP 目录属性推断，非名单命中） */
-export interface EntityScreeningItemView {
-  /** COUNTERPARTY-对手方 */
-  partyType: string
-  /** 对手方名称（无 PII 时回退地址） */
-  subject: string
-  addresses?: string[]
-  /** CLEAR-目录 regulated / REVIEW-unregulated / UNKNOWN-无 TR 记录 */
+/** 实体筛查的单个主体结果（VASP / Beneficiary 各一条） */
+export interface EntityScreeningPartyView {
+  /** 主体名：VASP 机构名 / 对手方名称；无数据为 null */
+  subject: string | null
+  /** CLEAR / NA / REVIEW / HIT / UNKNOWN */
   result: string
-  /** 是否需人工复核（result=REVIEW 时为 true） */
-  hit?: boolean
-  vaspName?: string | null
-  vaspJurisdiction?: string | null
-  /** regulated / unregulated */
-  vaspRegulatory?: string | null
-  /** yes / no */
-  trCapable?: string | null
-  unavailableFields?: string[]
+}
+
+/** 实体筛查：VASP 与 Beneficiary 两个固定主体（对齐原型两行布局） */
+export interface EntityScreeningView {
+  vasp: EntityScreeningPartyView
+  beneficiary: EntityScreeningPartyView
 }
 
 /**
@@ -496,14 +492,35 @@ export interface OnchainScreeningItemView {
 }
 
 export interface ScreeningView {
-  entity: EntityScreeningItemView[]
+  /** 实体筛查：VASP / Beneficiary 两主体 */
+  entity: EntityScreeningView | null
   onchain: OnchainScreeningItemView[]
 }
 
 export interface TravelRuleSummaryView {
   status: string
   vaspDid: string | null
-  ivms101Status: string
+  ivms101Status: string | null
+  /** IVMS101 PII 校验是否通过（新版接口字段，取代 ivms101Status） */
+  ivms101Valid?: boolean | null
+  /** IVMS101 缺失字段列表 */
+  ivms101MissingFields?: string[]
+  /** IVMS101 原始 PII（originator / beneficiary） */
+  ivms101Pii?: Record<string, unknown> | null
+  /** IVMS101 缺失字段数；无校验记录时为空 */
+  ivms101MissingFieldCount?: number | null
+  /** 对手方客户/实体名（来自 IVMS101，非 VASP 机构名） */
+  counterpartyName?: string | null
+  /** 对手方 VASP 机构名（来自 Notabene） */
+  vaspName?: string | null
+  /** 对手方 VASP 属地 */
+  vaspJurisdiction?: string | null
+  /** 监管状态：regulated / unregulated */
+  vaspRegulatory?: string | null
+  /** 对手方是否具备 Travel Rule 能力：yes / no */
+  trCapable?: string | null
+  /** 无数据支撑的字段名列表 */
+  unavailableFields?: string[]
 }
 
 export interface CommunicationRoundView {
@@ -538,11 +555,21 @@ export interface ComplianceTabView {
   timeline: TimelineNodeView[]
 }
 
+/**
+ * 对手方 VASP 身份（/compliance/transactions/{id}/travel-rule 实测结构）
+ * 字段与原型 VASP Identity 区一一对应。
+ */
 export interface VaspIdentityView {
-  name: string
-  originatorDid: string
-  beneficiaryDid: string
-  status: string
+  /** 机构名（Notabene 目录，可能为 null） */
+  name: string | null
+  /** 属地 */
+  jurisdiction: string | null
+  /** 监管状态：regulated / unregulated */
+  regulatoryStatus: string | null
+  /** 是否具备 Travel Rule 能力：yes / no */
+  trCapable: string | null
+  /** VASP DID */
+  did: string | null
 }
 
 export interface TravelRuleTabView {
@@ -551,6 +578,10 @@ export interface TravelRuleTabView {
   status: string | null
   vaspIdentity: VaspIdentityView | null
   ivms101Status: string | null
+  /** IVMS101 校验是否通过（新版字段，取代 ivms101Status） */
+  ivms101Valid?: boolean | null
+  /** 缺失字段名列表 */
+  ivms101MissingFields?: string[]
   ivms101Pii: Record<string, unknown> | null
   networkTrace: TimelineNodeView[] | null
   manualTrace: TimelineNodeView[] | null
@@ -699,6 +730,8 @@ export interface ComplianceAlertItem {
   dispositionStatus: string
   merchantEcode: string
   riskScore: number | null
+  /** 命中规则的最高严重级别（接口直接返回，无需前端计算） */
+  maxSeverity: string | null
   /** 命中规则明细，列表接口可能为 null */
   ruleHits: AlertRuleHitView[] | null
   originator: TransactionPartyView | null

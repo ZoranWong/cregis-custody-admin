@@ -381,7 +381,15 @@
       "levelLow": "Low",
       "levelMedium": "Medium",
       "levelHigh": "High",
-      "levelSevere": "Severe"
+      "levelSevere": "Severe",
+      "vaspJurisdiction": "Jurisdiction",
+      "vaspRegulatory": "Regulatory Status",
+      "trCapableLabel": "TR Capable",
+      "regulated": "Regulated",
+      "unregulated": "Unregulated",
+      "entityVasp": "VASP",
+      "entityBeneficiary": "Beneficiary",
+      "missingFields": "Missing Fields"
     },
     "soRejected": "Rejected",
     "stageNoTravelRule": "No Travel Rule",
@@ -443,7 +451,7 @@
     "decisionHold": "Hold",
     "decisionAutoReject": "Auto Reject",
     "decisionApprove": "Approve",
-    "dispositionPending": "Pending",
+    "dispositionPending": "Pending Review",
     "dispositionDisposed": "Disposed",
     "bizTypeInbound": "Inbound Order",
     "bizTypeOutbound": "Outbound Order",
@@ -470,9 +478,10 @@
     "conclusionPass": "Pass",
     "conclusionHold": "Hold",
     "conclusionBlock": "Block",
-    "dispositionApproved": "Approved",
-    "dispositionRejected": "Rejected",
-    "rrTrueNegative": "True Negative"
+    "rrTrueNegative": "True Negative",
+    "dispositionCleared": "Cleared",
+    "dispositionDeclined": "Declined",
+    "dispositionBlocked": "Blocked"
   },
   "rules": {
     "title": "Compliance Rules",
@@ -1611,7 +1620,16 @@
     "rejectComment": "Comment",
     "confirmAccept": "Accept this inbound notification? This will trigger Notabene-side authorization.",
     "confirmReject": "Reject this inbound notification? This will trigger Notabene-side rejection.",
-    "piiNationalId": "National ID"
+    "piiNationalId": "National ID",
+    "descCreated": "Travel Rule message created — awaiting PII",
+    "descPiiAppended": "PII appended — awaiting counterparty response",
+    "descUnmatched": "Counterparty not on Travel Rule network — share link generated, awaiting response",
+    "descAuthorized": "Counterparty authorized — PII exchange complete",
+    "descAccepted": "Counterparty accepted — PII exchange complete",
+    "descRejected": "Counterparty rejected the transfer",
+    "descSettling": "On-chain settlement in progress",
+    "descSettled": "On-chain transfer confirmed — settled",
+    "descReverted": "Transfer reverted"
   },
   "notifications": {
     "title": "Message Notifications",
