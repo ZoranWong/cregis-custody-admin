@@ -53,7 +53,14 @@
   import { useSettingStore } from '@/store/modules/setting'
 
   type ThemeType =
-    'theme' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | 'danger'
+    | 'theme'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'info'
+    | 'success'
+    | 'warning'
+    | 'danger'
 
   /**
    * 文本滚动组件属性接口
@@ -133,13 +140,13 @@
   // 主题样式映射
   const themeClasses = computed(() => {
     const themeMap: Record<ThemeType, string> = {
-      theme: 'text-theme/90 !border-theme/50',
+      theme: 'text-theme-text/90 !border-theme/50',
       primary: 'text-primary/90 !border-primary/50',
       secondary: 'text-secondary/90 !border-secondary/50',
       error: 'text-error/90 !border-error/50',
       info: 'text-info/90 !border-info/50',
       success: 'text-success/90 !border-success/50',
-      warning: 'text-warning/90 !border-warning/50',
+      warning: 'text-tone-progress-text !border-warning/50',
       danger: 'text-danger/90 !border-danger/50'
     }
     return themeMap[props.type] || themeMap.theme

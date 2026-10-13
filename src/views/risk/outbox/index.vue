@@ -7,7 +7,7 @@
     </div>
 
     <!-- Filter bar -->
-    <div class="art-card art-table-card overflow-hidden mb-5">
+    <div class="art-card art-table-card overflow-hidden mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <el-select
@@ -75,7 +75,7 @@
       </template>
       <template v-else-if="errorMessage">
         <div class="p-10 text-center">
-          <p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p>
+          <p class="text-tone-error-text mb-4">{{ errorMessage }}</p>
           <ElButton type="primary" @click="load">{{ $t('console.refresh') }}</ElButton>
         </div>
       </template>
@@ -88,6 +88,9 @@
         style="cursor: pointer"
         @row-click="(row: any) => openNotification(row.notificationId)"
       >
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column :label="$t('risk.type')" min-width="180">
           <template #default="{ row }"
             ><span class="text-sm font-medium text-g-900">{{ row.type }}</span

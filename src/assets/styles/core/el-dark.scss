@@ -1,2 +1,38 @@
 // 导入暗黑主题
 @use 'element-plus/theme-chalk/src/dark/css-vars.scss' as *;
+
+/*
+ * ==================== 语义色浅色阶在暗色下的重定义 ====================
+ *
+ * EP 的 --el-color-{success,warning,danger,info}-light-N 是**静态**色阶
+ * （在亮色下向白混合得到），暗色模式不会翻转 —— 于是 bg-*-light-9 这类
+ * 浅色块在深底上仍是一块亮底，与周围格格不入（白色残底）。
+ *
+ * --el-color-primary-light-N 不在此列：它由 JS（useTheme / colors.ts）
+ * 按当前模式重算，无需处理。
+ *
+ * 这里只在暗色下重定义，**亮色模式完全不受影响**。
+ * 做法与项目既有的 --tone-*-bg 一致：深底上用低透明度色晕代替浅色实底，
+ * 既能表达语义，又不会留下亮色块。
+ *
+ * 选择器用 html.dark 而非 .dark：EP 自身正是用 html.dark（特异性 0,1,1）
+ * 定义这些变量，写成 .dark（0,1,0）会被它压过。同特异性下由加载顺序决定，
+ * 而本文件在 EP 的 css-vars 之后 @use，故生效。
+ */
+html.dark {
+  // 浅底（light-9）：低透明度色晕
+  --el-color-success-light-9: rgb(34 197 94 / 14%);
+  --el-color-warning-light-9: rgb(245 158 11 / 14%);
+  --el-color-danger-light-9: rgb(239 68 68 / 14%);
+  --el-color-info-light-9: rgb(148 163 184 / 14%);
+
+  // 浅边（light-5 / light-8）：深底上需要更实的描边才看得见
+  --el-color-success-light-5: rgb(34 197 94 / 40%);
+  --el-color-success-light-8: rgb(34 197 94 / 28%);
+  --el-color-warning-light-5: rgb(245 158 11 / 40%);
+  --el-color-warning-light-8: rgb(245 158 11 / 28%);
+  --el-color-danger-light-5: rgb(239 68 68 / 40%);
+  --el-color-danger-light-8: rgb(239 68 68 / 28%);
+  --el-color-info-light-5: rgb(148 163 184 / 40%);
+  --el-color-info-light-8: rgb(148 163 184 / 28%);
+}

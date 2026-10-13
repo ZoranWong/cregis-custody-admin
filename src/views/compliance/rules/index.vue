@@ -3,15 +3,15 @@
   <div class="page-content rules-page">
     <!-- ═══ Page Header ═══ -->
     <div class="mb-5">
-      <h1 class="text-xl font-semibold text-g-900">{{ $t('rules.title') }}</h1>
-      <p class="text-sm text-g-500 mt-1">{{ $t('rules.subtitle') }}</p>
+      <h1 class="text-hero font-semibold text-g-900">{{ $t('rules.title') }}</h1>
+      <p class="text-sm text-g-700 mt-1">{{ $t('rules.subtitle') }}</p>
     </div>
 
     <!-- ═══ Filter Bar ═══ -->
-    <div class="art-card mb-5 p-4">
+    <div class="art-card mb-4 p-4">
       <div class="flex flex-wrap items-center gap-6">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('rules.severity') }}:</span>
+          <span class="text-xs font-medium text-g-700">{{ $t('rules.severity') }}:</span>
           <div class="flex gap-1">
             <button
               v-for="opt in severityOptions"
@@ -25,7 +25,7 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-g-600">{{ $t('rules.scope') }}:</span>
+          <span class="text-xs font-medium text-g-700">{{ $t('rules.scope') }}:</span>
           <div class="flex gap-1">
             <button
               v-for="opt in scopeOptions"
@@ -55,11 +55,11 @@
         <el-skeleton :rows="6" animated />
       </div>
       <div v-else-if="errorMessage" class="art-card p-10 text-center">
-        <p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p>
+        <p class="text-tone-error-text mb-4">{{ errorMessage }}</p>
         <el-button type="primary" @click="loadRules">{{ $t('console.refresh') }}</el-button>
       </div>
       <div v-else-if="filteredRules.length === 0" class="art-card p-10 text-center">
-        <p class="text-g-500 mb-4">{{ $t('rules.noRiskFactors') }}</p>
+        <p class="text-g-700 mb-4">{{ $t('rules.noRiskFactors') }}</p>
         <el-button type="primary" @click="openAddRule">{{ $t('rules.addRule') }}</el-button>
       </div>
 
@@ -72,13 +72,13 @@
       >
         <div class="flex items-center gap-2.5 mb-1">
           <span
-            class="w-6 h-6 rounded-full bg-g-100 text-g-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0"
+            class="w-6 h-6 rounded-full bg-g-100 text-g-700 text-label font-semibold flex items-center justify-center flex-shrink-0"
           >
             {{ stepIdx + 1 }}
           </span>
-          <span class="text-[15px] font-semibold text-g-900">{{ stageLabelOf(step.name) }}</span>
+          <span class="text-title font-semibold text-g-900">{{ stageLabelOf(step.name) }}</span>
         </div>
-        <div class="text-xs text-g-500 mb-4 ml-[34px]">{{ stepDescription(step.name) }}</div>
+        <div class="text-xs text-g-700 mb-4 ml-[34px]">{{ stepDescription(step.name) }}</div>
 
         <!-- Rule Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-stretch">
@@ -88,6 +88,10 @@
             class="art-card rule-card-hover p-4 cursor-pointer flex flex-col"
             :class="{ 'opacity-60 bg-g-50': !rule.enabled }"
             @click="goDetail(rule.id)"
+            role="button"
+            tabindex="0"
+            @keydown.enter.prevent="goDetail(rule.id)"
+            @keydown.space.prevent="goDetail(rule.id)"
           >
             <!-- 上部自适应 -->
             <div class="flex-1">
@@ -97,11 +101,11 @@
                     <span class="text-sm font-semibold text-g-900 truncate">{{
                       rule.ruleName
                     }}</span>
-                    <el-tag v-if="rule.builtIn" type="info" size="small" effect="plain">
+                    <el-tag v-if="rule.builtIn" type="info" size="small" effect="light">
                       {{ $t('rules.builtIn') }}
                     </el-tag>
                   </div>
-                  <div class="text-[11px] text-g-400 font-mono mt-0.5 truncate">{{
+                  <div class="text-label text-tone-muted-text font-mono mt-0.5 truncate">{{
                     rule.ruleCode
                   }}</div>
                 </div>
@@ -112,28 +116,28 @@
                 </div>
               </div>
 
-              <p class="text-xs text-g-600 leading-relaxed mb-3 line-clamp-2">{{
+              <p class="text-xs text-g-700 leading-relaxed mb-3 line-clamp-2">{{
                 rule.description
               }}</p>
 
               <div class="flex flex-wrap gap-1.5 mb-3">
-                <el-tag :type="directionTag(rule.direction)" size="small" effect="plain">
+                <el-tag :type="directionTag(rule.direction)" size="small" effect="light">
                   {{ directionLabelOf(rule.direction) }}
                 </el-tag>
-                <el-tag size="small" effect="plain">
+                <el-tag size="small" effect="light">
                   {{ scopeLabelOf(rule.scopeType)
                   }}{{ rule.scopeValue ? `: ${rule.scopeValue}` : '' }}
                 </el-tag>
               </div>
 
-              <div class="flex gap-3 text-[11px] text-g-400">
+              <div class="flex gap-3 text-label text-tone-muted-text">
                 <span
                   >{{ $t('rules.decision') }}:
-                  <span class="text-g-600">{{ decisionLabelOf(rule.decision) }}</span></span
+                  <span class="text-g-700">{{ decisionLabelOf(rule.decision) }}</span></span
                 >
                 <span
                   >{{ $t('rules.minAmountUsd') }}:
-                  <span class="text-g-600">{{ minAmountDisplay(rule.minAmountUsd) }}</span></span
+                  <span class="text-g-700">{{ minAmountDisplay(rule.minAmountUsd) }}</span></span
                 >
               </div>
             </div>
@@ -144,7 +148,7 @@
 
         <!-- Add Rule per step -->
         <button
-          class="w-full mt-3 py-2.5 border border-dashed border-g-300 rounded-lg text-sm font-medium text-g-500 hover:border-primary hover:bg-primary-50 hover:text-primary transition-all"
+          class="w-full mt-3 py-2.5 border border-dashed border-g-300 rounded-lg text-sm font-medium text-g-700 hover:border-primary hover:bg-primary-50 hover:text-tone-info-text transition-all"
           @click="openAddRule(step.name)"
         >
           + {{ $t('rules.addRule') }}
@@ -155,7 +159,7 @@
     <!-- ═══ Pagination（固定底部）═══ -->
     <div
       v-if="pagination.total > 0"
-      class="flex justify-end items-center px-5 py-3 border-t border-[var(--default-border)] shrink-0"
+      class="flex justify-end items-center px-4 py-3 border-t border-[var(--default-border)] shrink-0"
     >
       <el-pagination
         v-model:current-page="filterPage"
@@ -363,11 +367,11 @@
   .filter-btn {
     padding: 4px 10px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: var(--font-size-label);
     font-weight: 500;
     color: var(--el-text-color-secondary);
     cursor: pointer;
-    background: #fff;
+    background: var(--default-box-color);
     border: 1px solid var(--default-border);
     border-radius: 5px;
     transition: all 0.15s;
@@ -379,9 +383,15 @@
   }
 
   .filter-btn.active {
-    color: var(--el-color-primary);
+    color: var(--theme-text);
     background: var(--el-color-primary-light-9);
     border-color: var(--el-color-primary-light-5);
+  }
+
+  .rule-card-hover:focus-visible,
+  .summary-filter-card:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
   }
 
   .rule-card-hover {
@@ -390,7 +400,7 @@
 
   .rule-card-hover:hover {
     border-color: var(--el-border-color);
-    box-shadow: 0 1px 3px rgb(0 0 0 / 4%);
+    box-shadow: var(--art-shadow-subtle);
   }
 
   .line-clamp-2 {

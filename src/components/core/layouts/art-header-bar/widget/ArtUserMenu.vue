@@ -80,15 +80,20 @@
   const { getUserInfo: userInfo } = storeToRefs(userStore)
   const userMenuPopover = ref()
 
+  /*
+   * 头像底色。用于白字首字母，因此每色都需满足白字 ≥4.5:1（WCAG AA）。
+   * 原先取的是 600 档，其中 cyan(3.68) / emerald(3.77) / amber(3.19) 三色不达标；
+   * 统一下沉到 700 档后 8 色全部 ≥5.0:1。
+   */
   const AVATAR_COLORS = [
-    '#4f46e5',
-    '#0891b2',
-    '#059669',
-    '#d97706',
-    '#dc2626',
-    '#7c3aed',
-    '#db2777',
-    '#2563eb'
+    '#4338ca', // indigo-700  7.90:1
+    '#0e7490', // cyan-700    5.36:1
+    '#047857', // emerald-700 5.48:1
+    '#b45309', // amber-700   5.02:1
+    '#b91c1c', // red-700     6.47:1
+    '#6d28d9', // violet-700  7.10:1
+    '#be185d', // pink-700    6.04:1
+    '#1d4ed8' // blue-700    6.70:1
   ]
 
   const avatarColor = computed(() => {

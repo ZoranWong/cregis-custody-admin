@@ -5,7 +5,7 @@
     <template v-if="loading && !caseSummary">
       <ElRow :gutter="20" class="flex">
         <ElCol v-for="i in 4" :key="i" :sm="12" :md="6">
-          <div class="art-card h-32 mb-5 flex flex-col justify-center px-5">
+          <div class="art-card h-32 mb-4 flex flex-col justify-center px-5">
             <el-skeleton :rows="3" animated />
           </div>
         </ElCol>
@@ -14,9 +14,9 @@
     <template v-else>
       <ElRow :gutter="20" class="flex">
         <ElCol v-for="card in summaryCards" :key="card.key" :sm="12" :md="6">
-          <div class="art-card relative flex flex-col justify-center h-32 px-5 mb-5 max-sm:mb-4">
+          <div class="art-card relative flex flex-col justify-center h-32 px-5 mb-4">
             <span class="text-g-600 text-xs">{{ $t(card.labelKey) }}</span>
-            <span class="text-[24px] font-medium mt-1 text-g-900">{{ card.value }}</span>
+            <span class="text-display font-semibold mt-1 text-g-900">{{ card.value }}</span>
             <div class="flex gap-3 mt-2" v-if="card.stats">
               <span v-for="s in card.stats" :key="s.label" class="text-xs text-g-500"
                 >{{ s.label }}: <b class="text-g-700">{{ s.value }}</b></span
@@ -28,7 +28,7 @@
     </template>
 
     <!-- ═══ Filter + 表格 ═══ -->
-    <div class="art-card art-table-card mb-5 overflow-hidden">
+    <div class="art-card art-table-card mb-4 overflow-hidden">
       <!-- Filter 栏 -->
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
@@ -115,6 +115,9 @@
         style="cursor: pointer"
         @row-click="openDetail"
       >
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column prop="submittedAt" :label="$t('kyb.submitted')" width="160">
           <template #default="{ row }">{{ formatTime(row.submittedAt) }}</template>
         </el-table-column>

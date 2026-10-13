@@ -6,7 +6,7 @@
       <ElButton @click="load">{{ $t('console.refresh') }}</ElButton>
     </div>
 
-    <div class="art-card art-table-card overflow-hidden mb-5">
+    <div class="art-card art-table-card overflow-hidden mb-4">
       <template v-if="loading"><el-skeleton :rows="10" animated class="p-5" /></template>
       <el-table v-else :data="reports" stripe size="small">
         <template #empty

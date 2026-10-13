@@ -374,7 +374,11 @@ export default class WebSocketClient {
   // 清除指定定时器
   private clearTimer(
     timerName:
-      'detectionTimer' | 'timeoutTimer' | 'reconnectTimer' | 'pingTimer' | 'connectionTimer'
+      | 'detectionTimer'
+      | 'timeoutTimer'
+      | 'reconnectTimer'
+      | 'pingTimer'
+      | 'connectionTimer'
   ): void {
     if (this[timerName]) {
       clearTimeout(this[timerName] as NodeJS.Timeout)

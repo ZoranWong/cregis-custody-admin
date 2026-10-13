@@ -2,8 +2,8 @@
 <template>
   <div class="page-content">
     <template v-if="loading">
-      <div class="art-card p-5 mb-5"><el-skeleton :rows="3" animated /></div>
-      <div class="art-card h-64 p-5 mb-5"><el-skeleton :rows="6" animated /></div>
+      <div class="art-card p-5 mb-4"><el-skeleton :rows="3" animated /></div>
+      <div class="art-card h-64 p-5 mb-4"><el-skeleton :rows="6" animated /></div>
     </template>
 
     <template v-else-if="detail">
@@ -36,7 +36,7 @@
               </span>
             </div>
           </div>
-          <ElButton @click="backToList">{{ $t('merchantDetail.backToList') }}</ElButton>
+          <ArtBackButton :to="'ComplianceMerchants'" />
         </div>
       </div>
 
@@ -70,21 +70,23 @@
           </div>
         </div>
 
-        <!-- Current Step: Qualification Screening (3-page questionnaire) -->
+        <!-- Current Step：筛查未过 = 资格筛查问卷；已过 = 身份验证（等 KYB） -->
         <div class="art-card overflow-hidden">
           <div
             class="p-4 border-b border-[var(--default-border)] flex items-center justify-between"
           >
             <h2 class="text-sm font-semibold text-g-900">
-              {{ $t('merchantDetail.qualificationScreening') }}
+              {{ currentStepTitle }}
             </h2>
-            <span class="status-badge in-review">{{ currentStepBadge }}</span>
+            <span class="status-badge" :class="currentStepBadgeClass">{{ currentStepBadge }}</span>
           </div>
-          <div class="p-5">
+
+          <!-- ── 当前步骤：继续显示资格筛查问卷（预审进行中 / 已拒绝）── -->
+          <div v-if="!screeningPassed" class="p-5">
             <!-- Page 1: Business Entity + Structure -->
             <div v-show="screeningPage === 1" class="flex flex-col gap-6">
               <div>
-                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                <div class="text-body-lg font-semibold text-g-700 mb-3">
                   {{ $t('merchantDetail.bizEntityInfo') }}
                 </div>
                 <div class="screening-grid">
@@ -95,7 +97,7 @@
                 </div>
               </div>
               <div>
-                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                <div class="text-body-lg font-semibold text-g-700 mb-3">
                   {{ $t('merchantDetail.bizStructure') }}
                 </div>
                 <div class="screening-grid">
@@ -110,7 +112,7 @@
             <!-- Page 2: Business Activities + Ownership -->
             <div v-show="screeningPage === 2" class="flex flex-col gap-6">
               <div>
-                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                <div class="text-body-lg font-semibold text-g-700 mb-3">
                   {{ $t('merchantDetail.bizActivities') }}
                 </div>
                 <div class="screening-grid">
@@ -128,7 +130,7 @@
                 </div>
               </div>
               <div>
-                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                <div class="text-body-lg font-semibold text-g-700 mb-3">
                   {{ $t('merchantDetail.ownershipStructure') }}
                 </div>
                 <div class="screening-grid">
@@ -140,7 +142,7 @@
               </div>
               <!-- Beneficiaries -->
               <div>
-                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                <div class="text-body-lg font-semibold text-g-700 mb-3">
                   {{ $t('merchantDetail.beneficiaries') }}
                   <span class="text-xs text-g-500 font-normal ml-2">
                     ({{ (detail.beneficiaries || []).length }})
@@ -150,7 +152,7 @@
                   <div v-for="b in detail.beneficiaries || []" :key="b.id" class="summary-card">
                     <div class="summary-card-title">
                       <span class="text-sm font-semibold text-g-900">{{ b.name || '-' }}</span>
-                      <el-tag size="small" type="info" class="ml-2">{{
+                      <el-tag size="small" :type="info" class="ml-2">{{
                         beneficiaryTypeLabel(b.type)
                       }}</el-tag>
                       <span v-if="b.shareSize != null" class="text-xs text-g-500 ml-2">
@@ -197,7 +199,7 @@
             <!-- Page 3: Financial + Regulatory + Decision -->
             <div v-show="screeningPage === 3" class="flex flex-col gap-6">
               <div>
-                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                <div class="text-body-lg font-semibold text-g-700 mb-3">
                   {{ $t('merchantDetail.financialInfo') }}
                 </div>
                 <div class="screening-grid">
@@ -208,7 +210,7 @@
                 </div>
               </div>
               <div>
-                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                <div class="text-body-lg font-semibold text-g-700 mb-3">
                   {{ $t('merchantDetail.regulatoryCompliance') }}
                 </div>
                 <div class="screening-grid">
@@ -246,6 +248,75 @@
                 <el-button v-if="screeningPage < 3" size="small" @click="screeningPage++">{{
                   $t('merchantDetail.next')
                 }}</el-button>
+              </div>
+            </div>
+          </div>
+
+          <!--
+            ── 当前步骤：身份验证（预审通过后进入）──
+            预审通过时后端把 kyb.status 回到 DRAFT 并注册 Sumsub applicant，
+            此后等待客户在 Sumsub 完成验证，管理员不再有决策动作。
+          -->
+          <div v-else class="p-5">
+            <!-- 等待/审核中提示条 -->
+            <div
+              class="verification-note"
+              :class="isVerificationReviewing ? 'reviewing' : 'waiting'"
+            >
+              <ArtSvgIcon
+                :icon="isVerificationReviewing ? 'ri:search-eye-line' : 'ri:time-line'"
+                class="text-icon-md verification-note-icon"
+              />
+              <div>
+                <div class="verification-note-title">
+                  {{
+                    isVerificationReviewing
+                      ? $t('merchantDetail.verificationNoteReviewing')
+                      : $t('merchantDetail.verificationRequested')
+                  }}
+                </div>
+                <div v-if="!isVerificationReviewing" class="verification-note-desc">
+                  {{
+                    $t('merchantDetail.verificationNoteWaiting', {
+                      email: detail.email || '--'
+                    })
+                  }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 客户邮箱 + 重新发送链接 -->
+            <div class="verification-contact">
+              <span class="text-sm text-g-700">
+                {{ $t('merchantDetail.verificationCustomerEmail') }}:
+                <strong class="text-g-900">{{ detail.email || '--' }}</strong>
+              </span>
+              <el-button size="small" :disabled="isVerificationReviewing" @click="handleResendLink">
+                <ArtSvgIcon icon="ri:send-plane-line" class="text-icon-sm mr-1" />
+                {{ $t('merchantDetail.resendLink') }}
+              </el-button>
+            </div>
+
+            <!-- 子进度：已提交 / 审核 / 已通过 -->
+            <div class="verification-progress-card">
+              <div class="text-sm font-semibold text-g-900 mb-4">
+                {{ $t('merchantDetail.verificationProgress') }}
+              </div>
+              <div class="verification-progress">
+                <template v-for="(s, i) in verificationSubSteps" :key="s.label">
+                  <div v-if="i > 0" class="vp-line" :class="{ done: s.state === 'done' }"></div>
+                  <div class="vp-step" :class="s.state">
+                    <div class="vp-dot">
+                      <ArtSvgIcon
+                        v-if="s.state === 'done' || s.state === 'failed'"
+                        :icon="s.icon"
+                        class="text-icon-xs"
+                      />
+                    </div>
+                    <div class="vp-label">{{ s.label }}</div>
+                    <div class="vp-meta">{{ s.meta }}</div>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
@@ -399,7 +470,7 @@
           <el-tab-pane :label="$t('merchantDetail.tabBusiness')" name="business">
             <div class="flex flex-col gap-6">
               <div v-for="section in bizPageSections(bizPage)" :key="section.titleKey">
-                <div class="text-[13px] font-semibold text-g-700 mb-3">
+                <div class="text-body-lg font-semibold text-g-700 mb-3">
                   {{ $t(section.titleKey) }}
                 </div>
                 <div class="screening-grid">
@@ -437,7 +508,7 @@
           <el-tab-pane :label="$t('merchantDetail.tabIdentity')" name="identity">
             <!-- 身份验证 -->
             <div class="mb-6">
-              <div class="text-[13px] font-semibold text-g-700 mb-3">
+              <div class="text-body-lg font-semibold text-g-700 mb-3">
                 {{ $t('merchantDetail.identityVerification') }}
               </div>
               <div class="p-4 bg-g-50 rounded-lg">
@@ -447,10 +518,10 @@
                 <div class="flex flex-col gap-2">
                   <!-- Corporate Identity 行 -->
                   <div class="flex items-center gap-3">
-                    <span class="text-[13px] font-medium text-g-700 min-w-[140px]">
+                    <span class="text-body-lg font-medium text-g-700 min-w-[140px]">
                       {{ $t('merchantDetail.corporateIdentity') }}
                     </span>
-                    <span class="text-xs text-success font-medium">
+                    <span class="text-xs font-medium text-tone-done-text">
                       {{ $t('merchantDetail.verified') }} ✓
                     </span>
                   </div>
@@ -460,13 +531,13 @@
                     :key="'v-' + b.id"
                     class="flex items-center gap-3 ml-6"
                   >
-                    <span class="text-[13px] font-medium text-g-700 min-w-[140px]">
+                    <span class="text-body-lg font-medium text-g-700 min-w-[140px]">
                       {{ b.name
                       }}<template v-if="b.shareSize != null"> ({{ b.shareSize }}%)</template>
                     </span>
                     <span
                       class="text-xs font-medium"
-                      :class="b.status === 'KYC_PASSED' ? 'text-success' : 'text-g-500'"
+                      :class="b.status === 'KYC_PASSED' ? 'text-tone-done-text' : 'text-g-500'"
                     >
                       {{
                         b.status === 'KYC_PASSED'
@@ -479,31 +550,23 @@
               </div>
             </div>
 
-            <!-- 筛查（CLEAR 徽章 or 名单 chips，对齐原型） -->
+            <!-- 筛查 -->
             <div class="mb-6">
-              <div class="text-[13px] font-semibold text-g-700 mb-3">
+              <div class="text-body-lg font-semibold text-g-700 mb-3">
                 {{ $t('merchantDetail.screening') }}
               </div>
               <div class="p-4 bg-g-50 rounded-lg">
                 <div class="flex flex-col gap-4">
                   <!-- 企业主体 -->
                   <div>
-                    <div class="text-[13px] font-semibold text-g-900 mb-2">
+                    <div class="text-sm font-semibold text-g-900 mb-2">
                       {{ detail.merchantName }}
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
                       <span
-                        class="text-xs font-semibold text-success px-2 py-1 bg-[var(--el-color-success-light-9)] rounded"
+                        class="text-xs font-semibold text-tone-done-text px-2 py-1 bg-tone-done-bg rounded"
                       >
                         CLEAR
-                      </span>
-                      <span class="text-[11px] text-g-500">or</span>
-                      <span
-                        v-for="list in SCREENING_LISTS"
-                        :key="list"
-                        class="text-[11px] px-1.5 py-0.5 bg-g-100 text-g-600 rounded cursor-pointer hover:bg-g-200"
-                      >
-                        {{ list }}
                       </span>
                     </div>
                   </div>
@@ -513,20 +576,12 @@
                     :key="'s-' + b.id"
                     class="border-t border-[var(--default-border)] pt-3 ml-6"
                   >
-                    <div class="text-[13px] font-semibold text-g-900 mb-2">{{ b.name }}</div>
+                    <div class="text-sm font-semibold text-g-900 mb-2">{{ b.name }}</div>
                     <div class="flex items-center gap-2 flex-wrap">
                       <span
-                        class="text-xs font-semibold text-success px-2 py-1 bg-[var(--el-color-success-light-9)] rounded"
+                        class="text-xs font-semibold text-tone-done-text px-2 py-1 bg-tone-done-bg rounded"
                       >
                         CLEAR
-                      </span>
-                      <span class="text-[11px] text-g-500">or</span>
-                      <span
-                        v-for="list in SCREENING_LISTS"
-                        :key="list"
-                        class="text-[11px] px-1.5 py-0.5 bg-g-100 text-g-600 rounded cursor-pointer hover:bg-g-200"
-                      >
-                        {{ list }}
                       </span>
                     </div>
                   </div>
@@ -560,10 +615,10 @@
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-semibold text-g-900 truncate">{{ u.username }}</span>
                     <span
-                      class="text-[11px] px-2 py-0.5 rounded font-medium flex-shrink-0"
+                      class="text-label px-2 py-0.5 rounded font-medium flex-shrink-0"
                       :class="
                         u.state === 'ACTIVE'
-                          ? 'bg-[var(--el-color-success-light-9)] text-success'
+                          ? 'bg-tone-done-bg text-tone-done-text'
                           : 'bg-g-100 text-g-500'
                       "
                     >
@@ -579,7 +634,7 @@
                   </div>
                 </div>
                 <span
-                  class="text-[11px] px-2 py-0.5 bg-[var(--el-color-primary-light-9)] text-[var(--el-color-primary)] rounded font-medium flex-shrink-0"
+                  class="text-label px-2 py-0.5 bg-[var(--el-color-primary-light-9)] text-[var(--theme-text)] rounded font-medium flex-shrink-0"
                 >
                   {{ userRoleLabel(u.role) }}
                 </span>
@@ -737,8 +792,8 @@
 
   /** 核验状态 → 文字颜色（已核验=绿 / 待核验=琥珀 / 未核验=灰） */
   function verifyStatusClass(value: string): string {
-    if (value === 'VERIFIED') return 'text-success'
-    if (value === 'PENDING') return 'text-[var(--el-color-warning)]'
+    if (value === 'VERIFIED') return 'text-tone-done-text'
+    if (value === 'PENDING') return 'text-tone-progress-text'
     return 'text-g-500'
   }
 
@@ -815,39 +870,96 @@
 
   // ─── Identity Verification 占位操作（接口待支持）───
   /** 筛查名单 chips（对齐原型：OFAC SDN / EU List / UN Security / PEP / Adverse Media / Criminal） */
-  const SCREENING_LISTS = ['OFAC SDN', 'EU List', 'UN Security', 'PEP', 'Adverse Media', 'Criminal']
 
+  /*
+   * Re-screen / Re-verify & Re-screen 目前无后端接口。
+   *
+   * 原先点击后只弹按钮自身的名字（「重新筛查」），用户看不出：
+   *   · 这个操作会做什么
+   *   · 为什么点了没反应
+   * 改为说明「操作范围 + 当前不可用的原因」，让占位态也有信息量。
+   *
+   * ⚠️ 接口就绪后替换为真实调用，并补上确认弹窗（这类操作会影响商户状态，不应一键直达）。
+   */
   function handleRescreen() {
-    // TODO: 接口就绪后对接重新筛查
-    ElMessage.info(t('merchantDetail.rescreen'))
+    ElMessage.warning(t('merchantDetail.rescreenUnavailable'))
   }
 
   function handleReverifyRescreen() {
-    // TODO: 接口就绪后对接重新验证并筛查
-    ElMessage.info(t('merchantDetail.reverifyRescreen'))
+    ElMessage.warning(t('merchantDetail.reverifyRescreenUnavailable'))
   }
 
-  // ─── State-derived view ───
-  // KYB 审核通过（APPROVED）即进入详情 tab 视图；
-  // 之后本地切换 ACTIVE / FROZEN / CANCELLED 都保持该视图，不再翻回 onboarding 步骤器
-  const isOnboarded = computed(() => {
-    const s = detail.value?.merchantStatus?.toUpperCase()
-    if (s === 'ACTIVE' || s === 'FROZEN' || s === 'CANCELLED') return true
-    return detail.value?.kybStatus?.toUpperCase() === 'APPROVED'
-  })
-  const canDecide = computed(() => detail.value?.kybStatus?.toUpperCase() === 'PENDING_SCREENING')
+  /** KYB 内部状态（大写归一） */
+  const kybState = computed(() => detail.value?.kybStatus?.toUpperCase() || '')
 
-  const headerStatusClass = computed(() => {
-    const s = detail.value?.merchantStatus?.toUpperCase()
-    if (s === 'ACTIVE') return 'onboarded'
-    if (s === 'FROZEN') return 'rejected'
-    return 'in-review'
-  })
-  const headerStatusLabel = computed(() =>
-    isOnboarded.value
-      ? t('merchantDetail.statusOnboarded')
-      : t('merchantDetail.qualificationScreening')
+  /**
+   * 资格筛查是否已通过（step 2 完成）。
+   *
+   * 关键契约：预审通过后 kyb.status 回到 DRAFT（后端同时注册 Sumsub applicant，
+   * 见 api/merchant.ts 中 /kyb/screening/approve 的说明），并非直接 APPROVED。
+   * 因此「筛查已完成」必须同时认 DRAFT 与 PENDING_SCREENING 之后的状态，
+   * 否则同意后进度条会从第二步退回成「待处理」。
+   */
+  const screeningPassed = computed(() =>
+    ['DRAFT', 'SUBMITTED', 'NEED_SUPPLEMENT', 'APPROVED'].includes(kybState.value)
   )
+
+  /** 身份验证已进入（step 3 已开始） */
+  const verificationStarted = computed(() =>
+    ['DRAFT', 'SUBMITTED', 'NEED_SUPPLEMENT', 'APPROVED'].includes(kybState.value)
+  )
+
+  /**
+   * 「已入驻」页面视图 = 客户已完成身份验证、审核通过。
+   *
+   * 修正点：此前用 merchantStatus(ACTIVE/FROZEN/CANCELLED) 或 kybStatus=APPROVED 判定，
+   * 会在预审通过（kyb→DRAFT）后立刻翻到已入驻视图，跳过了 waiting-for-KYB 的第三步。
+   * 现在唯一依据是 kybStatus=APPROVED，与审批接口的后置状态对齐。
+   */
+  const isOnboarded = computed(() => kybState.value === 'APPROVED')
+
+  /** 预审决策仅在后端返回 PENDING_SCREENING（即 step 2 进行中）时可用 */
+  const canDecide = computed(() => kybState.value === 'PENDING_SCREENING')
+
+  /** 客户已提交身份材料、等待三方审核 */
+  const isVerificationReviewing = computed(() =>
+    ['SUBMITTED', 'NEED_SUPPLEMENT'].includes(kybState.value)
+  )
+
+  /**
+   * 当前阶段的色调 —— 页头徽章与「当前步骤」徽章共用同一来源。
+   *
+   * 企业名称右侧的徽章必须反映进度条里 class=active 的那一步，
+   * 否则同一屏会出现「徽章说是审核中、进度条说在进行中」的矛盾。
+   *   onboarded            → 绿
+   *   REJECTED             → 红
+   *   SUBMITTED/NEED_SUPPLEMENT（三方处理中） → 蓝
+   *   其余进行中（待筛查 / 等待客户提交）      → 琥珀
+   */
+  const stageToneClass = computed(() => {
+    if (isOnboarded.value) return 'onboarded'
+    if (kybState.value === 'REJECTED') return 'rejected'
+    if (isVerificationReviewing.value) return 'in-review'
+    return 'pending'
+  })
+
+  const headerStatusClass = computed(() => stageToneClass.value)
+
+  const currentStepBadgeClass = computed(() => stageToneClass.value)
+  /**
+   * 页头徽章 = 当前【进行中】的那一步，而非笼统的状态词。
+   * 与进度条中 class 为 active 的步骤始终一致：
+   *   PENDING_SCREENING            → 资格筛查
+   *   DRAFT/SUBMITTED/NEED_SUPPLEMENT → 身份验证
+   *   APPROVED → 已入驻    REJECTED → 已拒绝
+   */
+  const headerStatusLabel = computed(() => {
+    if (isOnboarded.value) return t('merchantDetail.statusOnboarded')
+    if (kybState.value === 'REJECTED') return t('merchantDetail.rejected')
+    return canDecide.value
+      ? t('merchantDetail.qualificationScreening')
+      : t('merchantDetail.stepVerification')
+  })
 
   /** 头部注册地：问卷 jurisdiction 优先，缺失回退 countryCode */
   const headerJurisdiction = computed(() => {
@@ -858,26 +970,23 @@
 
   // Stepper states (screening = step 2, verification = step 3)
   const screeningStepClass = computed(() => {
-    const s = detail.value?.kybStatus?.toUpperCase()
-    if (s === 'PENDING_SCREENING') return 'active'
-    if (['DRAFT', 'SUBMITTED', 'NEED_SUPPLEMENT', 'APPROVED', 'REJECTED'].includes(s || ''))
-      return 'completed'
+    if (kybState.value === 'PENDING_SCREENING') return 'active'
+    if (screeningPassed.value || kybState.value === 'REJECTED') return 'completed'
     return ''
   })
   const screeningStepMeta = computed(() => {
     const cls = screeningStepClass.value
     if (cls === 'active') return t('merchantDetail.inProgress')
     if (cls === 'completed') {
-      const s = detail.value?.kybStatus?.toUpperCase()
-      if (s === 'REJECTED') return t('merchantDetail.rejected')
-      return t('merchantDetail.passed')
+      return kybState.value === 'REJECTED'
+        ? t('merchantDetail.rejected')
+        : t('merchantDetail.passed')
     }
     return t('merchantDetail.pendingMeta')
   })
   const verificationStepClass = computed(() => {
-    const s = detail.value?.kybStatus?.toUpperCase()
-    if (s === 'APPROVED') return 'completed'
-    if (['SUBMITTED', 'NEED_SUPPLEMENT'].includes(s || '')) return 'active'
+    if (kybState.value === 'APPROVED') return 'completed'
+    if (verificationStarted.value) return 'active'
     return ''
   })
   const verificationStepMeta = computed(() => {
@@ -886,11 +995,87 @@
     if (cls === 'completed') return t('merchantDetail.passed')
     return t('merchantDetail.pendingMeta')
   })
-  const currentStepBadge = computed(() =>
-    canDecide.value
-      ? t('merchantDetail.awaitingDecision')
-      : kybStatusLabel(detail.value?.kybStatus || '')
+
+  /** 当前步骤面板标题：筛查已过则进入身份验证 */
+  const currentStepTitle = computed(() =>
+    screeningPassed.value
+      ? t('merchantDetail.stepVerification')
+      : t('merchantDetail.qualificationScreening')
   )
+
+  /** 当前步骤徽章：待决策 / 等待客户 / 审核中 */
+  const currentStepBadge = computed(() => {
+    if (canDecide.value) return t('merchantDetail.awaitingDecision')
+    if (isVerificationReviewing.value) return t('merchantDetail.verificationReviewing')
+    if (verificationStarted.value) return t('merchantDetail.verificationRequested')
+    return kybStatusLabel(kybState.value)
+  })
+
+  /**
+   * 徽章配色服从「当前进行到哪一步」的色调：
+   *   筛查/验证刚起步、等对方动作 → 琥珀（进行中）
+   *   三方正在处理             → 蓝（处理中）
+   *   已出结果                 → 绿/红
+   * 与进度条中 active 步骤的色调保持一致，避免同一屏出现两套阶段语义。
+   */
+  /**
+   * KYB 验证子进度（已提交 / 已审核 / 已通过）。
+   *
+   * 语义按用户确认的口径：这是 **KYB 的进度**，不是客户在 Sumsub 里的动作。
+   * 客户一提交（kyb.status → SUBMITTED），「已提交」即完成变绿，
+   * 流程推进到「已审核」并停在那里等待审核结果 ——
+   * 即进行中永远落在「已审核」，只有三方给出结论后才前进到「已通过」。
+   */
+  /**
+   * KYB 验证子进度（已提交 / 审核 / 已通过）—— 完全由 kybStatus 驱动。
+   *
+   *   Submitted  已提交：kybStatus 一旦有值（DRAFT 起）即视为已提交 → 完成(绿)
+   *   Review     审核  ：DRAFT / SUBMITTED / NEED_SUPPLEMENT 期间进行中(琥珀)；
+   *                     出结果后（APPROVED / REJECTED）该步完成(绿)
+   *   Passed     已通过：APPROVED → 成功(绿)；REJECTED → 失败(红)
+   */
+  const verificationSubSteps = computed(() => {
+    const s = kybState.value
+    const submitted = !!s && s !== 'PENDING_SCREENING'
+    const reviewing = ['DRAFT', 'SUBMITTED', 'NEED_SUPPLEMENT'].includes(s)
+    const passed = s === 'APPROVED'
+    const failed = s === 'REJECTED'
+
+    const states: string[] = [
+      submitted ? 'done' : 'pending',
+      reviewing ? 'active' : passed || failed ? 'done' : 'pending',
+      passed ? 'done' : failed ? 'failed' : 'pending'
+    ]
+    const labels = [
+      t('merchantDetail.subStepSubmitted'),
+      t('merchantDetail.subStepReviewed'),
+      t('merchantDetail.subStepPassed')
+    ]
+    const icons = ['ri:check-line', 'ri:check-line', failed ? 'ri:close-line' : 'ri:check-line']
+    const submittedAt = submitted ? formatDateTime(detail.value?.appliedAt) : ''
+    const metaOf = (i: number): string => {
+      if (states[i] === 'active') return t('merchantDetail.inProgress')
+      if (states[i] === 'failed') return t('merchantDetail.rejected')
+      if (states[i] === 'done') {
+        // 「审核」步已完成时结论随最终结果：被拒时不能显示「已通过」
+        if (i === 1) return failed ? t('merchantDetail.rejected') : t('merchantDetail.passed')
+        return i === 0 && submittedAt ? submittedAt : t('merchantDetail.passed')
+      }
+      return t('merchantDetail.pendingMeta')
+    }
+    return labels.map((label, i) => ({
+      label,
+      state: states[i],
+      icon: icons[i],
+      meta: metaOf(i)
+    }))
+  })
+
+  /** 重新发送验证链接（接口待接入） */
+  function handleResendLink() {
+    const email = detail.value?.email || ''
+    ElMessage.info(t('merchantDetail.resendLink') + (email ? ` → ${email}` : ''))
+  }
 
   // ─── Load ───
   async function load() {
@@ -1143,23 +1328,23 @@
   }
 
   .status-badge.onboarded {
-    color: var(--el-color-success);
-    background: var(--el-color-success-light-8);
+    color: var(--tone-done-text);
+    background: var(--tone-done-ring-soft);
   }
 
   .status-badge.pending {
-    color: var(--el-color-warning-dark-2);
-    background: var(--el-color-warning-light-8);
+    color: var(--tone-progress-text);
+    background: var(--tone-progress-ring-soft);
   }
 
   .status-badge.in-review {
-    color: var(--el-color-primary);
-    background: var(--el-color-primary-light-8);
+    color: var(--tone-info-text);
+    background: var(--tone-info-ring-soft);
   }
 
   .status-badge.rejected {
-    color: var(--el-color-danger);
-    background: var(--el-color-danger-light-8);
+    color: var(--tone-error-text);
+    background: var(--tone-error-ring-soft);
   }
 
   /* Onboarding progress */
@@ -1201,7 +1386,7 @@
     z-index: 0;
     height: 3px;
     content: '';
-    background: var(--el-border-color-lighter);
+    background: var(--tone-track-idle);
     border-radius: 2px;
   }
 
@@ -1210,11 +1395,13 @@
   }
 
   .progress-step.completed::before {
-    background: var(--el-color-success);
+    background: var(--tone-track-done);
   }
 
+  /* 进行中步骤之前的连线：用 track 色（≥3:1 非文本对比）。
+     不能用 -ring —— 16% 透明度在白底仅 1.17:1，肉眼几乎不可见。 */
   .progress-step.active::before {
-    background: var(--el-color-success-light-5);
+    background: var(--tone-track-progress);
   }
 
   .step-circle {
@@ -1236,15 +1423,18 @@
   .step-circle.done,
   .progress-step.completed .step-circle {
     color: #fff;
-    background: var(--el-color-success);
+    background: var(--tone-done-mark);
     border-color: transparent;
   }
 
+  /* 进行中：琥珀而非蓝 —— 蓝色在合规模块里表示信息/中性，
+     无法与「完成」的绿形成足够区分；琥珀色相独立，且与完成态在灰度下也能分辨。
+     形状对比 3.02:1、白字对比 5.02:1，均达标。 */
   .step-circle.active {
     color: #fff;
-    background: var(--el-color-primary);
+    background: var(--tone-progress-text);
     border-color: transparent;
-    box-shadow: 0 0 0 4px var(--el-color-primary-light-8);
+    box-shadow: 0 0 0 4px var(--tone-progress-ring-soft);
   }
 
   .step-label {
@@ -1262,13 +1452,159 @@
 
   .progress-step.active .step-label {
     font-weight: 700;
-    color: var(--el-color-primary);
+    color: var(--tone-progress-text);
   }
 
   .step-meta {
     margin-top: 3px;
     font-size: 11px;
     color: var(--el-text-color-secondary);
+  }
+
+  .progress-step.active .step-meta {
+    color: var(--tone-progress-text);
+  }
+
+  /* ── 第三步：身份验证面板 ── */
+  .verification-note {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border: 1px solid;
+    border-radius: 8px;
+  }
+
+  .verification-note.waiting {
+    background: var(--tone-progress-bg);
+    border-color: var(--tone-track-progress);
+  }
+
+  .verification-note.reviewing {
+    background: var(--tone-info-bg);
+    border-color: var(--el-color-primary-light-3);
+  }
+
+  .verification-note.waiting .verification-note-icon,
+  .verification-note.waiting .verification-note-title {
+    color: var(--tone-progress-text);
+  }
+
+  .verification-note.reviewing .verification-note-icon,
+  .verification-note.reviewing .verification-note-title {
+    color: var(--tone-info-text);
+  }
+
+  .verification-note-icon {
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .verification-note-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .verification-note-desc {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--el-text-color-regular);
+  }
+
+  .verification-contact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--default-border);
+  }
+
+  .verification-progress-card {
+    padding: 20px;
+    border: 1px solid var(--default-border);
+    border-radius: 12px;
+  }
+
+  .verification-progress {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .vp-step {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    min-width: 88px;
+    text-align: center;
+  }
+
+  .vp-dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: #fff;
+    background: var(--el-fill-color-dark);
+    border-radius: 50%;
+  }
+
+  /* 子步骤配色与主步骤条同一套 tone token，避免出现第三套颜色 */
+  .vp-step.done .vp-dot {
+    background: var(--tone-done-mark);
+  }
+
+  .vp-step.active .vp-dot {
+    background: var(--tone-progress-text);
+    box-shadow: 0 0 0 4px var(--tone-progress-ring-soft);
+  }
+
+  /* 已通过 · 失败（REJECTED）：红，与成功态的绿形成对照 */
+  .vp-step.failed .vp-dot {
+    background: var(--tone-error-text);
+  }
+
+  .vp-line {
+    flex: 1;
+    height: 2px;
+    margin-top: 15px;
+    background: var(--tone-track-idle);
+  }
+
+  .vp-line.done {
+    background: var(--tone-track-done);
+  }
+
+  .vp-label {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--tone-muted-text);
+  }
+
+  .vp-step.done .vp-label {
+    color: var(--tone-done-text);
+  }
+
+  .vp-step.active .vp-label {
+    font-weight: 600;
+    color: var(--tone-progress-text);
+  }
+
+  .vp-step.failed .vp-label {
+    font-weight: 600;
+    color: var(--tone-error-text);
+  }
+
+  .vp-meta {
+    margin-top: 2px;
+    font-size: 10px;
+    color: var(--tone-muted-text);
   }
 
   /* Screening grid */
@@ -1291,7 +1627,7 @@
     font-weight: 600;
     color: var(--el-text-color-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
   }
 
   .summary-card-value {

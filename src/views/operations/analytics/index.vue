@@ -2,7 +2,7 @@
 <template>
   <div class="page-content">
     <!-- ═══ 时间范围 ═══ -->
-    <div class="art-card mb-5 p-4 flex items-center gap-3">
+    <div class="art-card mb-4 p-4 flex items-center gap-3">
       <el-radio-group v-model="timeRange" size="small">
         <el-radio-button value="daily">{{ $t('analytics.daily') }}</el-radio-button>
         <el-radio-button value="weekly">{{ $t('analytics.weekly') }}</el-radio-button>
@@ -14,9 +14,9 @@
     <!-- ═══ 指标卡片 ═══ -->
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="8" v-for="card in metricCards" :key="card.key">
-        <div class="art-card h-28 px-5 mb-5 flex flex-col justify-center">
+        <div class="art-card h-28 px-5 mb-4 flex flex-col justify-center">
           <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-          <span class="text-[26px] font-medium mt-1 text-g-900">{{ card.value }}</span>
+          <span class="text-display font-semibold mt-1 text-g-900">{{ card.value }}</span>
           <span class="text-xs mt-1" :class="card.trendClass">{{ card.trend }}</span>
         </div>
       </ElCol>
@@ -25,7 +25,7 @@
     <!-- ═══ 图表区 ═══ -->
     <ElRow :gutter="20">
       <ElCol :sm="24" :md="12">
-        <div class="art-card mb-5">
+        <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-g-900 font-medium">{{ $t('analytics.revenueTrend') }}</span>
           </div>
@@ -40,7 +40,7 @@
         </div>
       </ElCol>
       <ElCol :sm="24" :md="12">
-        <div class="art-card mb-5">
+        <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-g-900 font-medium">{{ $t('analytics.costStructure') }}</span>
           </div>
@@ -50,7 +50,7 @@
         </div>
       </ElCol>
       <ElCol :sm="24" :md="12">
-        <div class="art-card mb-5">
+        <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-g-900 font-medium">{{ $t('analytics.merchantContribution') }}</span>
           </div>
@@ -64,7 +64,7 @@
         </div>
       </ElCol>
       <ElCol :sm="24" :md="12">
-        <div class="art-card mb-5">
+        <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-g-900 font-medium">{{ $t('analytics.trendAnalysis') }}</span>
           </div>
@@ -103,7 +103,7 @@
       labelKey: 'analytics.totalCost',
       value: '$32,180',
       trend: '+5.2%',
-      trendClass: 'text-[var(--el-color-danger)]'
+      trendClass: 'text-tone-error-text'
     },
     {
       key: 'revenueGrowth',

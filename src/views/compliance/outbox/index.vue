@@ -1,12 +1,15 @@
 <!-- Cregis Compliance Outbox -->
 <template>
   <div class="page-content">
-    <div class="flex flex-wrap items-center gap-3 mb-5">
-      <h2 class="text-base font-semibold text-g-900">{{ $t('compliance.outbox') }}</h2>
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-hero font-semibold text-g-900">{{ $t('compliance.outbox') }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ $t('compliance.outboxSubtitle') }}</p>
+      </div>
       <ElButton @click="load">{{ $t('console.refresh') }}</ElButton>
     </div>
 
-    <div class="art-card art-table-card overflow-hidden mb-5">
+    <div class="art-card art-table-card overflow-hidden mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <el-select
@@ -35,10 +38,10 @@
         </div>
       </div>
 
-      <template v-if="loading"><el-skeleton :rows="10" animated class="p-5" /></template>
+      <template v-if="loading"><el-skeleton :rows="10" animated class="p-4" /></template>
       <template v-else-if="errorMessage">
         <div class="p-10 text-center"
-          ><p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p
+          ><p class="text-tone-error-text mb-4">{{ errorMessage }}</p
           ><ElButton type="primary" @click="load">{{ $t('console.refresh') }}</ElButton></div
         >
       </template>
@@ -51,16 +54,21 @@
         style="cursor: pointer"
         @row-click="(row: any) => openNotification(row.notificationId)"
       >
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column :label="$t('risk.type')" min-width="180">
           <template #default="{ row }"
             ><span class="text-sm font-medium text-g-900">{{ row.type }}</span
-            ><br /><span class="text-xs text-g-400">{{ row.notificationId }}</span></template
+            ><br /><span class="text-xs text-tone-muted-text">{{
+              row.notificationId
+            }}</span></template
           >
         </el-table-column>
         <el-table-column :label="$t('compliance.relatedCase')" min-width="160">
           <template #default="{ row }"
             ><span class="font-mono text-xs text-g-700">{{ row.caseId }}</span
-            ><br /><span class="text-xs text-g-400">{{ row.caseSubject }}</span></template
+            ><br /><span class="text-xs text-tone-muted-text">{{ row.caseSubject }}</span></template
           >
         </el-table-column>
         <el-table-column prop="recipient" :label="$t('risk.recipient')" width="160" />
@@ -75,9 +83,9 @@
       </el-table>
       <div
         v-if="pagination.totalCount > 0"
-        class="flex justify-between items-center px-5 py-3 border-t border-[var(--default-border)]"
+        class="flex justify-between items-center px-4 py-3 border-t border-[var(--default-border)]"
       >
-        <span class="text-xs text-g-500"
+        <span class="text-xs text-g-700"
           >Page {{ pagination.page }} / {{ pagination.totalPages || 1 }} ·
           {{ pagination.totalCount }} notices</span
         >

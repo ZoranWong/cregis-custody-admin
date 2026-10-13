@@ -15,7 +15,7 @@
     </div>
 
     <!-- Rule Library -->
-    <div v-if="activeWorkspace === 'library'" class="art-card art-table-card overflow-hidden mb-5">
+    <div v-if="activeWorkspace === 'library'" class="art-card art-table-card overflow-hidden mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <el-select
@@ -56,11 +56,14 @@
       <template v-if="loading"><el-skeleton :rows="10" animated class="p-5" /></template>
       <template v-else-if="errorMessage">
         <div class="p-10 text-center"
-          ><p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p
+          ><p class="text-tone-error-text mb-4">{{ errorMessage }}</p
           ><ElButton type="primary" @click="load">{{ $t('console.refresh') }}</ElButton></div
         >
       </template>
       <el-table v-else :data="rules" stripe size="small">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column :label="$t('strategy.ruleId')" width="140">
           <template #default="{ row }"
             ><span class="font-mono text-xs text-g-700">{{ row.ruleId }}</span></template
@@ -102,7 +105,7 @@
     </div>
 
     <!-- Review Tickets -->
-    <div v-if="activeWorkspace === 'review'" class="art-card art-table-card overflow-hidden mb-5">
+    <div v-if="activeWorkspace === 'review'" class="art-card art-table-card overflow-hidden mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <el-select
@@ -132,6 +135,9 @@
       </div>
       <template v-if="reviewLoading"><el-skeleton :rows="6" animated class="p-5" /></template>
       <el-table v-else :data="reviews" stripe size="small">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column :label="$t('strategy.reviewId')" width="150">
           <template #default="{ row }"
             ><span class="font-mono text-xs text-g-700">{{ row.reviewId }}</span

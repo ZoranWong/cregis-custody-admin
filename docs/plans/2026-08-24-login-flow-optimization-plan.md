@@ -70,7 +70,13 @@ export interface StrongAuthState {
   passkeyFollowUpState?: string
   verificationReason?: { label: string; message: string }
   totpChallengeState:
-    'ready' | 'pending' | 'verified' | 'recovery' | 'expired' | 'invalid_code' | 'too_many_attempts'
+    | 'ready'
+    | 'pending'
+    | 'verified'
+    | 'recovery'
+    | 'expired'
+    | 'invalid_code'
+    | 'too_many_attempts'
   recoveryModeState: 'totp_primary' | 'recovery_substep'
   recoveryCodes?: string[]
   recoveryAcknowledged?: boolean

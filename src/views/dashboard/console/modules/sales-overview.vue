@@ -1,9 +1,9 @@
 <template>
-  <div class="art-card h-105 p-5 mb-5 max-sm:mb-4">
+  <div class="art-card h-105 p-5 mb-4">
     <div class="art-card-header">
       <div class="title">
-        <h4>访问量</h4>
-        <p>今年增长<span class="text-success">+15%</span></p>
+        <h4>{{ $t('dashboard.visits') }}</h4>
+        <p>{{ $t('dashboard.yearGrowth') }}<span class="text-success">+15%</span></p>
       </div>
     </div>
     <ArtLineChart

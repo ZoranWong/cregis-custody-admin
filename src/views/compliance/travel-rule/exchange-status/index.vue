@@ -1,12 +1,15 @@
 <!-- Cregis Travel Rule Exchange Status -->
 <template>
   <div class="page-content">
-    <div class="flex flex-wrap items-center gap-3 mb-5">
-      <h2 class="text-base font-semibold text-g-900">{{ $t('compliance.exchangeStatus') }}</h2>
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-hero font-semibold text-g-900">{{ $t('compliance.exchangeStatus') }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ $t('compliance.exchangeStatusSubtitle') }}</p>
+      </div>
       <ElButton @click="load">{{ $t('console.refresh') }}</ElButton>
     </div>
 
-    <div class="art-card art-table-card overflow-hidden mb-5">
+    <div class="art-card art-table-card overflow-hidden mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <el-select
@@ -35,37 +38,42 @@
             @clear="onFilterChange"
             @keyup.enter="onFilterChange"
           >
-            <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
+            <template #prefix
+              ><ArtSvgIcon icon="ri:search-line" class="text-icon-md text-tone-muted-text"
+            /></template>
           </el-input>
         </div>
       </div>
 
-      <template v-if="loading"><el-skeleton :rows="10" animated class="p-5" /></template>
+      <template v-if="loading"><el-skeleton :rows="10" animated class="p-4" /></template>
       <el-table v-else :data="exchanges" stripe size="small">
-        <el-table-column prop="id" :label="$t('compliance.exchangeId')" width="160">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
+        <el-table-column prop="id" :label="$t('compliance.exchangeId')" min-width="160">
           <template #default="{ row }"
             ><span class="font-mono text-xs text-g-700">{{ row.id }}</span></template
           >
         </el-table-column>
-        <el-table-column prop="caseRef" :label="$t('compliance.caseRef')" width="140" />
-        <el-table-column prop="direction" :label="$t('compliance.direction')" width="80" />
-        <el-table-column prop="vasp" :label="$t('compliance.vasp')" width="160" />
-        <el-table-column :label="$t('risk.status')" width="120">
+        <el-table-column prop="caseRef" :label="$t('compliance.caseRef')" min-width="140" />
+        <el-table-column prop="direction" :label="$t('compliance.direction')" min-width="80" />
+        <el-table-column prop="vasp" :label="$t('compliance.vasp')" min-width="160" />
+        <el-table-column :label="$t('risk.status')" min-width="120">
           <template #default="{ row }"
             ><el-tag :type="exchangeStatusTagType(row.status)" size="small">{{
               label(row.status)
             }}</el-tag></template
           >
         </el-table-column>
-        <el-table-column prop="evidence" :label="$t('compliance.evidence')" width="100" />
-        <el-table-column prop="retry" :label="$t('compliance.retry')" width="60" />
-        <el-table-column prop="initiatedAt" :label="$t('compliance.initiatedAt')" width="160" />
+        <el-table-column prop="evidence" :label="$t('compliance.evidence')" min-width="100" />
+        <el-table-column prop="retry" :label="$t('compliance.retry')" min-width="60" />
+        <el-table-column prop="initiatedAt" :label="$t('compliance.initiatedAt')" min-width="160" />
       </el-table>
       <div
         v-if="pagination.totalCount > 0"
-        class="flex justify-between items-center px-5 py-3 border-t border-[var(--default-border)]"
+        class="flex justify-between items-center px-4 py-3 border-t border-[var(--default-border)]"
       >
-        <span class="text-xs text-g-500"
+        <span class="text-xs text-g-700"
           >Page {{ pagination.page }} / {{ pagination.totalPages || 1 }} ·
           {{ pagination.totalCount }} exchanges</span
         >

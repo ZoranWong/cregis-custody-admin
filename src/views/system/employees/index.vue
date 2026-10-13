@@ -58,12 +58,12 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
-                <span class="text-[13px] font-semibold text-g-900">{{ member.name }}</span>
+                <span class="text-body-lg font-semibold text-g-900">{{ member.name }}</span>
                 <span class="status-badge" :class="member.status.toLowerCase()">
                   {{ member.status }}
                 </span>
               </div>
-              <div class="text-[11px] text-g-500">{{ member.email }}</div>
+              <div class="text-label text-g-500">{{ member.email }}</div>
             </div>
             <el-button
               v-if="member.status !== 'Suspended'"
@@ -113,7 +113,7 @@
               class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
             >
               <div
-                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--el-color-primary)] flex items-center justify-center text-xs font-semibold"
+                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
               >
                 {{ person.initials }}
               </div>
@@ -178,7 +178,7 @@
               class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
             >
               <div
-                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--el-color-primary)] flex items-center justify-center text-xs font-semibold"
+                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
               >
                 {{ person.initials }}
               </div>
@@ -229,7 +229,7 @@
               <div class="tier-card-header">
                 <div class="flex items-center gap-1.5">
                   <span class="sev-dot" :class="flow.sevClass" />
-                  <span class="text-[13px] font-semibold text-g-900">{{ flow.label }}</span>
+                  <span class="text-body-lg font-semibold text-g-900">{{ flow.label }}</span>
                 </div>
                 <span class="step-badge" :class="flow.sevClass">
                   {{ flow.steps.length }}-Step
@@ -238,16 +238,16 @@
               <div class="tier-card-body">
                 <div class="flow-config mb-3">
                   <div>
-                    <div class="text-[10px] text-g-400 uppercase tracking-wider">{{
+                    <div class="text-caption text-g-400 uppercase tracking-wider">{{
                       $t('system.timeout')
                     }}</div>
-                    <div class="text-[13px] font-semibold text-g-800">{{ flow.timeoutLabel }}</div>
+                    <div class="text-body-lg font-semibold text-g-800">{{ flow.timeoutLabel }}</div>
                   </div>
                   <div>
-                    <div class="text-[10px] text-g-400 uppercase tracking-wider">{{
+                    <div class="text-caption text-g-400 uppercase tracking-wider">{{
                       $t('system.value')
                     }}</div>
-                    <div class="text-[13px] font-semibold text-g-800">{{ flow.timeoutValue }}</div>
+                    <div class="text-body-lg font-semibold text-g-800">{{ flow.timeoutValue }}</div>
                   </div>
                 </div>
                 <div class="flow-chain">
@@ -277,7 +277,7 @@
                           <span class="text-xs font-semibold text-g-900">
                             {{ getPerson(step.personId)?.name }}
                           </span>
-                          <span class="text-[10px] text-g-500">
+                          <span class="text-caption text-g-500">
                             {{ getPerson(step.personId)?.email }}
                           </span>
                         </div>
@@ -326,7 +326,7 @@
               class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
             >
               <div
-                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--el-color-primary)] flex items-center justify-center text-xs font-semibold"
+                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
               >
                 {{ person.initials }}
               </div>

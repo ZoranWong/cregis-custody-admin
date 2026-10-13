@@ -294,7 +294,7 @@
           </div>
           <div v-else class="timeline-chain">
             <div v-for="node in timeline" :key="node.label + node.time" class="timeline-node">
-              <div class="timeline-dot" :style="toneDotStyle(toneOf(node.status))" />
+              <div class="timeline-dot" :style="toneDotStyle(timelineNodeTone(node))" />
               <div class="text-sm font-semibold text-g-800">{{ timelineLabel(node.label) }}</div>
               <div class="text-xs text-g-600 mt-0.5">{{ timelineDetail(node.detail) }}</div>
               <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
@@ -326,7 +326,7 @@
     CONCLUSION_DICT,
     DECISION_DICT,
     toneDotStyle,
-    toneOf
+    timelineNodeTone
   } from '@/features/compliance/txState'
 
   const { t } = useI18n()
@@ -599,11 +599,19 @@
     padding-left: 24px;
   }
 
-  .timeline-chain::before {
+  /*
+   * 连接线改为「节点间线段」：
+   *   ① 原先用容器级 ::before 从 top 拉到 bottom，会一直延伸到容器底部，
+   *      最后一个圆点下方仍拖出一条线；
+   *   ② left:7px 与圆心（-14+12/2=-8 → 容器坐标 10px…）差 2px，连线不过圆心。
+   * 几何：圆点相对节点 left:-20 / width:12 → 圆心 x=-14px，
+   *       2px 线取 left:-15px 即对齐；纵向覆盖到下一节点圆点顶边。
+   */
+  .timeline-node:not(:last-child)::before {
     position: absolute;
-    top: 8px;
-    bottom: 8px;
-    left: 7px;
+    top: 16px;
+    bottom: -4px;
+    left: -15px;
     width: 2px;
     content: '';
     background: var(--el-border-color-light);
@@ -624,7 +632,8 @@
     left: -20px;
     width: 12px;
     height: 12px;
-    border: 2px solid #fff;
+    /* 用容器底色而非硬编码白：暗色模式下白圈会在深底上形成刺眼光晕 */
+    border: 2px solid var(--default-box-color);
     border-radius: 50%;
   }
 

@@ -7,7 +7,7 @@
     </div>
 
     <!-- Filter -->
-    <div class="art-card p-4 mb-5">
+    <div class="art-card p-4 mb-4">
       <div class="flex flex-wrap items-center gap-3">
         <el-select v-model="filters.measurementWindow" class="!w-32" @change="onFilterChange">
           <el-option v-for="o in windowOptions" :key="o" :label="o" :value="o" />
@@ -39,29 +39,29 @@
     <!-- Metric Cards -->
     <ElRow :gutter="20" class="flex mb-5">
       <ElCol :sm="12" :md="6">
-        <div class="art-card p-5 mb-5">
+        <div class="art-card p-5 mb-4">
           <div class="text-xs text-g-500 mb-1">{{ $t('strategy.totalHits') }}</div>
-          <div class="text-[22px] font-medium text-g-900">{{ totalHits }}</div>
+          <div class="text-display font-semibold text-g-900">{{ totalHits }}</div>
         </div>
       </ElCol>
       <ElCol :sm="12" :md="6">
-        <div class="art-card p-5 mb-5">
+        <div class="art-card p-5 mb-4">
           <div class="text-xs text-g-500 mb-1">{{ $t('strategy.fpRate') }}</div>
-          <div class="text-[22px] font-medium text-[var(--el-color-danger)]"
+          <div class="text-display font-semibold text-tone-error-text"
             >{{ (fpRate * 100).toFixed(1) }}%</div
           >
         </div>
       </ElCol>
       <ElCol :sm="12" :md="6">
-        <div class="art-card p-5 mb-5">
+        <div class="art-card p-5 mb-4">
           <div class="text-xs text-g-500 mb-1">{{ $t('strategy.fnRate') }}</div>
-          <div class="text-[22px] font-medium text-[var(--el-color-warning)]"
+          <div class="text-display font-semibold text-tone-progress-text"
             >{{ (fnRate * 100).toFixed(1) }}%</div
           >
         </div>
       </ElCol>
       <ElCol :sm="12" :md="6">
-        <div class="art-card p-5 mb-5">
+        <div class="art-card p-5 mb-4">
           <div class="text-xs text-g-500 mb-1">{{ $t('strategy.health') }}</div>
           <el-tag :type="healthType" size="default">{{ healthLabel }}</el-tag>
         </div>
@@ -69,7 +69,7 @@
     </ElRow>
 
     <!-- Disposition bar -->
-    <div class="art-card p-5 mb-5">
+    <div class="art-card p-5 mb-4">
       <h3 class="text-sm font-semibold text-g-900 mb-3">{{ $t('strategy.dispositionBar') }}</h3>
       <div class="flex h-6 rounded overflow-hidden">
         <div

@@ -84,7 +84,7 @@
             <span class="mr-3.5 text-xs text-g-700">{{ $t('search.switchKeydown') }}</span>
           </div>
           <div class="flex-c">
-            <i class="keyboard !w-8 flex-cc"><p class="text-[10px] font-medium">ESC</p></i>
+            <i class="keyboard !w-8 flex-cc"><p class="text-caption font-medium">ESC</p></i>
             <span class="mr-3.5 text-xs text-g-700">{{ $t('search.exitKeydown') }}</span>
           </div>
         </div>

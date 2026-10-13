@@ -4,7 +4,7 @@
     <!-- 无 Travel Rule 通知 -->
     <div v-if="!hasTravelRule" class="art-card mb-4">
       <div class="p-4 flex items-center gap-2">
-        <ArtSvgIcon :icon="emptyHint.icon" class="text-[var(--el-color-info)] text-base" />
+        <ArtSvgIcon :icon="emptyHint.icon" class="text-tone-info-text text-icon-md" />
         <span class="text-sm text-g-700">{{ $t(emptyHint.text) }}</span>
       </div>
     </div>
@@ -24,7 +24,7 @@
             v-if="!piiFields.length"
             class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
           >
-            <ArtSvgIcon icon="ri:information-line" class="text-[var(--el-color-info)] text-base" />
+            <ArtSvgIcon icon="ri:information-line" class="text-tone-info-text text-icon-md" />
             <span class="text-sm text-g-700">{{ $t('txLens.detail.noIvms101Pii') }}</span>
           </div>
           <div v-else class="grid grid-cols-2 gap-3">
@@ -58,38 +58,42 @@
 
           <!-- Manual Resolution -->
           <div v-show="opsTab === 'manual'">
-            <div class="text-xs text-g-500 mb-3 leading-relaxed">
+            <div class="text-xs text-g-700 mb-3 leading-relaxed">
               {{ $t('txLens.detail.offNetworkDescription') }}
             </div>
             <div class="flex gap-3 mb-4 flex-wrap">
               <el-button size="small">
-                <ArtSvgIcon icon="ri:link" class="mr-1" />{{
+                <ArtSvgIcon icon="ri:link" class="text-icon-sm mr-1" />{{
                   $t('txLens.detail.generateShareLink')
                 }}
               </el-button>
               <el-button size="small">
-                <ArtSvgIcon icon="ri:upload-line" class="mr-1" />{{
+                <ArtSvgIcon icon="ri:upload-line" class="text-icon-sm mr-1" />{{
                   $t('txLens.detail.uploadProof')
                 }}
               </el-button>
             </div>
-            <div class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-3">
+            <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-3">
               {{ $t('txLens.detail.manualTrace') }}
             </div>
-            <div v-if="!manualTrace.length" class="text-xs text-g-400 py-4 text-center">--</div>
+            <div v-if="!manualTrace.length" class="text-xs text-tone-muted-text py-4 text-center"
+              >--</div
+            >
             <div v-else class="timeline-chain">
               <div v-for="node in manualTrace" :key="node.label + node.time" class="timeline-node">
                 <div class="timeline-dot" :style="toneDotStyle(toneOf(node.status))" />
                 <div class="text-sm font-semibold text-g-800">{{ traceLabel(node.label) }}</div>
-                <div class="text-xs text-g-600 mt-0.5">{{ node.detail }}</div>
-                <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
+                <div class="text-xs text-g-700 mt-0.5">{{ node.detail }}</div>
+                <div class="text-label text-tone-muted-text mt-0.5">{{
+                  formatTime(node.time)
+                }}</div>
               </div>
             </div>
           </div>
 
           <!-- Network Negotiation -->
           <div v-show="opsTab === 'network'">
-            <div class="text-xs text-g-500 mb-3 leading-relaxed">
+            <div class="text-xs text-g-700 mb-3 leading-relaxed">
               {{ $t('txLens.detail.networkLifecycleDescription') }}
             </div>
             <div
@@ -119,16 +123,20 @@
                 >{{ $t('txLens.detail.cancelTransfer') }}</el-button
               >
             </div>
-            <div class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-3">
+            <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-3">
               {{ $t('txLens.detail.networkTrace') }}
             </div>
-            <div v-if="!networkTrace.length" class="text-xs text-g-400 py-4 text-center">--</div>
+            <div v-if="!networkTrace.length" class="text-xs text-tone-muted-text py-4 text-center"
+              >--</div
+            >
             <div v-else class="timeline-chain">
               <div v-for="node in networkTrace" :key="node.label + node.time" class="timeline-node">
                 <div class="timeline-dot" :style="toneDotStyle(toneOf(node.status))" />
                 <div class="text-sm font-semibold text-g-800">{{ traceLabel(node.label) }}</div>
-                <div class="text-xs text-g-600 mt-0.5">{{ node.detail }}</div>
-                <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
+                <div class="text-xs text-g-700 mt-0.5">{{ node.detail }}</div>
+                <div class="text-label text-tone-muted-text mt-0.5">{{
+                  formatTime(node.time)
+                }}</div>
               </div>
             </div>
           </div>
@@ -366,7 +374,7 @@
   }
 
   .field-label {
-    font-size: 11px;
+    font-size: var(--font-size-label);
     font-weight: 600;
     color: var(--el-text-color-secondary);
     text-transform: uppercase;
@@ -382,14 +390,14 @@
 
   .pii-field-label {
     margin-bottom: 2px;
-    font-size: 10px;
+    font-size: var(--font-size-caption);
     font-weight: 600;
     color: var(--el-text-color-secondary);
     text-transform: uppercase;
   }
 
   .pii-field-value {
-    font-size: 12px;
+    font-size: var(--font-size-body);
     font-weight: 500;
     color: var(--el-text-color-primary);
     word-break: break-all;
@@ -406,7 +414,7 @@
   .sub-tab {
     padding: 6px 14px;
     font-family: inherit;
-    font-size: 12px;
+    font-size: var(--font-size-body);
     font-weight: 500;
     color: var(--el-text-color-secondary);
     cursor: pointer;
@@ -422,9 +430,9 @@
 
   .sub-tab.active {
     font-weight: 600;
-    color: var(--el-color-primary);
+    color: var(--theme-text);
     background: var(--el-bg-color);
-    box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+    box-shadow: var(--art-shadow-subtle);
   }
 
   .timeline-chain {
@@ -457,7 +465,7 @@
     left: -20px;
     width: 12px;
     height: 12px;
-    border: 2px solid #fff;
+    border: 2px solid var(--el-bg-color);
     border-radius: 50%;
   }
 

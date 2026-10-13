@@ -33,6 +33,11 @@
     }
   },
   "common": {
+    "all": "All",
+    "inbound": "Inbound",
+    "outbound": "Outbound",
+    "noData": "No data",
+    "recordCount": "{count} records",
     "tips": "Prompt",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -54,7 +59,10 @@
     "edit": "Edit",
     "editSuccess": "Updated successfully",
     "editFailed": "Failed to update",
-    "underDevelopment": "Under development"
+    "underDevelopment": "Under development",
+    "loadFailed": "Failed to load",
+    "saveSuccess": "Saved",
+    "back": "Back"
   },
   "analytics": {
     "daily": "Daily",
@@ -394,7 +402,67 @@
     "soRejected": "Rejected",
     "stageNoTravelRule": "No Travel Rule",
     "unknownVasp": "Unknown VASP",
-    "unknownCustomer": "Unknown Customer"
+    "unknownCustomer": "Unknown Customer",
+    "pageTitle": "Transaction Lens",
+    "pageSubtitle": "Lifecycle view of all inbound and outbound transactions — screening, Travel Rule, sign-off and on-chain status.",
+    "onchainState": {
+      "SIGNING": "Signing",
+      "SIGN_SUCCEED": "Signed",
+      "COMPLIANCE_PENDING": "Compliance Review",
+      "COMPLIANCE_HOLD": "Compliance Hold",
+      "MANUAL_REVIEW_PENDING": "Manual Review",
+      "MANUAL_REVIEW": "Manual Review",
+      "TRANSITING": "Broadcasting",
+      "BROADCASTING": "Broadcasting",
+      "BROADCASTED": "Broadcasted",
+      "CONFIRMING": "Confirming",
+      "CONFIRMED": "Confirmed",
+      "SUCCEED": "Succeeded",
+      "SUCCESS": "Succeeded",
+      "SETTLED": "Settled",
+      "COMPLETED": "Completed",
+      "DONE": "Done",
+      "FAILED": "Failed",
+      "REVERTED": "Reverted",
+      "CANCELLED": "Cancelled",
+      "CANCELED": "Cancelled",
+      "REJECTED": "Rejected",
+      "EXPIRED": "Expired",
+      "CREATED": "Created",
+      "PENDING": "Pending",
+      "PROCESSING": "Processing"
+    },
+    "oc": {
+      "onchainTitle": "On-Chain Details",
+      "onchainLoading": "Querying chain…",
+      "onchainUnsupported": "On-chain verification not supported for this chain",
+      "onchainFailed": "Failed to query chain",
+      "onchainRetry": "Retry",
+      "onchainSource": "Queried from chain node, independently verifiable",
+      "fieldStatus": "Status",
+      "fieldBlock": "Block",
+      "fieldCheckpoint": "Checkpoint",
+      "fieldBlockTime": "On-Chain Time",
+      "fieldConfirmations": "Confirmations",
+      "fieldFinalized": "Finalized",
+      "fieldGasUsed": "Gas Used",
+      "fieldGasPrice": "Gas Price",
+      "fieldFee": "Fee",
+      "fieldContract": "Contract",
+      "fieldFrom": "From",
+      "fieldTo": "To",
+      "fieldValue": "Value",
+      "fieldNonce": "Nonce",
+      "fieldEnergy": "Energy Used",
+      "statusSuccess": "Success",
+      "statusFailed": "Failed",
+      "statusPending": "Pending",
+      "statusUnknown": "Unknown",
+      "yes": "Yes",
+      "no": "No",
+      "confirming": "Confirming",
+      "finalizedYes": "Finalized"
+    }
   },
   "alerts": {
     "pageTitle": "Compliance Alerts",
@@ -465,6 +533,7 @@
     "evtManualReview": "Manual Review",
     "rrNone": "Not Reviewed",
     "rrTruePositive": "True Positive",
+    "rrFalseNegative": "False Negative",
     "rrFalsePositive": "False Positive",
     "merchantName": "Merchant",
     "orderId": "Order ID",
@@ -661,7 +730,10 @@
       "medium": "Medium",
       "high": "High"
     },
-    "allDirections": "Any Direction"
+    "allDirections": "Any Direction",
+    "customRuleNoticeTitle": "Custom rules are not enforced",
+    "customRuleNoticeBody": "Rules can be created and configured, but they do not take effect in the actual compliance workflow.",
+    "customRuleTag": "Not Enforced"
   },
   "opsHome": {
     "ticketQueue": "Ticket Queue",
@@ -683,11 +755,20 @@
   "setting": {
     "menuType": {
       "title": "Menu Layout",
-      "list": ["Vertical", "Horizontal", "Mixed", "Dual"]
+      "list": [
+        "Vertical",
+        "Horizontal",
+        "Mixed",
+        "Dual"
+      ]
     },
     "theme": {
       "title": "Theme Style",
-      "list": ["Light", "Dark", "System"]
+      "list": [
+        "Light",
+        "Dark",
+        "System"
+      ]
     },
     "menu": {
       "title": "Menu Style"
@@ -697,11 +778,17 @@
     },
     "box": {
       "title": "Box Style",
-      "list": ["Border", "Shadow"]
+      "list": [
+        "Border",
+        "Shadow"
+      ]
     },
     "container": {
       "title": "Container Width",
-      "list": ["Full", "Boxed"]
+      "list": [
+        "Full",
+        "Boxed"
+      ]
     },
     "basics": {
       "title": "Basic Config",
@@ -747,8 +834,14 @@
   "notice": {
     "title": "Notice",
     "btnRead": "Mark as read",
-    "bar": ["Notice", "Message", "Todo"],
-    "text": ["No"],
+    "bar": [
+      "Notice",
+      "Message",
+      "Todo"
+    ],
+    "text": [
+      "No"
+    ],
     "viewAll": "View all"
   },
   "worktab": {
@@ -820,7 +913,7 @@
     "secretKeyLabel": "Setup key (enter manually)",
     "copyBtn": "Copy",
     "nextStepBtn": "Next: Enter Verification Code",
-    "backToQr": "← Back to QR Code",
+    "backToQr": "Back to QR Code",
     "codeRefreshIn": "Code refreshes in",
     "recoveryLabel": "Recovery codes",
     "recoveryGenerated": "Recovery codes generated successfully!",
@@ -839,8 +932,8 @@
     "verifyBtn": "Verify",
     "verifyingBtn": "Verifying...",
     "switchToRecovery": "Use recovery code instead",
-    "switchToApp": "← Use authenticator app",
-    "backToSignIn": "← Back to sign in",
+    "switchToApp": "Use authenticator app",
+    "backToSignIn": "Back to sign in",
     "preparing": "Preparing authenticator setup..."
   },
   "forgetPassword": {
@@ -1231,6 +1324,19 @@
     "screening": "Screening",
     "rescreen": "Re-screen",
     "reverifyRescreen": "Re-verify & Re-screen",
+    "verificationRequested": "Waiting for Customer",
+    "verificationReviewing": "Under Review",
+    "verificationNoteWaiting": "The customer needs to complete identity verification. A Sumsub verification link has been sent to {email} and is also available in the client portal.",
+    "verificationNoteReviewing": "Identity verification is being processed by our third-party provider (Sumsub). This typically takes 1-2 business days.",
+    "verificationProgress": "Verification Progress",
+    "subStepSubmitted": "Submitted",
+    "subStepReviewed": "Review",
+    "subStepPassed": "Passed",
+    "resendLink": "Resend Link",
+    "simulateHint": "Prototype demo",
+    "simulateSubmit": "Simulate Submission",
+    "simulatePass": "Simulate Verification Pass",
+    "verificationCustomerEmail": "Customer Email",
     "corporateIdentity": "Corporate Identity",
     "pageOf": "Page {page} of {total}",
     "crsFatcaDepository": "Depository Institution",
@@ -1250,7 +1356,10 @@
     "userInactive": "Inactive",
     "userSuspending": "Suspending",
     "lastLogin": "Last Login",
-    "never": "Never"
+    "never": "Never",
+    "screenedAgainst": "Checked against {n} lists",
+    "rescreenUnavailable": "Re-screen re-checks the company and all beneficiaries against every watchlist. This feature is not yet available.",
+    "reverifyRescreenUnavailable": "Re-verify & re-screen restarts identity verification (Sumsub) and re-checks watchlists. This feature is not yet available."
   },
   "merchantType": {
     "NON_FINANCIAL_CORPORATE": "Non-financial corporate",
@@ -1341,7 +1450,7 @@
     "balance": "Balance",
     "threshold": "Threshold",
     "status": "Status",
-    "backToOverview": "← Back to Overview",
+    "backToOverview": "Back to Overview",
     "amountPerTopUp": "Amount Per Top-up",
     "autoTopUp": "Auto Top-up",
     "usdtBalance": "USDT Balance",
@@ -1524,6 +1633,9 @@
     "travelRuleWorkbench": "Travel Rule Workbench",
     "exchangeStatus": "Exchange Status",
     "travelRuleConfig": "Travel Rule Configuration",
+    "outboxSubtitle": "Delivery status and retries for the compliance outbox.",
+    "travelRuleConfigSubtitle": "Auto-accept rules and thresholds for VASP-to-VASP Travel Rule notifications.",
+    "exchangeStatusSubtitle": "IVMS101 data exchange status per counterparty VASP.",
     "tabAll": "All Cases",
     "tabRuleReview": "Rule Review",
     "tabEscalation": "Escalation",
@@ -1561,6 +1673,32 @@
   "travelRule": {
     "pageTitle": "Travel Rule Events",
     "pageSubtitle": "Track IVMS101 PII exchange between VASPs for approved transfers ≥ 3,500 AED. All transactions here have passed compliance review.",
+    "shareSubtitle": "IVMS101 data exchange approval requests sent to the counterparty.",
+    "shareLinkGenerated": "Share Link Generated",
+    "secureLinkCreated": "Secure Share Link Created",
+    "linkPurpose": "This link allows the counterparty VASP to review transaction details and provide approval.",
+    "copy": "Copy",
+    "transactionLabel": "Transaction",
+    "amountLabel": "Amount",
+    "counterpartyVaspLabel": "Counterparty VASP",
+    "uploadProof": "Upload Proof Document",
+    "dropHint": "Drop files here or click to upload",
+    "dropFormats": "PDF, DOC, DOCX, JPG, PNG (max 10MB)",
+    "uploadPurpose": "Upload any supporting documents required for counterparty approval (e.g., compliance certificates, transaction confirmations).",
+    "approvalStatus": "Approval Status",
+    "pendingCounterparty": "Pending Counterparty Approval",
+    "pendingCounterpartyHint": "Waiting for counterparty VASP to review and approve the transaction.",
+    "shareLinkCreatedLabel": "Share Link Created",
+    "linkExpiresLabel": "Link Expires",
+    "hours24": "(24 hours)",
+    "statusLabel": "Status",
+    "awaitingResponse": "Awaiting Response",
+    "approvalTimeline": "Approval Timeline",
+    "originatorApproved": "Originator Approved",
+    "counterpartyReview": "Counterparty Review",
+    "finalSettlement": "Final Settlement",
+    "awaitingApproval": "Awaiting approval",
+    "linkCopied": "Link copied to clipboard",
     "merchant": "Merchant",
     "allMerchants": "All Merchants",
     "from": "From",
@@ -1747,5 +1885,41 @@
     "healthStatus": "Health",
     "latency": "Latency",
     "serviceStatus": "Service Status"
+  },
+  "dashboard": {
+    "aboutProject": "About Project",
+    "techStack": "Built with Vue3, TypeScript, Vite, Element Plus and other cutting-edge technologies",
+    "userOverview": "User Overview",
+    "vsLastWeek": "vs last week",
+    "vsLastWeekShort": "vs last week",
+    "customOptionDesc": "We have created multiple options for you to combine and customize into pixel-perfect pages",
+    "activity": "Activity",
+    "newAdded": "New",
+    "newUser": "New Users",
+    "lastMonth": "Last Month",
+    "thisMonth": "This Month",
+    "thisYear": "This Year",
+    "monthGrowth": "Growth this month",
+    "yearGrowth": "Growth this year",
+    "region": "Region",
+    "avatar": "Avatar",
+    "gender": "Gender",
+    "progress": "Progress",
+    "visits": "Visits",
+    "todo": "Todo",
+    "pending": "Pending",
+    "customerSatisfaction": "Customer Satisfaction",
+    "salesByRegion": "Sales by Region",
+    "targetVsReality": "Target vs Reality",
+    "todaySales": "Today's Sales",
+    "vsYesterday": "vs yesterday",
+    "salesSummary": "Sales Summary",
+    "productName": "Product Name",
+    "popularProducts": "Popular Products",
+    "salesVolume": "Sales Volume",
+    "totalRevenue": "Total Revenue",
+    "visitorInsights": "Visitor Insights",
+    "volumeServiceLevel": "Volume & Service Level",
+    "completionProgress": "{name} completion: {pro}%"
   }
 }

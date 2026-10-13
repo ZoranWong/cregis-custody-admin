@@ -1,5 +1,5 @@
 <template>
-  <div class="art-card p-5 h-[28.2rem] mb-5 max-sm:mb-4">
+  <div class="art-card p-5 h-[28.2rem] mb-4">
     <div class="art-card-header">
       <div class="title">
         <h4>热销商品</h4>
@@ -51,8 +51,8 @@
       title: '智能手表Pro',
       subtitle: '电子产品',
       value: '1,286件',
-      iconBgClass: 'bg-theme/12 text-theme',
-      valueBgClass: 'bg-theme/12 text-theme'
+      iconBgClass: 'bg-theme/12 text-theme-text',
+      valueBgClass: 'bg-theme/12 text-theme-text'
     },
     {
       icon: 'ri:money-cny-circle-line',

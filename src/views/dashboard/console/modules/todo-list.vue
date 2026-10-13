@@ -1,9 +1,9 @@
 <template>
-  <div class="art-card h-128 p-5 mb-5 max-sm:mb-4">
+  <div class="art-card h-128 p-5 mb-4">
     <div class="art-card-header">
       <div class="title">
-        <h4>代办事项</h4>
-        <p>待处理<span class="text-danger">3</span></p>
+        <h4>{{ $t('dashboard.todo') }}</h4>
+        <p>{{ $t('dashboard.pending') }}<span class="text-danger">3</span></p>
       </div>
     </div>
 

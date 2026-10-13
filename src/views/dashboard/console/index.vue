@@ -5,7 +5,7 @@
     <template v-if="loading">
       <ElRow :gutter="20" class="flex">
         <ElCol v-for="i in 4" :key="i" :sm="12" :md="6" :lg="6">
-          <div class="art-card h-35 px-5 mb-5 max-sm:mb-4 flex flex-col justify-center">
+          <div class="art-card h-35 px-5 mb-4 flex flex-col justify-center">
             <el-skeleton :rows="2" animated />
           </div>
         </ElCol>
@@ -14,9 +14,9 @@
     <template v-else>
       <ElRow :gutter="20" class="flex">
         <ElCol v-for="card in kpiCards" :key="card.key" :sm="12" :md="6" :lg="6">
-          <div class="art-card relative flex flex-col justify-center h-35 px-5 mb-5 max-sm:mb-4">
+          <div class="art-card relative flex flex-col justify-center h-35 px-5 mb-4">
             <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-            <span class="text-[26px] font-medium mt-2 text-g-900">{{ card.value }}</span>
+            <span class="text-display font-semibold mt-2 text-g-900">{{ card.value }}</span>
             <div class="flex-c mt-1" v-if="card.descKey">
               <span class="text-xs text-g-600">{{ $t(card.descKey) }}: {{ card.descValue }}</span>
             </div>
@@ -28,7 +28,7 @@
     <!-- ═══ 图表 + 快捷操作 ═══ -->
     <ElRow :gutter="20">
       <ElCol :sm="24" :md="12" :lg="14">
-        <div class="art-card h-105 p-5 mb-5 max-sm:mb-4">
+        <div class="art-card h-105 p-5 mb-4">
           <div class="art-card-header">
             <div class="title">
               <h4>{{ $t('console.customerStatus') }}</h4>
@@ -49,7 +49,7 @@
         </div>
       </ElCol>
       <ElCol :sm="24" :md="12" :lg="10">
-        <div class="art-card h-105 p-5 mb-5 max-sm:mb-4">
+        <div class="art-card h-105 p-5 mb-4">
           <div class="art-card-header">
             <div class="title">
               <h4>{{ $t('console.quickActions') }}</h4>
@@ -67,7 +67,7 @@
               @click="router.push(action.target)"
             >
               <div class="size-10 rounded-lg flex-cc bg-theme/10">
-                <ArtSvgIcon :icon="action.icon" class="text-lg text-theme" />
+                <ArtSvgIcon :icon="action.icon" class="text-lg text-theme-text" />
               </div>
               <span class="text-sm text-g-700">{{ $t(action.labelKey) }}</span>
             </div>
@@ -82,7 +82,8 @@
         <div class="title">
           <h4>{{ $t('console.recentTasks') }}</h4>
           <p
-            >{{ $t('console.latest') }} <span class="text-warning">{{ tasks.length }}</span>
+            >{{ $t('console.latest') }}
+            <span class="text-tone-progress-text">{{ tasks.length }}</span>
             {{ $t('console.tasks') }}</p
           >
         </div>
@@ -92,6 +93,9 @@
         <el-skeleton :rows="8" animated class="px-5 pb-5" />
       </template>
       <el-table v-else :data="tasks" stripe size="small" class="mt-3">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column prop="referenceNo" :label="$t('console.id')" width="120" />
         <el-table-column prop="rowTitle" :label="$t('console.title')" min-width="200" />
         <el-table-column :label="$t('console.priority')" width="90">

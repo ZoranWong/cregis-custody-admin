@@ -71,6 +71,8 @@ export const REVIEW_RESULT_DICT: TxStateItem[] = [
   { value: 'none', labelKey: 'txLens.rrNone' },
   { value: 'tp', labelKey: 'txLens.truePositive' },
   { value: 'true_positive', labelKey: 'txLens.truePositive' },
+  { value: 'tn', labelKey: 'txLens.trueNegative' },
+  { value: 'true_negative', labelKey: 'txLens.trueNegative' },
   { value: 'fp', labelKey: 'txLens.falsePositive' },
   { value: 'false_positive', labelKey: 'txLens.falsePositive' },
   { value: 'fn', labelKey: 'txLens.falseNegative' },
@@ -189,30 +191,46 @@ const TONES: Record<string, Tone> = {
   na: 'na'
 }
 
-/** 色调 → 主色。圆点与文字都取自这里，保证两者颜色一致 */
+/**
+ * 色调 → 状态色（打点 / 文字同源，保证两者颜色一致）。
+ *
+ * 取值全部来自 tailwind.css 的 --tone-* 阶梯，而非 --el-color-*：
+ * Element 的 500 级基色是为「实心块 + 白字」设计的，当文字用在白底上实测仅
+ * 1.84–3.29:1，不达 WCAG AA；--tone-*-text 在亮/暗两种模式下均 ≥4.5:1。
+ * 详见 tailwind.css 中 Status Tone 段的注释。
+ */
 const TONE_COLORS: Record<Tone, string> = {
-  done: 'var(--el-color-success)',
-  progress: 'var(--el-color-warning)',
-  error: 'var(--el-color-danger)',
-  info: 'var(--el-color-primary)',
+  done: 'var(--tone-done-text)',
+  progress: 'var(--tone-progress-text)',
+  error: 'var(--tone-error-text)',
+  info: 'var(--tone-info-text)',
+  na: 'var(--el-text-color-placeholder)'
+}
+
+/** 标记色（圆点实心部分），≥3:1 非文本对比度 */
+const TONE_MARKS: Record<Tone, string> = {
+  done: 'var(--tone-done-mark)',
+  progress: 'var(--tone-progress-mark)',
+  error: 'var(--tone-error-mark)',
+  info: 'var(--tone-info-mark)',
   na: 'var(--el-text-color-placeholder)'
 }
 
 /** 小圆点外环（浅色） */
 const TONE_RINGS: Record<Tone, string> = {
-  done: 'var(--el-color-success-light-5)',
-  progress: 'var(--el-color-warning-light-5)',
-  error: 'var(--el-color-danger-light-5)',
-  info: 'var(--el-color-primary-light-5)',
+  done: 'var(--tone-done-ring)',
+  progress: 'var(--tone-progress-ring)',
+  error: 'var(--tone-error-ring)',
+  info: 'var(--tone-info-ring)',
   na: 'transparent'
 }
 
 /** 大圆（步骤条）外环（更浅） */
 const TONE_RINGS_SOFT: Record<Tone, string> = {
-  done: 'var(--el-color-success-light-8)',
-  progress: 'var(--el-color-warning-light-8)',
-  error: 'var(--el-color-danger-light-8)',
-  info: 'var(--el-color-primary-light-8)',
+  done: 'var(--tone-done-ring-soft)',
+  progress: 'var(--tone-progress-ring-soft)',
+  error: 'var(--tone-error-ring-soft)',
+  info: 'var(--tone-info-ring-soft)',
   na: 'transparent'
 }
 
@@ -220,16 +238,46 @@ const TONE_RINGS_SOFT: Record<Tone, string> = {
  * 状态值 → 色调。未登记的取值一律回退 na（灰）。
  * 不回退 progress —— 否则 held / na 这类未登记值会被误染成“进行中”。
  */
+/**
+ * 时间线节点色调。
+ *
+ * 时间线记录的是【已经发生】的事件序列，因此节点默认都是「已完成」（done 绿）；
+ * 失败态单独保留红色，否则整条线全绿会让「失败」这一关键信息消失。
+ *
+ * 不能直接用 toneOf(node.status)：后端给时间线节点的 status 一律是 'info'
+ * （纯信息），照着渲染会整条线全蓝，与语义不符。
+ */
+const TIMELINE_ERROR_STATES = new Set(['FAILED', 'REVERTED', 'REJECTED', 'CANCELLED'])
+
+export function timelineNodeTone(node: { label?: string | null; status?: string | null }): Tone {
+  const s = (node.label || '').toUpperCase()
+  if (TIMELINE_ERROR_STATES.has(s)) return 'error'
+  return 'done'
+}
+
 export function toneOf(value: string | null | undefined): Tone {
   if (!value) return 'na'
   return TONES[value] || 'na'
 }
 
-/** 色调 → 小圆点样式（12px，列表阶段点 / 时间线节点） */
+/**
+ * 色调 → 小圆点样式（12px，列表阶段点 / 时间线节点）。
+ *
+ * na（未执行/不适用）用【空心】而非实心浅灰：
+ * 它与 info 同为圆点、仅色相不同，色盲用户与低对比环境下无法分辨。
+ * 形状差异（空心 vs 实心）让状态不依赖颜色也能被读出。
+ */
 export function toneDotStyle(tone: Tone): CSSProperties {
+  if (tone === 'na') {
+    return {
+      background: 'transparent',
+      boxSizing: 'border-box',
+      border: '1.5px solid var(--el-text-color-placeholder)'
+    }
+  }
   return {
-    background: TONE_COLORS[tone],
-    boxShadow: tone === 'na' ? 'none' : `0 0 0 2px ${TONE_RINGS[tone]}`
+    background: TONE_MARKS[tone],
+    boxShadow: `0 0 0 2px ${TONE_RINGS[tone]}`
   }
 }
 
@@ -242,7 +290,7 @@ export function toneCircleStyle(tone: Tone): CSSProperties {
     }
   }
   return {
-    background: TONE_COLORS[tone],
+    background: TONE_MARKS[tone],
     color: '#fff',
     boxShadow: `0 0 0 4px ${TONE_RINGS_SOFT[tone]}`
   }
@@ -251,6 +299,11 @@ export function toneCircleStyle(tone: Tone): CSSProperties {
 /** 色调 → 文字颜色（与圆点同源，保证两者一致） */
 export function toneTextStyle(tone: Tone): CSSProperties {
   return { color: TONE_COLORS[tone] }
+}
+
+/** 色调 → 纯色字符串（用于 :style 绑定的非 CSSProperties 场景，如 border-color） */
+export function toneColor(tone: Tone): string {
+  return TONE_COLORS[tone]
 }
 
 export type Translate = (key: string) => string
@@ -266,13 +319,54 @@ export function txStateLabel(
   return key ? t(key) : value
 }
 
-/** 人工复核结果 → el-tag type */
+/**
+ * 复核结果 → el-tag type。
+ *
+ * 四类结果各占一个色相，不能都塞进 success/warning/danger：
+ *   TP 真阳性 正确命中  → success  绿
+ *   TN 真阴性 正确排除  → info     中性（正确但非命中，不应与 TP 同色）
+ *   FP 假阳性 误报      → warning  琥珀
+ *   FN 假阴性 漏判      → 需独立色相（红已被 flagged/rejected 占用），
+ *                        故走 tone-purple，见 reviewResultStyle
+ */
 export function reviewResultTagType(value: string | null | undefined): TagType {
   const v = (value || '').toLowerCase()
   if (v === 'tp' || v === 'true_positive') return 'success'
+  if (v === 'tn' || v === 'true_negative') return 'info'
   if (v === 'fp' || v === 'false_positive') return 'warning'
   if (v === 'fn' || v === 'false_negative') return 'danger'
   return 'info'
+}
+
+/**
+ * 复核结果 → 完整配色（文字色 + 底色）。
+ *
+ * 与 reviewResultTagType 的差别：FN 在这里用紫色而非 danger 红。
+ * 原因：红在合规模块已被 flagged（标记）与 rejected（拒绝）占用，
+ * FN 是「漏判」而非「拒绝」，用紫能把它与命中/拒绝区分开——这也是原型的做法。
+ * 摘要卡、卡片徽章、详情选择器三处必须共用本函数，否则同一 FN 会出现三种颜色。
+ */
+export function reviewResultStyle(value: string | null | undefined): {
+  color: string
+  background: string
+} {
+  const v = (value || '').toLowerCase()
+  switch (v) {
+    case 'tp':
+    case 'true_positive':
+      return { color: 'var(--tone-done-text)', background: 'var(--tone-done-ring-soft)' }
+    case 'tn':
+    case 'true_negative':
+      return { color: 'var(--tone-neutral-text)', background: 'var(--tone-neutral-ring-soft)' }
+    case 'fp':
+    case 'false_positive':
+      return { color: 'var(--tone-progress-text)', background: 'var(--tone-progress-ring-soft)' }
+    case 'fn':
+    case 'false_negative':
+      return { color: 'var(--tone-purple-text)', background: 'var(--tone-purple-ring-soft)' }
+    default:
+      return { color: 'var(--el-text-color-secondary)', background: 'var(--el-fill-color-light)' }
+  }
 }
 
 /** 链上状态 → el-tag type（详情页头卡） */
@@ -318,23 +412,4 @@ export function notificationTagType(value: string | null | undefined): TagType {
     default:
       return 'info'
   }
-}
-
-/**
- * 风险分 → el-tag type。
- * 阈值按椭圆曲线风险分口径（0-10）划分，与规则列表的 CRITICAL/MEDIUM 阈值保持同序。
- */
-export function riskScoreTagType(value: number | null | undefined): TagType {
-  if (value == null) return 'info'
-  if (value >= 7) return 'danger'
-  if (value >= 4) return 'warning'
-  return 'success'
-}
-
-/** 风险分 → i18n 标签键；0 表示未评分，不展示。 */
-export function riskScoreLabelKey(value: number | null | undefined): string | null {
-  if (value == null || value === 0) return null
-  if (value >= 7) return 'alerts.riskHigh'
-  if (value >= 4) return 'alerts.riskMedium'
-  return 'alerts.riskLow'
 }

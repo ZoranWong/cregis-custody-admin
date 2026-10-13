@@ -34,7 +34,7 @@
       <ElRow :gutter="20" class="flex">
         <!-- Left: Passkey + Backup Credentials -->
         <ElCol :sm="24" :md="12">
-          <div class="art-card mb-5 p-5">
+          <div class="art-card mb-4 p-5">
             <div class="flex items-start justify-between gap-3 mb-3">
               <div>
                 <h3 class="text-sm font-semibold text-g-900">Passkey</h3>
@@ -59,7 +59,7 @@
             </ElButton>
           </div>
 
-          <div class="art-card mb-5 p-5">
+          <div class="art-card mb-4 p-5">
             <div class="flex items-start justify-between gap-3 mb-3">
               <div>
                 <h3 class="text-sm font-semibold text-g-900">Backup Credentials</h3>
@@ -91,7 +91,7 @@
 
         <!-- Right: Active Sessions -->
         <ElCol :sm="24" :md="12">
-          <div class="art-card mb-5 p-5">
+          <div class="art-card mb-4 p-5">
             <div class="mb-3">
               <h3 class="text-sm font-semibold text-g-900">Active Sessions</h3>
               <p class="text-xs text-g-500 mt-0.5">Revoke any session you don't recognize.</p>
@@ -99,14 +99,14 @@
             <div v-if="currentSession" class="session-item">
               <div>
                 <div class="text-xs font-medium text-g-800">{{ currentSession.deviceLabel }}</div>
-                <div class="text-[11px] text-g-500">{{ sessionMeta(currentSession) }}</div>
+                <div class="text-label text-g-500">{{ sessionMeta(currentSession) }}</div>
               </div>
               <span class="current-tag">Current</span>
             </div>
             <div v-for="session in otherSessions" :key="session.sessionId" class="session-item">
               <div>
                 <div class="text-xs font-medium text-g-800">{{ session.deviceLabel }}</div>
-                <div class="text-[11px] text-g-500">{{ sessionMeta(session) }}</div>
+                <div class="text-label text-g-500">{{ sessionMeta(session) }}</div>
               </div>
               <ElButton
                 size="small"
@@ -141,7 +141,7 @@
       >Passkey uses your device biometrics or PIN for phishing-resistant sign-in.</p
     >
     <template #footer>
-      <ElButton @click="showPasskeyDialog = false">Cancel</ElButton>
+      <ElButton @click="showPasskeyDialog = false">{{ $t('common.cancel') }}</ElButton>
       <ElButton
         type="primary"
         :disabled="registeringPasskey || !passkeySupported"
@@ -169,7 +169,7 @@
       ><el-input v-model="totpDialogCode" maxlength="6" placeholder="123456" class="mt-1"
     /></div>
     <template #footer>
-      <ElButton @click="showTotpDialog = false">Cancel</ElButton>
+      <ElButton @click="showTotpDialog = false">{{ $t('common.cancel') }}</ElButton>
       <ElButton type="primary" :disabled="totpDialogCode.length !== 6" @click="submitTotpDialog"
         >Verify</ElButton
       >
@@ -236,10 +236,10 @@
       <p v-if="passwordChangeSummary" class="text-xs text-green-600">{{ passwordChangeSummary }}</p>
     </div>
     <template #footer>
-      <ElButton @click="showPasswordDialog = false">Cancel</ElButton>
-      <ElButton type="primary" :disabled="!canSubmitPassword" @click="submitPasswordDialog"
-        >Save</ElButton
-      >
+      <ElButton @click="showPasswordDialog = false">{{ $t('common.cancel') }}</ElButton>
+      <ElButton type="primary" :disabled="!canSubmitPassword" @click="submitPasswordDialog">{{
+        $t('common.save')
+      }}</ElButton>
     </template>
   </el-dialog>
 
@@ -249,7 +249,7 @@
       >?</p
     >
     <template #footer>
-      <ElButton @click="showRevokeSingleDialog = false">Cancel</ElButton>
+      <ElButton @click="showRevokeSingleDialog = false">{{ $t('common.cancel') }}</ElButton>
       <ElButton
         type="danger"
         :disabled="!revokeTargetLabel || !!revokingSessionId"
@@ -265,7 +265,7 @@
       <strong>immediately terminated</strong>.</p
     >
     <template #footer>
-      <ElButton @click="showRevokeAllDialog = false">Cancel</ElButton>
+      <ElButton @click="showRevokeAllDialog = false">{{ $t('common.cancel') }}</ElButton>
       <ElButton type="danger" :disabled="!otherSessions.length" @click="submitRevokeAllDialog"
         >Revoke All</ElButton
       >

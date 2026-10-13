@@ -1,8 +1,8 @@
 <template>
-  <div class="art-card h-82 p-5 mb-5 max-sm:mb-4">
+  <div class="art-card h-82 p-5 mb-4">
     <div class="art-card-header">
       <div class="title">
-        <h4>访客洞察</h4>
+        <h4>{{ $t('dashboard.visitorInsights') }}</h4>
       </div>
     </div>
     <ArtLineChart

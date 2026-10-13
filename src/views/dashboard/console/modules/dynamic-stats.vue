@@ -1,9 +1,9 @@
 <template>
-  <div class="art-card h-128 p-5 mb-5 max-sm:mb-4">
+  <div class="art-card h-128 p-5 mb-4">
     <div class="art-card-header">
       <div class="title">
-        <h4>动态</h4>
-        <p>新增<span class="text-success">+6</span></p>
+        <h4>{{ $t('dashboard.activity') }}</h4>
+        <p>{{ $t('dashboard.newAdded') }}<span class="text-success">+6</span></p>
       </div>
     </div>
 
@@ -16,7 +16,7 @@
         >
           <span class="text-g-800 font-medium">{{ item.username }}</span>
           <span class="mx-2 text-g-600">{{ item.type }}</span>
-          <span class="text-theme">{{ item.target }}</span>
+          <span class="text-theme-text">{{ item.target }}</span>
         </div>
       </ElScrollbar>
     </div>

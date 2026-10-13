@@ -42,7 +42,7 @@
 
     <template v-else-if="loadError">
       <div class="art-card p-10 text-center">
-        <p class="text-[var(--el-color-danger)] mb-4">{{ loadError }}</p>
+        <p class="text-tone-error-text mb-4">{{ loadError }}</p>
         <ElButton type="primary" @click="loadMainData">{{ $t('console.refresh') }}</ElButton>
       </div>
     </template>
@@ -53,15 +53,15 @@
         <!-- Summary Metrics -->
         <ElRow :gutter="20" class="flex mb-5">
           <ElCol :sm="12" :md="8" v-for="card in summaryCards" :key="card.key">
-            <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-5 max-sm:mb-4">
+            <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-4">
               <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-              <span class="text-[22px] font-medium mt-1 text-g-900">{{ card.value }}</span>
+              <span class="text-display font-semibold mt-1 text-g-900">{{ card.value }}</span>
             </div>
           </ElCol>
         </ElRow>
 
         <!-- Fee Collection Ranking -->
-        <div class="art-card art-table-card overflow-hidden mb-5">
+        <div class="art-card art-table-card overflow-hidden mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <div class="flex flex-wrap items-center gap-3">
               <h3 class="text-base font-semibold text-g-900">{{ $t('fee.ranking') }}</h3>
@@ -87,7 +87,7 @@
                   class="inline-flex items-center justify-center min-w-[24px] px-2 py-0.5 rounded-full text-xs font-semibold"
                   :class="
                     row.rank === 1
-                      ? 'bg-[var(--el-color-warning)]/10 text-[var(--el-color-warning)]'
+                      ? 'bg-tone-progress-bg text-tone-progress-text'
                       : 'bg-g-100 text-g-600'
                   "
                   >{{ row.rank }}</span
@@ -130,7 +130,9 @@
             v-if="rankingPagination.totalCount > 0"
             class="flex justify-between items-center px-5 py-3 border-t border-[var(--default-border)]"
           >
-            <span class="text-xs text-g-500">{{ rankingPagination.totalCount }} records</span>
+            <span class="text-xs text-g-500">{{
+              $t('common.recordCount', { count: rankingPagination.totalCount })
+            }}</span>
             <el-pagination
               v-model:current-page="rankingPage"
               v-model:page-size="rankingPageSize"
@@ -164,7 +166,7 @@
         <!-- Platform Config -->
         <div
           v-if="configSubTab === 'platform'"
-          class="art-card art-table-card overflow-hidden mb-5"
+          class="art-card art-table-card overflow-hidden mb-4"
         >
           <div class="p-4 border-b border-[var(--default-border)]">
             <h3 class="text-base font-semibold text-g-900">{{ $t('fee.platformFeeFactors') }}</h3>
@@ -294,7 +296,7 @@
             <p class="text-sm text-g-500">{{ $t('fee.selectMerchantHint') }}</p>
           </div>
 
-          <div v-else class="art-card art-table-card overflow-hidden mb-5">
+          <div v-else class="art-card art-table-card overflow-hidden mb-4">
             <div class="p-4 border-b border-[var(--default-border)]">
               <h3 class="text-base font-semibold text-g-900"
                 >{{ $t('fee.merchantFeeFactors') }} —

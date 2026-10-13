@@ -4,20 +4,17 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-xl font-semibold text-g-900">{{ pageTitle }}</h1>
-        <p class="text-sm text-g-500 mt-1">{{ pageSubtitle }}</p>
+        <h1 class="text-hero font-semibold text-g-900">{{ pageTitle }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ pageSubtitle }}</p>
       </div>
-      <el-button text @click="router.back()">
-        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />{{ $t('rules.backToRules') }}
-      </el-button>
+      <ArtBackButton history />
     </div>
-
     <!-- Rule Form Card -->
-    <div class="art-card mb-5">
-      <div class="p-5 border-b border-[var(--default-border)]">
-        <h2 class="text-lg font-semibold text-g-900">{{ $t('rules.basicInfo') }}</h2>
+    <div class="art-card mb-4">
+      <div class="p-4 border-b border-[var(--default-border)]">
+        <h2 class="text-title font-semibold text-g-900">{{ $t('rules.basicInfo') }}</h2>
       </div>
-      <div class="p-5">
+      <div class="p-4">
         <el-form label-width="140px" :model="form">
           <el-form-item :label="$t('rules.ruleName')">
             <el-input v-model="form.ruleName" />
@@ -58,23 +55,23 @@
     </div>
 
     <!-- Acceptance Conditions Card -->
-    <div class="art-card mb-5">
-      <div class="p-5 border-b border-[var(--default-border)]">
-        <h2 class="text-lg font-semibold text-g-900">{{ $t('rules.acceptanceConditions') }}</h2>
-        <p class="text-xs text-g-500 mt-1">{{ $t('rules.acceptanceConditionsHint') }}</p>
+    <div class="art-card mb-4">
+      <div class="p-4 border-b border-[var(--default-border)]">
+        <h2 class="text-title font-semibold text-g-900">{{ $t('rules.acceptanceConditions') }}</h2>
+        <p class="text-xs text-g-700 mt-1">{{ $t('rules.acceptanceConditionsHint') }}</p>
       </div>
-      <div class="p-5">
+      <div class="p-4">
         <!-- Beneficiary name match -->
         <div class="condition-row">
           <div class="flex items-start gap-3">
             <div class="condition-toggle locked">
-              <ArtSvgIcon icon="ri:lock-line" class="text-white text-[10px]" />
+              <ArtSvgIcon icon="ri:lock-line" class="text-white text-icon-xs" />
             </div>
             <div class="flex-1">
               <div class="text-sm font-medium text-g-900">{{
                 $t('rules.beneficiaryNameMatch')
               }}</div>
-              <div class="text-xs text-g-500 mt-1">{{ $t('rules.beneficiaryNameMatchDesc') }}</div>
+              <div class="text-xs text-g-700 mt-1">{{ $t('rules.beneficiaryNameMatchDesc') }}</div>
             </div>
           </div>
         </div>
@@ -86,15 +83,19 @@
               class="condition-toggle"
               :class="{ active: form.aliasMatch }"
               @click="form.aliasMatch = !form.aliasMatch"
+              role="button"
+              tabindex="0"
+              @keydown.enter.prevent="form.aliasMatch = !form.aliasMatch"
+              @keydown.space.prevent="form.aliasMatch = !form.aliasMatch"
             >
-              <span v-if="form.aliasMatch" class="text-white text-[10px]">✓</span>
+              <span v-if="form.aliasMatch" class="text-white text-caption">✓</span>
             </div>
             <div class="flex-1">
               <div class="text-sm font-medium text-g-900">{{ $t('rules.aliasMatch') }}</div>
-              <div class="text-xs text-g-500 mt-1">{{ $t('rules.aliasMatchDesc') }}</div>
+              <div class="text-xs text-g-700 mt-1">{{ $t('rules.aliasMatchDesc') }}</div>
               <!-- Inline alias editing -->
               <div v-if="form.aliasMatch" class="mt-3">
-                <div class="text-xs font-semibold text-g-600 mb-2">{{ $t('rules.aliases') }}</div>
+                <div class="text-xs font-semibold text-g-700 mb-2">{{ $t('rules.aliases') }}</div>
                 <div class="flex flex-col gap-2">
                   <div
                     v-for="(alias, index) in form.aliases"
@@ -108,11 +109,13 @@
                       :placeholder="$t('rules.aliasPlaceholder')"
                     />
                     <el-button size="small" text type="danger" @click="removeAlias(index)">
-                      <ArtSvgIcon icon="ri:delete-bin-line" />
+                      <ArtSvgIcon class="text-icon-sm" icon="ri:delete-bin-line" />
                     </el-button>
                   </div>
                   <el-button size="small" text type="primary" @click="addAlias">
-                    <ArtSvgIcon icon="ri:add-line" class="mr-1" />{{ $t('rules.addAlias') }}
+                    <ArtSvgIcon icon="ri:add-line" class="text-icon-sm mr-1" />{{
+                      $t('rules.addAlias')
+                    }}
                   </el-button>
                 </div>
               </div>
@@ -123,7 +126,7 @@
         <!-- Onboarding status -->
         <div class="condition-section">
           <div class="text-sm font-medium text-g-900 mb-2">{{ $t('rules.onboardingStatus') }}</div>
-          <div class="text-xs text-g-500 mb-3">{{ $t('rules.onboardingStatusDesc') }}</div>
+          <div class="text-xs text-g-700 mb-3">{{ $t('rules.onboardingStatusDesc') }}</div>
           <div class="flex flex-wrap gap-4">
             <el-checkbox
               v-for="status in onboardingStatusOptions"
@@ -139,7 +142,7 @@
         <!-- Risk level -->
         <div class="condition-section">
           <div class="text-sm font-medium text-g-900 mb-2">{{ $t('rules.riskLevel') }}</div>
-          <div class="text-xs text-g-500 mb-3">{{ $t('rules.riskLevelDesc') }}</div>
+          <div class="text-xs text-g-700 mb-3">{{ $t('rules.riskLevelDesc') }}</div>
           <div class="flex flex-wrap gap-4">
             <el-checkbox
               v-for="level in riskLevelOptions"
@@ -238,7 +241,7 @@
 
   function saveRule() {
     // TODO: Implement API call
-    ElMessage.success(t('rules.saveSuccess'))
+    ElMessage.success(t('common.saveSuccess'))
     router.back()
   }
 
@@ -254,6 +257,12 @@
     margin-bottom: 16px;
     border: 1px solid var(--default-border);
     border-radius: 8px;
+  }
+
+  .factor-toggle:focus-visible,
+  .condition-toggle:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
   }
 
   .condition-toggle {

@@ -310,7 +310,7 @@
       padding: 0 10px;
       font-size: 12px;
       line-height: 26px;
-      color: var(--el-color-primary) !important;
+      color: var(--theme-text) !important;
       background-color: var(--el-color-primary-light-9) !important;
       border: 1px solid var(--el-color-primary-light-4) !important;
     }

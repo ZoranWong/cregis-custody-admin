@@ -3,7 +3,12 @@ import type { TicketPagination, TicketSla } from '@/features/tickets/types'
 
 export type RiskQueueTab = 'disposition' | 'approval'
 export type RiskCaseStatus =
-  'pending' | 'reviewing' | 'pending_approval' | 'approved' | 'rejected' | 'escalated'
+  | 'pending'
+  | 'reviewing'
+  | 'pending_approval'
+  | 'approved'
+  | 'rejected'
+  | 'escalated'
 export type RiskPriority = 'high' | 'medium' | 'low'
 
 export interface RiskCaseQueueRequest {

@@ -73,7 +73,7 @@
             <ArtSvgIcon icon="ri:search-line" class="text-sm text-g-500" />
             <span class="ml-1 text-xs font-normal text-g-500">{{ $t('topBar.search.title') }}</span>
           </div>
-          <div class="flex-c h-5 px-1.5 text-g-500/80 border border-g-400 rounded">
+          <div class="flex-c h-5 px-1.5 text-g-500 border border-g-400 rounded">
             <ArtSvgIcon v-if="isWindows" icon="vaadin:ctrl-a" class="text-sm" />
             <ArtSvgIcon v-else icon="ri:command-fill" class="text-xs" />
             <span class="ml-0.5 text-xs">k</span>
@@ -95,7 +95,7 @@
           popper-class="langDropDownStyle"
           v-if="shouldShowLanguage"
         >
-          <ArtIconButton icon="ri:translate-2" class="language-btn text-[19px]" />
+          <ArtIconButton icon="ri:translate-2" class="language-btn text-icon-lg" />
           <template #dropdown>
             <ElDropdownMenu>
               <div v-for="item in languageOptions" :key="item.value" class="lang-btn-item">

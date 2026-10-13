@@ -1441,6 +1441,8 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/MessageResultPageFeeMonitorMerchantRankingItem
+
+
       security: []
   /feeCenter/feeMonitorMerchantDailyStat/merchantFeeDailyPage:
     get:
@@ -1504,6 +1506,8 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/MessageResultPageFeeMonitorMerchantFeeDailyItem
+
+
       security: []
   /feeCenter/feeMonitorMerchantDailyStat/nativeCoinConsumption:
     get:
@@ -1553,6 +1557,8 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/MessageResultListFeeMonitorNativeCoinConsumptionItem
+
+
       security: []
   /feeCenter/feeMonitorMerchantDailyStat/getUSDTRecord:
     get:
@@ -1662,6 +1668,8 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/MessageResultFeeMonitorMerchantTopUpOverviewResponse
+
+
       security: []
   /feeCenter/merchant/gas/config/list:
     get:
@@ -6118,6 +6126,8 @@ paths:
         分页查询 Travel Rule 通知（双向）
         
         分页查询 Travel Rule 通知，direction 不传或 ALL 查全部，可传 INBOUND/OUTBOUND；支持按状态、商户ecode、创建时间区间、关键词（订单号/Notabene交易ID/地址）过滤。
+
+
       tags: []
       parameters:
         - name: direction
@@ -6130,6 +6140,8 @@ paths:
           in: query
           description: >-
             内部状态：CREATED/PII_APPENDED/UNMATCHED/AUTHORIZED/ACCEPTED/REJECTED/SETTLING/SETTLED/REVERTED
+
+
           required: false
           schema:
             type: string
@@ -7069,6 +7081,8 @@ components:
             $ref: '#/components/schemas/ItemView'
             description: >-
               com.cregis.custody.admin.dto.compliance.InboundTravelRuleReviewDto.ItemView
+
+
           description: ''
         total:
           type: integer
@@ -7194,6 +7208,8 @@ components:
             $ref: '#/components/schemas/GasOperationsSourceAvailabilityView'
             description: >-
               com.cregis.custody.admin.dto.operations.gas.GasOperationsSourceAvailabilityView
+
+
           description: ''
     QueryParamMerchantBillingRecord: *ref_0
     PageGasHomeTaskVO:
@@ -7495,6 +7511,8 @@ components:
             $ref: '#/components/schemas/PiiFieldView'
             description: >-
               com.cregis.custody.common.dto.compliance.TravelRulePiiDtos.PiiFieldView
+
+
           description: ''
         payload:
           $ref: '#/components/schemas/TravelRulePayload'
@@ -7586,6 +7604,8 @@ components:
             $ref: '#/components/schemas/GasOperationsSourceAvailabilityView'
             description: >-
               com.cregis.custody.admin.dto.operations.gas.GasOperationsSourceAvailabilityView
+
+
           description: ''
     MessageResultPageGasHomeTaskVO:
       type: object
@@ -7665,6 +7685,8 @@ components:
             $ref: '#/components/schemas/PiiFieldView'
             description: >-
               com.cregis.custody.common.dto.compliance.TravelRulePiiDtos.PiiFieldView
+
+
           description: ''
         resubmitCount:
           type: integer
@@ -7675,6 +7697,8 @@ components:
             $ref: '#/components/schemas/PiiRoundView'
             description: >-
               com.cregis.custody.common.dto.compliance.TravelRulePiiDtos.PiiRoundView
+
+
           description: ''
     MapObject:
       type: object
@@ -7771,6 +7795,8 @@ components:
             $ref: '#/components/schemas/FeeMonitorMerchantRankingItem'
             description: >-
               com.cregis.custody.common.vo.feeCenter.FeeMonitorMerchantRankingItem
+
+
           description: ''
         total:
           type: integer
@@ -8202,6 +8228,8 @@ components:
             $ref: '#/components/schemas/FeeMonitorMerchantFeeDailyItem'
             description: >-
               com.cregis.custody.common.vo.feeCenter.FeeMonitorMerchantFeeDailyItem
+
+
           description: ''
         total:
           type: integer
@@ -8412,6 +8440,8 @@ components:
               <p>一条规则 = 出入金方向(direction) + 适用范围(scope) + 一组条件(见{@link RiskRuleCondition})
               
               + 命中后的处置决策(decision)。规则保存即生效，执行引擎只加载 enabled=true 的规则。</p>
+
+
           description: ''
         total:
           type: integer
@@ -8514,6 +8544,8 @@ components:
             $ref: '#/components/schemas/FeeMonitorNativeCoinConsumptionItem'
             description: >-
               com.cregis.custody.common.vo.feeCenter.FeeMonitorNativeCoinConsumptionItem
+
+
           description: ''
     KybBeneficiaryInfo:
       type: object
@@ -8706,6 +8738,8 @@ components:
           type: string
           description: >-
             因子域：customerDueDiligence / counterpartyVasp / screening / transaction
+
+
         defaultOperator:
           type: string
           description: 默认操作符
@@ -9057,6 +9091,8 @@ components:
               
               
               <p>小数位(decimals)不在此表存储，统一复用{@code cus_sys_coin_on_chain.decimals}。</p>
+
+
           description: ''
     MessageResultTravelRuleCoin:
       type: object
@@ -9081,6 +9117,8 @@ components:
           type: string
           description: >-
             业务引用类型：PAYOUT_ORDER(出金订单) / WITHDRAW_ORDER(提现订单) / INBOUND_ORDER(入金订单)
+
+
         bizRefId:
           type: string
           description: 业务订单号(orderId)
@@ -9258,6 +9296,8 @@ components:
             $ref: '#/components/schemas/GasOperationsSourceAvailabilityView'
             description: >-
               com.cregis.custody.admin.dto.operations.gas.GasOperationsSourceAvailabilityView
+
+
           description: ''
     MessageResultPageRiskEvaluation:
       type: object
@@ -9513,6 +9553,8 @@ components:
             $ref: '#/components/schemas/TransactionLensItemView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDtos.TransactionLensItemView
+
+
           description: ''
         total:
           type: integer
@@ -9735,6 +9777,8 @@ components:
             $ref: '#/components/schemas/ScreeningItemView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.ScreeningItemView
+
+
           description: ''
         onchain:
           type: array
@@ -9742,6 +9786,8 @@ components:
             $ref: '#/components/schemas/ScreeningItemView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.ScreeningItemView
+
+
           description: ''
     TravelRuleSummaryView:
       type: object
@@ -9824,6 +9870,8 @@ components:
             $ref: '#/components/schemas/RuleTriggerView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.RuleTriggerView
+
+
           description: ''
         cddChecklist:
           type: array
@@ -9831,6 +9879,8 @@ components:
             $ref: '#/components/schemas/CheckItemView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.CheckItemView
+
+
           description: ''
         screening:
           $ref: '#/components/schemas/ScreeningView'
@@ -9844,6 +9894,8 @@ components:
             $ref: '#/components/schemas/CommunicationRoundView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.CommunicationRoundView
+
+
           description: ''
         timeline:
           type: array
@@ -9851,6 +9903,8 @@ components:
             $ref: '#/components/schemas/TimelineNodeView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.TimelineNodeView
+
+
           description: ''
     AddSystemStaffRequest:
       type: object
@@ -9969,6 +10023,8 @@ components:
             $ref: '#/components/schemas/TimelineNodeView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.TimelineNodeView
+
+
           description: ''
         manualTrace:
           type: array
@@ -9976,6 +10032,8 @@ components:
             $ref: '#/components/schemas/TimelineNodeView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.TimelineNodeView
+
+
           description: ''
     QueryParamSystemRole: *ref_0
     MessageResultTravelRuleTabView:
@@ -10066,6 +10124,8 @@ components:
             $ref: '#/components/schemas/ApproverView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensOpsDtos.ApproverView
+
+
           description: ''
         signers:
           type: array
@@ -10211,6 +10271,8 @@ components:
             $ref: '#/components/schemas/QuarantineView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensOpsDtos.QuarantineView
+
+
           description: ''
     MessageResultDispositionTabView:
       type: object
@@ -10272,6 +10334,8 @@ components:
             $ref: '#/components/schemas/TimelineNodeView'
             description: >-
               com.cregis.custody.admin.dto.compliance.TransactionLensDetailDtos.TimelineNodeView
+
+
           description: ''
     MessageResultOnChainTabView:
       type: object
@@ -10658,6 +10722,8 @@ components:
             $ref: '#/components/schemas/RuleCondition'
             description: >-
               com.cregis.custody.admin.dto.risk.RiskStrategyRuleDto.RuleCondition
+
+
           description: ''
         thresholds:
           $ref: '#/components/schemas/Thresholds'

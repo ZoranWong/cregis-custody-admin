@@ -4,11 +4,11 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between mb-2">
       <div>
-        <h1 class="text-xl font-semibold text-g-900">{{ $t('travelRule.pageTitle') }}</h1>
-        <p class="text-sm text-g-500 mt-1">{{ $t('travelRule.pageSubtitle') }}</p>
+        <h1 class="text-hero font-semibold text-g-900">{{ $t('travelRule.pageTitle') }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ $t('travelRule.pageSubtitle') }}</p>
       </div>
       <el-button type="primary" plain @click="load">
-        <ArtSvgIcon icon="ri:download-line" class="mr-1" />{{ $t('common.export') }}
+        <ArtSvgIcon icon="ri:download-line" class="text-icon-md mr-1" />{{ $t('common.export') }}
       </el-button>
     </div>
 
@@ -44,12 +44,14 @@
         @keyup.enter="reload"
         @clear="reload"
       >
-        <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
+        <template #prefix
+          ><ArtSvgIcon icon="ri:search-line" class="text-icon-md text-tone-muted-text"
+        /></template>
       </el-input>
     </div>
 
     <!-- ═══ Secondary filters (inside card) ═══ -->
-    <div class="art-card mb-5">
+    <div class="art-card mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-4">
           <el-select
@@ -90,6 +92,10 @@
             :key="event.id"
             class="tx-card mb-2.5 last:mb-0 cursor-pointer"
             @click="openDetail(event)"
+            role="button"
+            tabindex="0"
+            @keydown.enter.prevent="openDetail(event)"
+            @keydown.space.prevent="openDetail(event)"
           >
             <!-- Header: Amount + Meta -->
             <div class="flex items-start justify-between gap-3 mb-2">
@@ -101,38 +107,40 @@
                     "
                     :class="
                       event.direction === 'outgoing'
-                        ? 'text-[var(--el-color-primary)]'
-                        : 'text-[var(--el-color-success)]'
+                        ? 'text-tone-outbound-text'
+                        : 'text-tone-inbound-text'
                     "
-                    class="text-base flex-shrink-0"
+                    class="text-icon-md flex-shrink-0"
                   />
-                  <span class="text-base font-semibold text-g-900">{{ event.amount }}</span>
+                  <span class="text-metric tabular-nums font-semibold text-g-900">{{
+                    event.amount
+                  }}</span>
                 </div>
                 <div class="flex items-center gap-2 text-xs mt-0.5">
                   <el-tooltip :content="event.transferId" placement="top">
-                    <span class="text-g-500 font-mono truncate max-w-52">{{
+                    <span class="text-g-700 font-mono truncate max-w-52">{{
                       event.transferId
                     }}</span>
                   </el-tooltip>
-                  <span class="text-g-400">· {{ event.timeAgo }}</span>
-                  <span class="text-g-400">· {{ $t('travelRule.merchant') }}:</span>
-                  <span class="text-g-600 truncate">{{ event.enterpriseName || '--' }}</span>
+                  <span class="text-tone-muted-text">· {{ event.timeAgo }}</span>
+                  <span class="text-tone-muted-text">· {{ $t('travelRule.merchant') }}:</span>
+                  <span class="text-g-700 truncate">{{ event.enterpriseName || '--' }}</span>
                 </div>
               </div>
               <!-- 三个 badge（对齐原型）：方向 + 通道 + 状态 -->
               <div class="flex items-center gap-1.5 flex-shrink-0">
+                <ArtDirectionTag :inbound="event.direction !== 'outgoing'" />
+                <!--
+                  通道是交易的元数据，不占用语义色相：
+                  普通通道用中性灰；Off-Network 是异常通道，保留 warning 提示性。
+                  （此前用 primary → 落在主题绿，与「入金」「已完成」三个绿并排糊成一片）
+                -->
                 <el-tag
-                  :type="event.direction === 'outgoing' ? 'warning' : 'success'"
+                  :type="isOffNetwork(event.status) ? 'warning' : undefined"
+                  :class="isOffNetwork(event.status) ? '' : 'art-tag-neutral'"
                   size="small"
                   effect="light"
                 >
-                  {{
-                    event.direction === 'outgoing'
-                      ? $t('travelRule.outgoing')
-                      : $t('travelRule.incoming')
-                  }}
-                </el-tag>
-                <el-tag :type="channelTagType(event.status)" size="small" effect="light">
                   {{
                     isOffNetwork(event.status)
                       ? $t('travelRule.chOffNetwork')
@@ -148,20 +156,20 @@
             <!-- Parties（三行结构，与 tx-lens / alerts 一致） -->
             <div class="flex items-stretch gap-2 mb-2">
               <div
-                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
+                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
                 :class="
                   event.direction === 'outgoing'
                     ? 'bg-[var(--el-color-primary-light-9)]'
-                    : 'bg-[var(--el-color-success-light-9)]'
+                    : 'bg-[var(--tone-neutral-bg)]'
                 "
               >
-                <div class="text-[10px] text-g-500 font-medium">
+                <div class="text-caption text-g-700 font-medium">
                   {{ partyLabel(event.direction, 'originator') }}
                 </div>
                 <div class="text-xs font-semibold text-g-900 truncate">{{
                   event.originator.name
                 }}</div>
-                <div class="text-[10px] text-g-600 font-mono truncate">
+                <div class="text-caption text-g-700 font-mono truncate">
                   {{ event.originator.address }}
                 </div>
               </div>
@@ -170,27 +178,27 @@
                   icon="ri:arrow-right-long-line"
                   :class="
                     event.direction === 'outgoing'
-                      ? 'text-[var(--el-color-primary)]'
-                      : 'text-[var(--el-color-success)]'
+                      ? 'text-tone-outbound-text'
+                      : 'text-tone-inbound-text'
                   "
-                  class="text-lg"
+                  class="text-icon-lg"
                 />
               </div>
               <div
-                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
+                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
                 :class="
                   event.direction === 'outgoing'
-                    ? 'bg-[var(--el-color-success-light-9)]'
+                    ? 'bg-[var(--tone-neutral-bg)]'
                     : 'bg-[var(--el-color-primary-light-9)]'
                 "
               >
-                <div class="text-[10px] text-g-500 font-medium">
+                <div class="text-caption text-g-700 font-medium">
                   {{ partyLabel(event.direction, 'beneficiary') }}
                 </div>
                 <div class="text-xs font-semibold text-g-900 truncate">
                   {{ event.beneficiary.name }}
                 </div>
-                <div class="text-[10px] text-g-600 font-mono truncate">
+                <div class="text-caption text-g-700 font-mono truncate">
                   {{ event.beneficiary.address }}
                 </div>
               </div>
@@ -201,7 +209,7 @@
               class="flex items-center justify-between gap-3 pt-2.5 border-t border-[var(--default-border)]"
             >
               <div
-                class="text-[11px] font-medium truncate"
+                class="text-label font-medium truncate"
                 :style="toneTextStyle(toneOf(event.status))"
               >
                 {{ statusDescription(event.status) }}
@@ -217,7 +225,10 @@
               </el-button>
             </div>
           </div>
-          <div v-if="displayEvents.length === 0" class="py-10 text-center text-g-400 text-sm">
+          <div
+            v-if="displayEvents.length === 0"
+            class="p-10 text-center text-tone-neutral-text text-body"
+          >
             {{ $t('travelRule.noResults') }}
           </div>
         </template>
@@ -226,7 +237,7 @@
       <!-- ═══ Pagination ═══ -->
       <div
         v-if="pagination.total > 0"
-        class="flex justify-end items-center px-5 py-3 border-t border-[var(--default-border)]"
+        class="flex justify-end items-center px-4 py-3 border-t border-[var(--default-border)]"
       >
         <el-pagination
           v-model:current-page="pagination.page"
@@ -394,10 +405,6 @@
     return 'warning'
   }
 
-  /** 通道 badge 配色：Network=靛蓝 / Off-Network=紫 */
-  function channelTagType(status: string): 'primary' | 'info' {
-    return isOffNetwork(status) ? 'info' : 'primary'
-  }
 
   /** 状态 → 描述文案（对齐原型 .tr-status-text，取代原 Notabene Tx ID 展示） */
   function statusDescription(status: string): string {
@@ -497,6 +504,17 @@
     border: 1px solid var(--default-border);
     border-radius: 12px;
     transition: border-color 0.2s;
+  }
+
+  /* 卡片可点击（role=button + tabindex）后必须提供可见焦点环：
+     否则键盘用户无法定位当前选中项。focus-visible 只在键盘导航时出现，鼠标点击不触发 */
+  .tx-card:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
+  }
+
+  .tx-card:focus {
+    outline: none;
   }
 
   .tx-card:hover {

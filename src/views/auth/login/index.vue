@@ -10,19 +10,17 @@
             v-if="reentryReason"
             class="mb-5 p-3 rounded-lg border border-warning-100 bg-warning-50 text-warning-700 text-sm"
           >
-            <strong class="block mb-0.5 text-[10px] uppercase tracking-wider">{{
+            <strong class="block mb-0.5 text-caption uppercase tracking-wider">{{
               $t('login.reentryReason')
             }}</strong>
             <span>{{ reentryReason }}</span>
           </div>
 
-          <h3 class="text-[24px] font-semibold text-g-900 leading-tight">{{
-            $t('login.title')
-          }}</h3>
+          <h3 class="text-hero font-semibold text-g-900 leading-tight">{{ $t('login.title') }}</h3>
           <p class="mt-2 text-sm text-g-500">{{ $t('login.subTitle') }}</p>
 
           <ElButton
-            class="w-full !h-[48px] !text-[15px] !font-semibold mt-8"
+            class="w-full !h-[48px] !text-title !font-semibold mt-8"
             type="primary"
             @click="invokePasskey"
             :loading="passkeyState === 'invoking'"
@@ -41,7 +39,7 @@
           </div>
 
           <div
-            class="flex items-center gap-3 my-6 text-[11px] text-g-500 before:content-[''] before:flex-1 before:h-px before:bg-g-300 after:content-[''] after:flex-1 after:h-px after:bg-g-300"
+            class="flex items-center gap-3 my-6 text-label text-g-500 before:content-[''] before:flex-1 before:h-px before:bg-g-300 after:content-[''] after:flex-1 after:h-px after:bg-g-300"
             >{{ $t('login.passwordSeparator') }}</div
           >
 
@@ -68,7 +66,7 @@
           </div>
 
           <ElButton
-            class="w-full !h-[48px] !text-[15px] !font-semibold"
+            class="w-full !h-[48px] !text-title !font-semibold"
             type="primary"
             :loading="busy"
             @click="submit"

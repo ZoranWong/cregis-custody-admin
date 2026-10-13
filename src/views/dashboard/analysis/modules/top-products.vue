@@ -1,8 +1,8 @@
 <template>
-  <div class="art-card h-82 p-5 mb-5 overflow-hidden max-sm:mb-4">
+  <div class="art-card h-82 p-5 mb-4 overflow-hidden max-sm:mb-4">
     <div class="art-card-header">
       <div class="title">
-        <h4>热门产品</h4>
+        <h4>{{ $t('dashboard.popularProducts') }}</h4>
       </div>
     </div>
     <div class="overflow-auto h-full">
@@ -14,8 +14,8 @@
         :stripe="false"
         :header-cell-style="{ background: 'transparent' }"
       >
-        <ElTableColumn prop="name" label="产品名称" width="200" />
-        <ElTableColumn prop="popularity" label="销量">
+        <ElTableColumn prop="name" :label="$t('dashboard.productName')" width="200" />
+        <ElTableColumn prop="popularity" :label="$t('dashboard.salesVolume')">
           <template #default="scope">
             <ElProgress
               :percentage="scope.row.popularity"
@@ -25,7 +25,7 @@
             />
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="sales" label="销量" width="80">
+        <ElTableColumn prop="sales" :label="$t('dashboard.salesVolume')" width="80">
           <template #default="scope">
             <span
               :style="{

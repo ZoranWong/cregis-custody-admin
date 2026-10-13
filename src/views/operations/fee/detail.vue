@@ -2,14 +2,9 @@
 <template>
   <div class="page-content">
     <!-- Header -->
-    <div class="flex items-center gap-3 mb-5">
-      <ElButton @click="back">
-        <svg viewBox="0 0 24 24" width="14" height="14">
-          <polyline points="15 18 9 12 15 6" fill="none" stroke="currentColor" stroke-width="2" />
-        </svg>
-        {{ $t('gas.backToOverview') }}
-      </ElButton>
+    <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-semibold text-g-900">{{ merchantName }}</h1>
+      <ArtBackButton history />
     </div>
 
     <template v-if="loading">
@@ -21,7 +16,7 @@
 
     <template v-else-if="loadError">
       <div class="art-card p-10 text-center">
-        <p class="text-[var(--el-color-danger)] mb-4">{{ loadError }}</p>
+        <p class="text-tone-error-text mb-4">{{ loadError }}</p>
         <ElButton type="primary" @click="loadData">{{ $t('console.refresh') }}</ElButton>
       </div>
     </template>
@@ -70,15 +65,15 @@
       <div v-if="viewMode === 'fees'">
         <ElRow :gutter="20" class="flex mb-5">
           <ElCol :sm="12" :md="8" v-for="card in summaryCards" :key="card.key">
-            <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-5 max-sm:mb-4">
+            <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-4">
               <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-              <span class="text-[22px] font-medium mt-1 text-g-900">{{ card.value }}</span>
+              <span class="text-display font-semibold mt-1 text-g-900">{{ card.value }}</span>
             </div>
           </ElCol>
         </ElRow>
 
         <!-- Fees & Tx Count Table -->
-        <div class="art-card art-table-card overflow-hidden mb-5">
+        <div class="art-card art-table-card overflow-hidden mb-4">
           <div class="p-4 border-b border-[var(--default-border)]"
             ><h3 class="text-base font-semibold text-g-900">{{ $t('fee.feeDaily') }}</h3></div
           >
@@ -88,18 +83,18 @@
                 $t('fee.noMerchantFeeData')
               }}</div></template
             >
-            <el-table-column prop="statDate" :label="$t('fee.date')" width="140" />
-            <el-table-column :label="$t('fee.feeCollectedShort')" width="200">
+            <el-table-column prop="statDate" :label="$t('fee.date')" min-width="140" />
+            <el-table-column :label="$t('fee.feeCollectedShort')" min-width="200">
               <template #default="{ row }"
                 ><span class="text-sm font-medium text-g-900"
                   >${{ formatNumber(row.feeCollectedUsdt) }}</span
                 ></template
               >
             </el-table-column>
-            <el-table-column :label="$t('fee.txCount')" width="120">
+            <el-table-column :label="$t('fee.txCount')" min-width="120">
               <template #default="{ row }">{{ formatNumber(row.txCount) }}</template>
             </el-table-column>
-            <el-table-column :label="$t('fee.avgFeePerTx')" width="160">
+            <el-table-column :label="$t('fee.avgFeePerTx')" min-width="160">
               <template #default="{ row }">${{ formatDecimal(row.avgFeePerTxUsdt) }}</template>
             </el-table-column>
           </el-table>
@@ -107,7 +102,9 @@
             v-if="dailyPagination.totalCount > 0"
             class="flex justify-between items-center px-5 py-3 border-t border-[var(--default-border)]"
           >
-            <span class="text-xs text-g-500">{{ dailyPagination.totalCount }} records</span>
+            <span class="text-xs text-g-500">{{
+              $t('common.recordCount', { count: dailyPagination.totalCount })
+            }}</span>
             <el-pagination
               v-model:current-page="dailyPage"
               v-model:page-size="dailyPageSize"
@@ -127,7 +124,7 @@
         </div>
 
         <!-- Native Coin Consumption -->
-        <div class="art-card art-table-card overflow-hidden mb-5">
+        <div class="art-card art-table-card overflow-hidden mb-4">
           <div class="p-4 border-b border-[var(--default-border)]"
             ><h3 class="text-base font-semibold text-g-900">{{ $t('fee.nativeCoin') }}</h3></div
           >
@@ -137,15 +134,15 @@
                 $t('fee.noConsumptionData')
               }}</div></template
             >
-            <el-table-column :label="$t('gas.network')" width="160">
+            <el-table-column :label="$t('gas.network')" min-width="160">
               <template #default="{ row }"
                 ><span class="text-sm font-medium text-g-900">{{ row.network }}</span></template
               >
             </el-table-column>
-            <el-table-column :label="$t('fee.nativeCoin')" width="120">
+            <el-table-column :label="$t('fee.nativeCoin')" min-width="120">
               <template #default="{ row }">{{ row.nativeCoin }}</template>
             </el-table-column>
-            <el-table-column :label="$t('fee.totalConsumed')" width="200">
+            <el-table-column :label="$t('fee.totalConsumed')" min-width="200">
               <template #default="{ row }">
                 <div>{{ formatNativeAmount(row.totalConsumed, row.network, row.nativeCoin) }}</div>
                 <div class="text-xs text-g-500"
@@ -154,10 +151,10 @@
                 >
               </template>
             </el-table-column>
-            <el-table-column :label="$t('fee.txCount')" width="100">
+            <el-table-column :label="$t('fee.txCount')" min-width="100">
               <template #default="{ row }">{{ formatNumber(row.txCount) }}</template>
             </el-table-column>
-            <el-table-column :label="$t('fee.avgPerTx')" width="200">
+            <el-table-column :label="$t('fee.avgPerTx')" min-width="200">
               <template #default="{ row }">
                 <div>{{ formatNativeAmount(row.avgPerTx, row.network, row.nativeCoin) }}</div>
                 <div class="text-xs text-g-500"
@@ -174,14 +171,14 @@
       <div v-if="viewMode === 'topups'">
         <ElRow :gutter="20" class="flex mb-5">
           <ElCol :sm="12" :md="8" v-for="card in topUpSummaryCards" :key="card.key">
-            <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-5 max-sm:mb-4">
+            <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-4">
               <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-              <span class="text-[22px] font-medium mt-1 text-g-900">{{ card.value }}</span>
+              <span class="text-display font-semibold mt-1 text-g-900">{{ card.value }}</span>
             </div>
           </ElCol>
         </ElRow>
 
-        <div class="art-card art-table-card overflow-hidden mb-5">
+        <div class="art-card art-table-card overflow-hidden mb-4">
           <div class="p-4 border-b border-[var(--default-border)]"
             ><h3 class="text-base font-semibold text-g-900">{{ $t('fee.topUpRecords') }}</h3></div
           >
@@ -191,30 +188,30 @@
                 $t('fee.noTopUpRecords')
               }}</div></template
             >
-            <el-table-column :label="$t('gas.time')" width="160">
+            <el-table-column :label="$t('gas.time')" min-width="160">
               <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
             </el-table-column>
-            <el-table-column :label="$t('fee.chainNetwork')" width="140">
+            <el-table-column :label="$t('fee.chainNetwork')" min-width="140">
               <template #default="{ row }"
                 ><span class="text-sm font-medium text-g-900">{{ row.network }}</span></template
               >
             </el-table-column>
-            <el-table-column :label="$t('fee.txHash')" width="180">
+            <el-table-column :label="$t('fee.txHash')" min-width="180">
               <template #default="{ row }"
                 ><span class="font-mono text-xs">{{ compactTx(row.txId) }}</span></template
               >
             </el-table-column>
-            <el-table-column :label="$t('fee.topUpAmountUSDT')" width="180">
+            <el-table-column :label="$t('fee.topUpAmountUSDT')" min-width="180">
               <template #default="{ row }"
                 ><span class="text-sm font-medium text-g-900">{{
                   formatUsdtAmount(String(row.amount))
                 }}</span></template
               >
             </el-table-column>
-            <el-table-column :label="$t('fee.creditBalanceAfter')" width="180">
+            <el-table-column :label="$t('fee.creditBalanceAfter')" min-width="180">
               <template #default="{ row }">—</template>
             </el-table-column>
-            <el-table-column :label="$t('gas.status')" width="100">
+            <el-table-column :label="$t('gas.status')" min-width="100">
               <template #default="{ row }">—</template>
             </el-table-column>
           </el-table>
@@ -222,7 +219,9 @@
             v-if="topupPagination.totalCount > 0"
             class="flex justify-between items-center px-5 py-3 border-t border-[var(--default-border)]"
           >
-            <span class="text-xs text-g-500">{{ topupPagination.totalCount }} records</span>
+            <span class="text-xs text-g-500">{{
+              $t('common.recordCount', { count: topupPagination.totalCount })
+            }}</span>
             <el-pagination
               v-model:current-page="topupPage"
               v-model:page-size="topupPageSize"
@@ -497,14 +496,6 @@
   function goTopupPage(p: number): void {
     topupPage.value = p
     loadTopups(p)
-  }
-
-  function back(): void {
-    const query: Record<string, string> = {}
-    if (selectedNetwork.value) query.network = selectedNetwork.value
-    if (appliedDateRange.from) query.from = appliedDateRange.from
-    if (appliedDateRange.to) query.to = appliedDateRange.to
-    router.push({ name: 'FeeMonitor', query })
   }
 
   function parseDateRangeFromQuery(): [Date, Date] | null {

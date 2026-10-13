@@ -33,6 +33,11 @@
     }
   },
   "common": {
+    "all": "全部",
+    "inbound": "入金",
+    "outbound": "出金",
+    "noData": "暂无数据",
+    "recordCount": "共 {count} 条",
     "tips": "提示",
     "cancel": "取消",
     "confirm": "确定",
@@ -54,7 +59,10 @@
     "edit": "编辑",
     "editSuccess": "修改成功",
     "editFailed": "修改失败",
-    "underDevelopment": "功能开发中"
+    "underDevelopment": "功能开发中",
+    "loadFailed": "加载失败",
+    "saveSuccess": "保存成功",
+    "back": "返回"
   },
   "analytics": {
     "daily": "每日",
@@ -394,7 +402,67 @@
     "soRejected": "已拒绝",
     "stageNoTravelRule": "无 Travel Rule 信息",
     "unknownVasp": "未知VASP",
-    "unknownCustomer": "未知客户"
+    "unknownCustomer": "未知客户",
+    "pageTitle": "交易检视",
+    "pageSubtitle": "全部出入金交易的生命周期检视 — 筛查、Travel Rule、审批与链上状态。",
+    "onchainState": {
+      "SIGNING": "签名中",
+      "SIGN_SUCCEED": "签名成功",
+      "COMPLIANCE_PENDING": "合规审核中",
+      "COMPLIANCE_HOLD": "合规冻结",
+      "MANUAL_REVIEW_PENDING": "人工审核中",
+      "MANUAL_REVIEW": "人工审核",
+      "TRANSITING": "广播中",
+      "BROADCASTING": "广播中",
+      "BROADCASTED": "已广播",
+      "CONFIRMING": "确认中",
+      "CONFIRMED": "已确认",
+      "SUCCEED": "已完成",
+      "SUCCESS": "已完成",
+      "SETTLED": "已结算",
+      "COMPLETED": "已完成",
+      "DONE": "已完成",
+      "FAILED": "已失败",
+      "REVERTED": "已回滚",
+      "CANCELLED": "已取消",
+      "CANCELED": "已取消",
+      "REJECTED": "已拒绝",
+      "EXPIRED": "已超时",
+      "CREATED": "已创建",
+      "PENDING": "等待中",
+      "PROCESSING": "处理中"
+    },
+    "oc": {
+      "onchainTitle": "链上信息",
+      "onchainLoading": "正在查询链上数据…",
+      "onchainUnsupported": "该链暂不支持链上核验",
+      "onchainFailed": "链上查询失败",
+      "onchainRetry": "重试",
+      "onchainSource": "数据来自链上节点，可独立核验",
+      "fieldStatus": "执行结果",
+      "fieldBlock": "区块",
+      "fieldCheckpoint": "检查点",
+      "fieldBlockTime": "上链时间",
+      "fieldConfirmations": "确认数",
+      "fieldFinalized": "终局确认",
+      "fieldGasUsed": "Gas 用量",
+      "fieldGasPrice": "Gas 单价",
+      "fieldFee": "手续费",
+      "fieldContract": "调用的合约",
+      "fieldFrom": "发送方",
+      "fieldTo": "接收方",
+      "fieldValue": "金额",
+      "fieldNonce": "Nonce",
+      "fieldEnergy": "能量消耗",
+      "statusSuccess": "成功",
+      "statusFailed": "失败",
+      "statusPending": "待确认",
+      "statusUnknown": "未知",
+      "yes": "是",
+      "no": "否",
+      "confirming": "确认中",
+      "finalizedYes": "已终局"
+    }
   },
   "alerts": {
     "pageTitle": "合规告警",
@@ -464,8 +532,9 @@
     "evtRelease": "已放行",
     "evtManualReview": "人工复核",
     "rrNone": "未审查",
-    "rrTruePositive": "真实命中",
-    "rrFalsePositive": "误报",
+    "rrTruePositive": "真阳性",
+    "rrFalseNegative": "假阴性",
+    "rrFalsePositive": "假阳性",
     "merchantName": "商户",
     "orderId": "订单号",
     "riskHigh": "高风险",
@@ -661,7 +730,10 @@
       "medium": "中风险",
       "high": "高风险"
     },
-    "allDirections": "任意方向"
+    "allDirections": "任意方向",
+    "customRuleNoticeTitle": "自定义规则暂不生效",
+    "customRuleNoticeBody": "规则可以正常创建与配置，但无法在合规的实际业务流程中生效。",
+    "customRuleTag": "暂不生效"
   },
   "opsHome": {
     "ticketQueue": "工单队列",
@@ -683,11 +755,20 @@
   "setting": {
     "menuType": {
       "title": "菜单布局",
-      "list": ["垂直", "水平", "混合", "双列"]
+      "list": [
+        "垂直",
+        "水平",
+        "混合",
+        "双列"
+      ]
     },
     "theme": {
       "title": "主题风格",
-      "list": ["浅色", "深色", "系统"]
+      "list": [
+        "浅色",
+        "深色",
+        "系统"
+      ]
     },
     "menu": {
       "title": "菜单风格"
@@ -697,11 +778,17 @@
     },
     "box": {
       "title": "盒子样式",
-      "list": ["边框", "阴影"]
+      "list": [
+        "边框",
+        "阴影"
+      ]
     },
     "container": {
       "title": "容器宽度",
-      "list": ["铺满", "定宽"]
+      "list": [
+        "铺满",
+        "定宽"
+      ]
     },
     "basics": {
       "title": "基础配置",
@@ -747,8 +834,14 @@
   "notice": {
     "title": "通知",
     "btnRead": "标为已读",
-    "bar": ["通知", "消息", "代办"],
-    "text": ["暂无"],
+    "bar": [
+      "通知",
+      "消息",
+      "代办"
+    ],
+    "text": [
+      "暂无"
+    ],
     "viewAll": "查看全部"
   },
   "worktab": {
@@ -820,7 +913,7 @@
     "secretKeyLabel": "设置密钥（手动输入）",
     "copyBtn": "复制",
     "nextStepBtn": "下一步：输入验证码",
-    "backToQr": "← 返回二维码",
+    "backToQr": "返回二维码",
     "codeRefreshIn": "验证码刷新倒计时",
     "recoveryLabel": "恢复代码",
     "recoveryGenerated": "恢复代码生成成功！",
@@ -839,8 +932,8 @@
     "verifyBtn": "验证",
     "verifyingBtn": "验证中...",
     "switchToRecovery": "使用恢复代码",
-    "switchToApp": "← 使用身份验证器",
-    "backToSignIn": "← 返回登录",
+    "switchToApp": "使用身份验证器",
+    "backToSignIn": "返回登录",
     "preparing": "正在准备身份验证器设置..."
   },
   "forgetPassword": {
@@ -1233,6 +1326,19 @@
     "screening": "筛查",
     "rescreen": "重新筛查",
     "reverifyRescreen": "重新验证并筛查",
+    "verificationRequested": "等待客户操作",
+    "verificationReviewing": "验证审核中",
+    "verificationNoteWaiting": "客户需完成身份验证。Sumsub 验证链接已发送至 {email}，也可在客户门户中获取。",
+    "verificationNoteReviewing": "身份验证正由三方服务商（Sumsub）处理，通常需要 1–2 个工作日。",
+    "verificationProgress": "验证进度",
+    "subStepSubmitted": "已提交",
+    "subStepReviewed": "审核",
+    "subStepPassed": "已通过",
+    "resendLink": "重新发送链接",
+    "simulateHint": "原型演示",
+    "simulateSubmit": "模拟客户提交",
+    "simulatePass": "模拟验证通过",
+    "verificationCustomerEmail": "客户邮箱",
     "corporateIdentity": "企业身份",
     "pageOf": "第 {page} 页，共 {total} 页",
     "crsFatcaDepository": "存款机构",
@@ -1252,7 +1358,10 @@
     "userInactive": "停用",
     "userSuspending": "待激活",
     "lastLogin": "最近登录",
-    "never": "从未"
+    "never": "从未",
+    "screenedAgainst": "已比对 {n} 个名单",
+    "rescreenUnavailable": "重新筛查会重新比对企业与受益人的全部名单，该功能接口尚未开放",
+    "reverifyRescreenUnavailable": "重新验证并筛查会重走身份验证（Sumsub）并重新比对名单，该功能接口尚未开放"
   },
   "merchantType": {
     "NON_FINANCIAL_CORPORATE": "非金融企业",
@@ -1343,7 +1452,7 @@
     "balance": "余额",
     "threshold": "阈值",
     "status": "状态",
-    "backToOverview": "← 返回概览",
+    "backToOverview": "返回概览",
     "amountPerTopUp": "每次充值金额",
     "autoTopUp": "自动充值",
     "usdtBalance": "USDT 余额",
@@ -1526,6 +1635,9 @@
     "travelRuleWorkbench": "Travel Rule 工作台",
     "exchangeStatus": "交换状态",
     "travelRuleConfig": "Travel Rule 配置",
+    "outboxSubtitle": "合规发件箱的投递状态与重试。",
+    "travelRuleConfigSubtitle": "VASP 间 Travel Rule 通知的自动接受与阈值配置。",
+    "exchangeStatusSubtitle": "各交易对手方 VASP 的 IVMS101 数据交换状态。",
     "tabAll": "全部案例",
     "tabRuleReview": "规则审查",
     "tabEscalation": "上报",
@@ -1563,6 +1675,32 @@
   "travelRule": {
     "pageTitle": "Travel Rule 事件",
     "pageSubtitle": "追踪 VASP 之间批准的转账（≥ 3,500 AED）的 IVMS101 PII 交换。此处所有交易已通过合规审查。",
+    "shareSubtitle": "向交易对手方发起的 IVMS101 数据交换审批请求。",
+    "shareLinkGenerated": "分享链接已生成",
+    "secureLinkCreated": "安全分享链接已创建",
+    "linkPurpose": "该链接允许对手方 VASP 查看交易详情并作出审批。",
+    "copy": "复制",
+    "transactionLabel": "交易",
+    "amountLabel": "金额",
+    "counterpartyVaspLabel": "对手方 VASP",
+    "uploadProof": "上传证明文件",
+    "dropHint": "拖拽文件到此处或点击上传",
+    "dropFormats": "PDF、DOC、DOCX、JPG、PNG（最大 10MB）",
+    "uploadPurpose": "上传对手方审批所需的支持性文件（如合规证明、交易确认单）。",
+    "approvalStatus": "审批状态",
+    "pendingCounterparty": "待对手方审批",
+    "pendingCounterpartyHint": "等待对手方 VASP 审核并批准该交易。",
+    "shareLinkCreatedLabel": "分享链接创建时间",
+    "linkExpiresLabel": "链接过期时间",
+    "hours24": "（24 小时）",
+    "statusLabel": "状态",
+    "awaitingResponse": "待响应",
+    "approvalTimeline": "审批时间线",
+    "originatorApproved": "发起方已批准",
+    "counterpartyReview": "对手方审核",
+    "finalSettlement": "最终结算",
+    "awaitingApproval": "待审批",
+    "linkCopied": "链接已复制",
     "merchant": "商户",
     "allMerchants": "全部商户",
     "from": "从",
@@ -1749,5 +1887,41 @@
     "healthStatus": "健康状态",
     "latency": "延迟",
     "serviceStatus": "服务状态"
+  },
+  "dashboard": {
+    "aboutProject": "关于项目",
+    "techStack": "使用了 Vue3、TypeScript、Vite、Element Plus 等前沿技术",
+    "userOverview": "用户概述",
+    "vsLastWeek": "比上周",
+    "vsLastWeekShort": "较上周",
+    "customOptionDesc": "我们为您创建了多个选项，可将它们组合在一起并定制为像素完美的页面",
+    "activity": "动态",
+    "newAdded": "新增",
+    "newUser": "新用户",
+    "lastMonth": "上月",
+    "thisMonth": "本月",
+    "thisYear": "今年",
+    "monthGrowth": "这个月增长",
+    "yearGrowth": "今年增长",
+    "region": "地区",
+    "avatar": "头像",
+    "gender": "性别",
+    "progress": "进度",
+    "visits": "访问量",
+    "todo": "代办事项",
+    "pending": "待处理",
+    "customerSatisfaction": "客户满意度",
+    "salesByRegion": "全国销售分布",
+    "targetVsReality": "目标与实际",
+    "todaySales": "今日销售",
+    "vsYesterday": "较昨天",
+    "salesSummary": "销售总结",
+    "productName": "产品名称",
+    "popularProducts": "热门产品",
+    "salesVolume": "销量",
+    "totalRevenue": "总收入",
+    "visitorInsights": "访客洞察",
+    "volumeServiceLevel": "业务量与服务水平",
+    "completionProgress": "{name}的完成进度: {pro}%"
   }
 }

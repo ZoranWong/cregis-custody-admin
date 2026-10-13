@@ -10,7 +10,7 @@
     </div>
 
     <!-- Profile Tab -->
-    <div v-if="activeTab === 'profile'" class="art-card art-table-card overflow-hidden mb-5">
+    <div v-if="activeTab === 'profile'" class="art-card art-table-card overflow-hidden mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <el-select
@@ -49,6 +49,9 @@
         </div>
       </div>
       <el-table :data="profiles" stripe size="small">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column prop="merchantName" :label="$t('risk.merchant')" min-width="160" />
         <el-table-column :label="$t('strategy.riskLevel')" width="100">
           <template #default="{ row }"
@@ -68,12 +71,7 @@
         <el-table-column prop="riskScore" :label="$t('strategy.score')" width="80" />
         <el-table-column :label="$t('strategy.trend')" width="80">
           <template #default="{ row }"
-            ><span
-              :class="
-                row.scoreTrend > 0
-                  ? 'text-[var(--el-color-danger)]'
-                  : 'text-[var(--el-color-success)]'
-              "
+            ><span :class="row.scoreTrend > 0 ? 'text-tone-error-text' : 'text-tone-done-text'"
               >{{ row.scoreTrend > 0 ? '+' : '' }}{{ row.scoreTrend }}</span
             ></template
           >
@@ -102,7 +100,7 @@
     </div>
 
     <!-- Appetite Tab -->
-    <div v-if="activeTab === 'appetite'" class="art-card p-5 mb-5">
+    <div v-if="activeTab === 'appetite'" class="art-card p-5 mb-4">
       <h3 class="text-sm font-semibold text-g-900 mb-4">{{ $t('strategy.riskThresholds') }}</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div

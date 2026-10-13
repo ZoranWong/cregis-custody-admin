@@ -39,6 +39,9 @@
               style="cursor: pointer"
               @row-click="openDetail"
             >
+              <template #empty>
+                <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+              </template>
               <el-table-column :label="$t('merchantList.name')" min-width="180">
                 <template #default="{ row }">
                   <strong class="text-g-900">{{ row.merchantName }}</strong>
@@ -144,7 +147,7 @@
           v-if="selectedRows.length > 0"
           class="flex items-center gap-3 px-4 py-2.5 mb-3 rounded-lg bg-[var(--el-color-primary-light-9)] border border-[var(--el-color-primary-light-5)]"
         >
-          <span class="text-xs font-medium text-[var(--el-color-primary)]">
+          <span class="text-xs font-medium text-[var(--theme-text)]">
             {{ selectedRows.length }} {{ $t('merchantList.selected') }}
           </span>
           <div class="flex gap-2 ml-auto">
@@ -168,6 +171,9 @@
               @row-click="openDetail"
               @selection-change="handleSelectionChange"
             >
+              <template #empty>
+                <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+              </template>
               <el-table-column type="selection" width="40" @click.stop />
               <el-table-column :label="$t('merchantList.name')" min-width="180">
                 <template #default="{ row }">
@@ -394,7 +400,7 @@
   }
 
   .status-badge.onboarded {
-    color: var(--el-color-success);
+    color: var(--tone-done-text);
     background: var(--el-color-success-light-8);
   }
 
@@ -404,12 +410,12 @@
   }
 
   .status-badge.frozen {
-    color: var(--el-color-primary);
+    color: var(--theme-text);
     background: var(--el-color-primary-light-8);
   }
 
   .status-badge.offboarded {
-    color: var(--el-color-danger);
+    color: var(--tone-error-text);
     background: var(--el-color-danger-light-8);
   }
 
@@ -422,12 +428,12 @@
   }
 
   .screening-badge.clear {
-    color: var(--el-color-success);
+    color: var(--tone-done-text);
     background: var(--el-color-success-light-8);
   }
 
   .screening-badge.hits {
-    color: var(--el-color-danger);
+    color: var(--tone-error-text);
     background: var(--el-color-danger-light-8);
   }
 </style>

@@ -124,6 +124,25 @@ export function useTheme() {
 }
 
 /**
+ * 主题色数据迁移。
+ *
+ * Cregis 品牌绿原本是 #00BE78，作为主按钮底色时配白字仅 2.43:1（WCAG AA 需 4.5:1）。
+ * 已把默认主色加深为 #12805A（白字 4.93:1），但主色持久化在 setting store 里，
+ * 老用户的 localStorage 中仍是旧值 —— 不迁移的话他们永远看到的是不达标的主色。
+ *
+ * 仅在命中「旧默认值」时替换：用户若主动选过其它预设色（如 #5D87FF），保持不动。
+ */
+const LEGACY_THEME_COLOR = '#00BE78'
+
+function migrateLegacyThemeColor(): void {
+  const settingStore = useSettingStore()
+  const current = (settingStore.systemThemeColor || '').toUpperCase()
+  if (current === LEGACY_THEME_COLOR) {
+    settingStore.systemThemeColor = AppConfig.systemMainColor[0]
+  }
+}
+
+/**
  * 初始化主题系统
  */
 export function initializeTheme() {
@@ -149,6 +168,7 @@ export function initializeTheme() {
     }
 
     // 设置主题颜色
+    migrateLegacyThemeColor()
     setElementThemeColor(settingStore.systemThemeColor)
 
     // 设置圆角

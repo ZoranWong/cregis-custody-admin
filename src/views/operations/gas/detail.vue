@@ -2,20 +2,20 @@
 <template>
   <div class="page-content">
     <template v-if="loading">
-      <div class="art-card p-5 mb-5"><el-skeleton :rows="3" animated /></div>
-      <div class="art-card p-5 mb-5"><el-skeleton :rows="8" animated /></div>
+      <div class="art-card p-5 mb-4"><el-skeleton :rows="3" animated /></div>
+      <div class="art-card p-5 mb-4"><el-skeleton :rows="8" animated /></div>
     </template>
 
     <template v-else-if="loadError">
       <div class="art-card p-10 text-center">
-        <p class="text-[var(--el-color-danger)] mb-4">{{ loadError }}</p>
+        <p class="text-tone-error-text mb-4">{{ loadError }}</p>
         <ElButton type="primary" @click="loadDetail">{{ $t('console.refresh') }}</ElButton>
       </div>
     </template>
 
     <template v-else-if="detail">
       <!-- Header Card -->
-      <div class="art-card p-5 mb-5">
+      <div class="art-card p-5 mb-4">
         <div class="flex items-start justify-between mb-4">
           <div>
             <h1 class="text-xl font-semibold text-g-900">{{
@@ -25,9 +25,15 @@
               >{{ detail.account.network }} · {{ detail.account.coinId }}</p
             >
           </div>
-          <div class="flex gap-2">
-            <el-tag :type="healthTagType as any" size="default">{{ healthLabel }}</el-tag>
-            <ElButton @click="backToList">{{ $t('gas.backToOverview') }}</ElButton>
+          <!--
+            健康状态 tag 与 Back 按钮并排。
+            高度差（el-tag 24px vs el-button 36px）会让两者视觉错位 ——
+            用 items-center 垂直居中，并让 tag 高度跟齐按钮（32px，
+            el-button text 模式的内边距高度），保持一行内的视觉平衡。
+          -->
+          <div class="flex items-center gap-2">
+            <el-tag :type="healthTagType as any" class="!h-8">{{ healthLabel }}</el-tag>
+            <ArtBackButton history />
           </div>
         </div>
 
@@ -88,7 +94,7 @@
       </div>
 
       <!-- Consumption Ledger -->
-      <div v-if="activeDetailTab === 'ledger'" class="art-card art-table-card overflow-hidden mb-5">
+      <div v-if="activeDetailTab === 'ledger'" class="art-card art-table-card overflow-hidden mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
           <div class="flex flex-wrap items-center gap-3">
             <span class="text-xs text-g-500">{{ $t('gas.timeRange') }}</span>
@@ -161,7 +167,9 @@
           v-if="ledgerPagination.totalCount > 0"
           class="flex justify-between items-center px-5 py-3 border-t border-[var(--default-border)]"
         >
-          <span class="text-xs text-g-500">{{ ledgerPagination.totalCount }} records</span>
+          <span class="text-xs text-g-500">{{
+            $t('common.recordCount', { count: ledgerPagination.totalCount })
+          }}</span>
           <el-pagination
             v-model:current-page="ledgerPage"
             v-model:page-size="ledgerPageSize"
@@ -181,7 +189,7 @@
       </div>
 
       <!-- Top-up Records -->
-      <div v-if="activeDetailTab === 'topup'" class="art-card art-table-card overflow-hidden mb-5">
+      <div v-if="activeDetailTab === 'topup'" class="art-card art-table-card overflow-hidden mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
           <div class="flex flex-wrap items-center gap-3">
             <div class="flex gap-1 mr-4">
@@ -232,22 +240,22 @@
           <template #empty
             ><div class="p-10 text-center text-g-500">{{ $t('gas.noRecords') }}</div></template
           >
-          <el-table-column :label="$t('gas.time')" width="160">
+          <el-table-column :label="$t('gas.time')" min-width="160">
             <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
           </el-table-column>
-          <el-table-column :label="$t('gas.orderId')" width="150">
+          <el-table-column :label="$t('gas.orderId')" min-width="150">
             <template #default="{ row }"
               ><span class="font-mono text-xs">{{ row.topUpRef }}</span></template
             >
           </el-table-column>
-          <el-table-column :label="$t('gas.status')" width="130">
+          <el-table-column :label="$t('gas.status')" min-width="130">
             <template #default="{ row }"
               ><el-tag :type="topUpStatusTagType(row.status, row.isStale) as any" size="small">{{
                 gasTopUpStatusLabel(row.status, row.isStale)
               }}</el-tag></template
             >
           </el-table-column>
-          <el-table-column :label="$t('gas.requestAmount')" width="180">
+          <el-table-column :label="$t('gas.requestAmount')" min-width="180">
             <template #default="{ row }">
               <div v-if="row.amount">{{
                 feeDisplay(Number(row.amount), row.coinId, row.network)
@@ -259,7 +267,7 @@
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column :label="$t('gas.actualAmount')" width="180">
+          <el-table-column :label="$t('gas.actualAmount')" min-width="180">
             <template #default="{ row }">
               <div v-if="row.cost">{{ feeDisplay(Number(row.cost), row.coinId, row.network) }}</div>
               <div v-if="row.cost" class="text-xs text-g-500"
@@ -269,15 +277,15 @@
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column :label="$t('gas.txId')" width="180">
+          <el-table-column :label="$t('gas.txId')" min-width="180">
             <template #default="{ row }"
               ><span v-if="row.txId" class="font-mono text-xs">{{ compactTx(row.txId) }}</span
               ><span v-else>-</span></template
             >
           </el-table-column>
-          <el-table-column :label="$t('gas.stale')" width="80">
+          <el-table-column :label="$t('gas.stale')" min-width="80">
             <template #default="{ row }"
-              ><span v-if="row.isStale" class="text-[var(--el-color-warning)] font-medium">{{
+              ><span v-if="row.isStale" class="text-tone-progress-text font-medium">{{
                 $t('gas.timeout')
               }}</span
               ><span v-else>-</span></template
@@ -288,7 +296,9 @@
           v-if="topUpPagination.totalCount > 0"
           class="flex justify-between items-center px-5 py-3 border-t border-[var(--default-border)]"
         >
-          <span class="text-xs text-g-500">{{ topUpPagination.totalCount }} records</span>
+          <span class="text-xs text-g-500">{{
+            $t('common.recordCount', { count: topUpPagination.totalCount })
+          }}</span>
           <el-pagination
             v-model:current-page="topUpPage"
             v-model:page-size="topUpPageSize"
@@ -613,9 +623,6 @@
   }
   function compactTx(tx: string): string {
     return compactHex(tx, 8, 6)
-  }
-  function backToList(): void {
-    router.push({ name: 'GasOperations' })
   }
 
   onMounted(async () => {

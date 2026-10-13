@@ -232,12 +232,91 @@ export function getDarkColor(color: string, level: number): string {
 }
 
 /**
+ * 计算颜色的相对亮度（WCAG 2.1 定义）
+ * @param color hex 颜色
+ * @returns 相对亮度 0-1
+ */
+export function getRelativeLuminance(color: string): number {
+  const [r, g, b] = hexToRgb(color).map((v) => {
+    const s = v / 255
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/**
+ * 计算两色对比度（WCAG 2.1）
+ * @returns 对比度比值，1-21
+ */
+export function getContrastRatio(color1: string, color2: string): number {
+  const l1 = getRelativeLuminance(color1)
+  const l2 = getRelativeLuminance(color2)
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05)
+}
+
+/**
+ * 计算「主色底上的前景色」—— 用于主按钮、实心标签等填充底上的文字。
+ * 保留供后续使用（当前主按钮走 EP 默认白字方案，未启用）。
+ *
+ * 参考数据：品牌绿 #00BE78 配白字 2.43:1，配深色 #0F172A 可达 7.34:1。
+ */
+const ON_PRIMARY_LIGHT = '#0F172A' // 深色前景（配亮底色）
+const ON_PRIMARY_DARK = '#FFFFFF' // 白色前景（配暗底色）
+
+export function getOnPrimaryColor(bg: string): string {
+  // 优先深色字；不达标则退到白字。二者必有一个 ≥4.5:1。
+  if (getContrastRatio(bg, ON_PRIMARY_LIGHT) >= 4.5) return ON_PRIMARY_LIGHT
+  if (getContrastRatio(bg, ON_PRIMARY_DARK) >= 4.5) return ON_PRIMARY_DARK
+  // 兜底：取对比度更高的那个（极端中间色，如纯红）
+  return getContrastRatio(bg, ON_PRIMARY_LIGHT) >= getContrastRatio(bg, ON_PRIMARY_DARK)
+    ? ON_PRIMARY_LIGHT
+    : ON_PRIMARY_DARK
+}
+
+/**
+ * 计算主题色作为【文字】使用时的变体。
+ *
+ * 主题色是为「实心底 + 白字」设计的，直接当文字压在白底/浅色底上通常不达标：
+ *   #12805A 压白底 4.93:1 尚可，但压侧边栏选中态的浅绿底(#e7f2ee)只有 4.3:1；
+ *   而暗色模式下它压深底只有 3.67:1，更差。
+ *
+ * 因此按明暗模式向黑/白混合，逐档逼近直到留出余量：
+ *   亮色 → 向黑混合（压深），目标 5.5:1（保证压在浅色底上仍 ≥4.5:1）
+ *   暗色 → 向白混合（提亮），目标 5.0:1
+ * 对应 WCAG「暗色用提亮的色调变体，而非直接反色」。
+ *
+ * @param theme 主题色
+ * @param isDark 是否暗色模式
+ */
+export function getThemeTextColor(theme: string, isDark: boolean): string {
+  /*
+   * 基准底取「最不利的那一层」：
+   *   亮色取白 #fff（最亮），但要求 5.5:1 而不是 4.5:1 —— 因为侧边栏选中项
+   *     还要压在一层浅绿底(#e7f2ee)上，留出余量后仍能 ≥4.5:1；
+   *   暗色取 #27282d（比页面底 #161618 更亮，是最不利的深色面），要求 4.7:1。
+   */
+  const target = isDark ? 4.7 : 5.5
+  const bg = isDark ? '#27282d' : '#ffffff'
+  const anchor = isDark ? '#ffffff' : '#000000'
+
+  let color = theme
+  for (let i = 0; i <= 10; i++) {
+    if (getContrastRatio(color, bg) >= target) return color
+    color = colourBlend(theme, anchor, i / 10)
+  }
+  return color
+}
+
+/**
  * 处理 Element Plus 主题颜色
  * @param theme 主题颜色
  * @param isDark 是否为暗色主题
  */
 export function handleElementThemeColor(theme: string, isDark: boolean = false): void {
   document.documentElement.style.setProperty('--el-color-primary', theme)
+
+  // 主题色作为文字使用时的变体（侧边栏选中项、链接等），详见 getThemeTextColor
+  document.documentElement.style.setProperty('--theme-text', getThemeTextColor(theme, isDark))
 
   for (let i = 1; i <= 9; i++) {
     document.documentElement.style.setProperty(

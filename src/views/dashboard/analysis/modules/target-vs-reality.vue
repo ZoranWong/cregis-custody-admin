@@ -1,8 +1,8 @@
 <template>
-  <div class="art-card h-100 p-5 mb-5 max-sm:mb-4">
+  <div class="art-card h-100 p-5 mb-4">
     <div class="art-card-header">
       <div class="title">
-        <h4>目标与实际</h4>
+        <h4>{{ $t('dashboard.targetVsReality') }}</h4>
       </div>
     </div>
 
@@ -61,19 +61,19 @@
   const totalItems = [
     {
       icon: 'ri:shopping-bag-line',
-      iconClass: 'text-theme bg-theme/12',
+      iconClass: 'text-theme-text bg-theme/12',
       label: '实际销售额',
       subLabel: '全球',
       value: '8,823',
-      valueClass: 'text-theme'
+      valueClass: 'text-theme-text'
     },
     {
       icon: 'ri:money-dollar-circle-line',
-      iconClass: 'text-theme bg-theme/12',
+      iconClass: 'text-theme-text bg-theme/12',
       label: '目标销售额',
       subLabel: '商业',
       value: '12,122',
-      valueClass: 'text-theme'
+      valueClass: 'text-theme-text'
     }
   ]
 </script>

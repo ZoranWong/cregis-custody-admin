@@ -5,6 +5,8 @@
  * 后台接口接入后，只需保证 value 与后端枚举一致即可。
  */
 
+import type { TagType } from './txState'
+
 export interface DictItem {
   /** 后端枚举值（稳定 key） */
   value: string
@@ -369,8 +371,8 @@ export function factorOptionLabel(value: string, t: Translate): string {
   return translated.startsWith('rules.factorOptions.') ? value : translated
 }
 
-/** el-tag type 取值 */
-export type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
+/** el-tag type 取值（唯一来源：txState，避免两处同名异构各写一份） */
+export type { TagType }
 
 /** 严重级别 → el-tag type */
 export function severityTagType(value: string): TagType {

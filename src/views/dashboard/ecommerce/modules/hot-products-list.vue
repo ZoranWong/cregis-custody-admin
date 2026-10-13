@@ -1,5 +1,5 @@
 <template>
-  <div class="art-card p-5 h-[27.8rem] mb-5 overflow-hidden max-sm:mb-4">
+  <div class="art-card p-5 h-[27.8rem] mb-4 overflow-hidden max-sm:mb-4">
     <div class="art-card-header">
       <div class="title">
         <h4>热销产品</h4>
@@ -172,7 +172,7 @@
    */
   const getStockClass = (stock: number): string => {
     if (stock === 0) return 'text-danger bg-danger/12'
-    if (stock < STOCK_THRESHOLD.LOW) return 'text-warning bg-warning/12'
+    if (stock < STOCK_THRESHOLD.LOW) return 'text-tone-progress-text bg-warning/12'
     if (stock < STOCK_THRESHOLD.MEDIUM) return 'text-info bg-info/12'
     return 'text-success bg-success/12'
   }

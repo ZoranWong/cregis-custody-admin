@@ -1,12 +1,9 @@
 <template>
   <div class="page-content">
-    <div class="mb-5">
-      <el-button text @click="router.back()">
-        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />Back
-      </el-button>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-xl font-semibold text-g-900">Transaction Risk Assessment</h1>
+      <ArtBackButton history />
     </div>
-
-    <h1 class="text-xl font-semibold text-g-900 mb-5">Transaction Risk Assessment</h1>
 
     <!-- Transaction Basics -->
     <div class="art-card mb-5">

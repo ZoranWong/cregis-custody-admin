@@ -4,9 +4,9 @@
     <!-- ═══ Summary 卡片 ═══ -->
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
-        <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-5 max-sm:mb-4">
+        <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-4">
           <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-          <span class="text-[22px] font-medium mt-1" :class="card.color">{{ card.value }}</span>
+          <span class="text-display font-semibold mt-1" :class="card.color">{{ card.value }}</span>
         </div>
       </ElCol>
     </ElRow>
@@ -76,7 +76,7 @@
         <el-skeleton :rows="10" animated class="p-5" />
       </template>
       <template v-else-if="errorMessage">
-        <div class="p-10 text-center text-[var(--el-color-danger)]">{{ errorMessage }}</div>
+        <div class="p-10 text-center text-tone-error-text">{{ errorMessage }}</div>
       </template>
       <el-table
         v-else
@@ -87,6 +87,9 @@
         style="cursor: pointer"
         @row-click="openTicket"
       >
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column prop="ticketNumber" :label="$t('ticket.id')" width="110">
           <template #default="{ row }"
             ><span class="font-mono text-xs text-g-700">{{ row.ticketNumber }}</span></template
@@ -191,19 +194,19 @@
         key: 'pending',
         labelKey: 'ticket.summaryPending',
         value: pending,
-        color: 'text-[var(--el-color-warning)]'
+        color: 'text-tone-progress-text'
       },
       {
         key: 'progress',
         labelKey: 'ticket.summaryProgress',
         value: inProgress,
-        color: 'text-[var(--el-color-primary)]'
+        color: 'text-[var(--theme-text)]'
       },
       {
         key: 'done',
         labelKey: 'ticket.summaryDone',
         value: completed,
-        color: 'text-[var(--el-color-success)]'
+        color: 'text-tone-done-text'
       }
     ]
   })

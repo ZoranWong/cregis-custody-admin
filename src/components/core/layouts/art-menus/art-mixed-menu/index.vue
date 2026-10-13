@@ -20,20 +20,20 @@
         <template v-for="item in processedMenuList" :key="item.meta.title">
           <div
             v-if="!item.meta.isHide"
-            class="menu-item relative flex-shrink-0 h-10 px-3 text-sm flex-c c-p hover:text-theme"
+            class="menu-item relative flex-shrink-0 h-10 px-3 text-sm flex-c c-p hover:text-theme-text"
             :class="{
-              'menu-item-active text-theme': item.isActive
+              'menu-item-active text-theme-text': item.isActive
             }"
             @click="handleMenuJump(item, true)"
           >
             <ArtSvgIcon
               :icon="item.meta.icon"
               class="text-lg text-g-700 dark:text-g-800 mr-1"
-              :class="item.isActive && '!text-theme'"
+              :class="item.isActive && '!text-theme-text'"
             />
             <span
               class="text-md text-g-700 dark:text-g-800"
-              :class="item.isActive && '!text-theme'"
+              :class="item.isActive && '!text-theme-text'"
             >
               {{ item.formattedTitle }}
             </span>
@@ -242,7 +242,7 @@
     duration-300
     -translate-y-1/2 
     hover:text-g-900 
-    hover:bg-g-200;
+    hover:bg-hover-color;
   }
 </style>
 

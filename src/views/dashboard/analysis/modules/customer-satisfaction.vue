@@ -1,8 +1,8 @@
 <template>
-  <div class="art-card h-100 p-5 mb-5 max-sm:mb-4">
+  <div class="art-card h-100 p-5 mb-4">
     <div class="art-card-header">
       <div class="title">
-        <h4>客户满意度</h4>
+        <h4>{{ $t('dashboard.customerSatisfaction') }}</h4>
       </div>
     </div>
     <ArtLineChart

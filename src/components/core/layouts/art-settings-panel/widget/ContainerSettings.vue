@@ -7,7 +7,7 @@
         :key="option.value"
         class="flex-cc flex-1 h-16 mt-5 mr-3.5 mb-3.5 cursor-pointer !border-2 rounded-lg !text-g-800 last:mr-0"
         :class="{
-          'border-theme [&_i]:!text-theme': containerWidth === option.value,
+          'border-theme [&_i]:!text-theme-text': containerWidth === option.value,
           'border-full-d': containerWidth !== option.value
         }"
         @click="containerHandlers.setWidth(option.value)"

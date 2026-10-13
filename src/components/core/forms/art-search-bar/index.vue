@@ -531,7 +531,7 @@
         align-items: center;
         margin-left: 10px;
         line-height: 32px;
-        color: var(--theme-color);
+        color: var(--theme-text);
         cursor: pointer;
         transition: color 0.2s ease;
 

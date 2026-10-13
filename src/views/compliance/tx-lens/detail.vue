@@ -4,20 +4,17 @@
     <!-- ═══ Page Header ═══ -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-xl font-semibold text-g-900">{{ $t('txLens.detail.title') }}</h1>
-        <p class="text-sm text-g-500 mt-1">{{ $t('txLens.detail.subtitle') }}</p>
+        <h1 class="text-hero font-semibold text-g-900">{{ $t('txLens.detail.title') }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ $t('txLens.detail.subtitle') }}</p>
       </div>
-      <el-button text @click="back">
-        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />{{ $t('txLens.detail.backToLens') }}
-      </el-button>
+      <ArtBackButton history />
     </div>
-
     <!-- Loading / Error -->
     <div v-if="loading" class="art-card p-10 text-center">
       <el-skeleton :rows="8" animated />
     </div>
     <div v-else-if="errorMessage" class="art-card p-10 text-center">
-      <p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p>
+      <p class="text-tone-error-text mb-4">{{ errorMessage }}</p>
       <el-button type="primary" @click="loadDetail">{{ $t('console.refresh') }}</el-button>
     </div>
 
@@ -28,30 +25,26 @@
           <div class="flex items-start gap-3">
             <ArtSvgIcon
               :icon="isOutgoing ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
-              :class="
-                isOutgoing ? 'text-[var(--el-color-primary)]' : 'text-[var(--el-color-success)]'
-              "
-              class="text-2xl mt-0.5"
+              :class="isOutgoing ? 'text-tone-outbound-text' : 'text-tone-inbound-text'"
+              class="text-icon-xl mt-0.5"
             />
             <div>
-              <div class="text-xl font-bold text-g-900">{{ amountDisplay }}</div>
-              <div class="text-xs text-g-500 font-medium">{{ fiatDisplay }}</div>
+              <div class="text-hero tabular-nums font-semibold text-g-900">{{ amountDisplay }}</div>
+              <div class="text-xs text-g-700 font-medium">{{ fiatDisplay }}</div>
             </div>
           </div>
           <div class="text-right">
             <div class="flex items-center justify-end gap-1 mb-1">
-              <el-tag :type="isOutgoing ? 'warning' : 'success'" size="small" effect="dark">
-                {{ isOutgoing ? $t('txLens.outgoing') : $t('txLens.incoming') }}
-              </el-tag>
+              <ArtDirectionTag :inbound="!isOutgoing" />
             </div>
             <div class="text-xs font-semibold text-g-700 font-mono">{{ overview.orderId }}</div>
-            <div class="text-[10px] text-g-500 mt-1">{{ createTime }}</div>
+            <div class="text-caption text-g-700 mt-1">{{ createTime }}</div>
           </div>
         </div>
         <!-- Parties -->
         <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-          <div class="originator-box rounded-md p-3">
-            <div class="text-[10px] font-bold text-g-500 uppercase tracking-wider mb-1">
+          <div class="originator-box rounded-lg p-3">
+            <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-1">
               {{ originatorLabelText }}
             </div>
             <div class="text-sm font-semibold text-g-900">
@@ -60,22 +53,22 @@
                 (overview.originator?.did ? $t('txLens.unknownVasp') : $t('txLens.unknownCustomer'))
               }}
             </div>
-            <div class="text-xs text-g-500 font-mono mt-0.5">
+            <div class="text-xs text-g-700 font-mono mt-0.5">
               {{ overview.originator?.address || '--' }}
             </div>
           </div>
           <div
-            class="text-xl font-bold"
+            class="text-hero font-semibold"
             :class="
               overview.direction === 'outgoing'
-                ? 'text-[var(--el-color-primary)]'
-                : 'text-[var(--el-color-success)]'
+                ? 'text-tone-outbound-text'
+                : 'text-tone-inbound-text'
             "
           >
             →
           </div>
-          <div class="beneficiary-box rounded-md p-3">
-            <div class="text-[10px] font-bold text-g-500 uppercase tracking-wider mb-1">
+          <div class="beneficiary-box rounded-lg p-3">
+            <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-1">
               {{ beneficiaryLabelText }}
             </div>
             <div class="text-sm font-semibold text-g-900">
@@ -86,7 +79,7 @@
                   : $t('txLens.unknownCustomer'))
               }}
             </div>
-            <div class="text-xs text-g-500 font-mono mt-0.5">
+            <div class="text-xs text-g-700 font-mono mt-0.5">
               {{ overview.beneficiary?.address || '--' }}
             </div>
           </div>
@@ -95,21 +88,22 @@
         <!-- Review Result（前端固定 none：接口实现有误，暂不取接口值；点击提示开发中） -->
         <div class="mt-4 pt-4 border-t border-[var(--default-border)]">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-g-500 uppercase tracking-wider">{{
+            <span class="text-xs font-bold text-g-700 uppercase tracking-wider">{{
               $t('txLens.detail.reviewResult')
             }}</span>
             <div class="flex items-center gap-1.5">
-              <el-tag
+              <!-- 四色与列表徽章/摘要卡同源（reviewResultStyle），选中态用实心边框强调 -->
+              <button
                 v-for="opt in reviewResultOptions"
                 :key="opt.value"
-                :type="reviewResult === opt.value ? opt.tagType : 'info'"
-                size="small"
-                :effect="reviewResult === opt.value ? 'dark' : 'plain'"
-                class="cursor-pointer"
+                type="button"
+                class="review-pill rounded-full px-2.5 py-0.5 text-label font-semibold transition-colors"
+                :class="{ 'is-selected': reviewResult === opt.value }"
+                :style="reviewResultStyle(opt.value)"
                 @click="handleReviewResultClick"
               >
                 {{ opt.label }}
-              </el-tag>
+              </button>
             </div>
           </div>
         </div>
@@ -123,6 +117,10 @@
           class="step-tab"
           :class="{ active: activeStep === step.key, disabled: step.disabled }"
           @click="handleStepClick(index)"
+          role="button"
+          tabindex="0"
+          @keydown.enter.prevent="handleStepClick(index)"
+          @keydown.space.prevent="handleStepClick(index)"
         >
           <div class="step-indicator" :style="{ background: toneColor(step.tone) }"></div>
           <div class="step-content">
@@ -202,10 +200,11 @@
     ONCHAIN_DICT,
     SIGNOFF_DICT,
     TRAVEL_RULE_DICT,
+    reviewResultStyle,
+    toneColor as toneColorShared,
     toneOf,
     toneTextStyle,
-    txStateLabel,
-    type Tone
+    txStateLabel
   } from '@/features/compliance/txState'
   import {
     STAGE_LABEL_KEYS,
@@ -286,10 +285,11 @@
   const reviewResult = ref('none')
 
   const reviewResultOptions = computed(() => [
-    { value: 'none', label: t('txLens.rrNone'), tagType: 'info' as const },
-    { value: 'tp', label: t('txLens.truePositive'), tagType: 'success' as const },
-    { value: 'fp', label: t('txLens.falsePositive'), tagType: 'warning' as const },
-    { value: 'fn', label: t('txLens.falseNegative'), tagType: 'danger' as const }
+    { value: 'none', label: t('txLens.rrNone') },
+    { value: 'tp', label: t('txLens.truePositive') },
+    { value: 'tn', label: t('txLens.trueNegative') },
+    { value: 'fp', label: t('txLens.falsePositive') },
+    { value: 'fn', label: t('txLens.falseNegative') }
   ])
 
   function handleReviewResultClick() {
@@ -319,10 +319,6 @@
   /** 可进入的 step：在序列中且未被禁用（如个人转账的 Travel Rule） */
   const enterableSteps = computed(() => steps.value.filter((s) => !s.disabled).map((s) => s.key))
 
-  function back() {
-    router.back()
-  }
-
   function handleStepClick(index: number) {
     const step = steps.value[index]
     // 不可用槽位（如个人转账的 Travel Rule）不可进入
@@ -337,17 +333,11 @@
     }
   }
 
-  /** 色调 → 状态指示器颜色 */
-  function toneColor(tone: Tone): string {
-    const map: Record<Tone, string> = {
-      done: 'var(--el-color-success)',
-      progress: 'var(--el-color-warning)',
-      error: 'var(--el-color-danger)',
-      info: 'var(--el-color-info)',
-      na: 'var(--el-text-color-placeholder)'
-    }
-    return map[tone]
-  }
+  /**
+   * 色调 → 状态指示器颜色。
+   * 已迁至 txState.toneColor，此处保留薄封装仅为模板可读性。
+   */
+  const toneColor = toneColorShared
 
   // ─── 数据加载 ───
   async function loadCoinMeta() {
@@ -451,8 +441,10 @@
   }
 
   .beneficiary-box {
-    background: var(--el-color-success-light-9);
-    border-left: 3px solid var(--el-color-success);
+    /* 对手方：中性底 + 中性描边。此前用 success 色，与我方的品牌色同为绿系，
+       两块并排时分不出「我方 / 对手方」。 */
+    background: var(--tone-neutral-bg);
+    border-left: 3px solid var(--tone-neutral-mark);
   }
 
   /* Step Navigation - Tab Style */
@@ -479,13 +471,13 @@
 
   .step-tab:hover {
     border-color: var(--el-color-primary-light-5);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+    box-shadow: var(--art-shadow-hover);
   }
 
   .step-tab.active {
     background: var(--el-color-primary-light-9);
     border-color: var(--el-color-primary);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 12%);
+    box-shadow: var(--art-shadow-raised);
   }
 
   /* 不可用槽位（无 Travel Rule 信息）：置灰、不可点击、去 hover 反馈；
@@ -505,9 +497,12 @@
     color: var(--el-text-color-placeholder);
   }
 
+  /* 不可用槽位（na：未执行 / 无 Travel Rule 信息）：指示器用【空心】而非实心灰点。
+     与列表阶段点同规则 —— 状态不依赖颜色也能被读出 */
   .step-tab.disabled .step-indicator {
     box-sizing: border-box;
-    background: var(--el-text-color-placeholder) !important;
+    background: transparent !important;
+    border: 1.5px solid var(--el-text-color-placeholder);
   }
 
   .step-indicator {
@@ -524,18 +519,35 @@
 
   .step-title {
     margin-bottom: 2px;
-    font-size: 13px;
+    font-size: var(--font-size-body-lg);
     font-weight: 600;
     color: var(--el-text-color-primary);
   }
 
   .step-tab.active .step-title {
-    color: var(--el-color-primary);
+    color: var(--theme-text);
   }
 
   .step-status {
-    font-size: 11px;
+    font-size: var(--font-size-label);
     font-weight: 500;
     color: var(--el-text-color-secondary);
+  }
+
+  /* 复核结果选择：底色与文字色由 reviewResultStyle 内联注入（与列表徽章同源），
+     选中态用 currentColor 描边强调，无需再引入第二套颜色 */
+  .review-pill {
+    cursor: pointer;
+    border: none;
+    outline: none;
+  }
+
+  .review-pill.is-selected {
+    box-shadow: inset 0 0 0 1.5px currentcolor;
+  }
+
+  .review-pill:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
   }
 </style>

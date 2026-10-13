@@ -12,7 +12,7 @@
             <!-- 普通菜单项 -->
             <li
               v-if="!item.children"
-              class="menu-item relative flex-c c-p select-none rounded text-xs transition-colors duration-150 hover:bg-g-200"
+              class="menu-item relative flex-c c-p select-none rounded text-xs transition-colors duration-150 hover:bg-hover-color"
               :class="{ 'is-disabled': item.disabled, 'has-line': item.showLine }"
               :style="menuItemStyle"
               @click="handleMenuClick(item)"
@@ -31,7 +31,7 @@
             <!-- 子菜单 -->
             <li
               v-else
-              class="menu-item submenu relative flex-c c-p select-none rounded text-xs transition-colors duration-150 hover:bg-g-200"
+              class="menu-item submenu relative flex-c c-p select-none rounded text-xs transition-colors duration-150 hover:bg-hover-color"
               :style="menuItemStyle"
             >
               <div class="submenu-title flex-c w-full">
@@ -56,7 +56,7 @@
                 <li
                   v-for="child in item.children"
                   :key="child.key"
-                  class="menu-item relative mx-1.5 flex-c c-p select-none rounded text-xs transition-colors duration-150 hover:bg-g-200"
+                  class="menu-item relative mx-1.5 flex-c c-p select-none rounded text-xs transition-colors duration-150 hover:bg-hover-color"
                   :class="{ 'is-disabled': child.disabled, 'has-line': child.showLine }"
                   :style="menuItemStyle"
                   @click="handleMenuClick(child)"
@@ -146,32 +146,40 @@
   let eventListenersAdded = false
 
   // 计算菜单样式
-  const menuStyle = computed((): CSSProperties => ({
-    position: 'fixed' as const,
-    left: `${position.value.x}px`,
-    top: `${position.value.y}px`,
-    zIndex: 2000,
-    width: `${props.menuWidth}px`
-  }))
+  const menuStyle = computed(
+    (): CSSProperties => ({
+      position: 'fixed' as const,
+      left: `${position.value.x}px`,
+      top: `${position.value.y}px`,
+      zIndex: 2000,
+      width: `${props.menuWidth}px`
+    })
+  )
 
   // 计算菜单列表样式
-  const menuListStyle = computed((): CSSProperties => ({
-    padding: `${props.menuPadding}px`
-  }))
+  const menuListStyle = computed(
+    (): CSSProperties => ({
+      padding: `${props.menuPadding}px`
+    })
+  )
 
   // 计算菜单项样式
-  const menuItemStyle = computed((): CSSProperties => ({
-    height: `${props.itemHeight}px`,
-    padding: `0 ${props.itemPaddingX}px`,
-    borderRadius: '4px'
-  }))
+  const menuItemStyle = computed(
+    (): CSSProperties => ({
+      height: `${props.itemHeight}px`,
+      padding: `0 ${props.itemPaddingX}px`,
+      borderRadius: '4px'
+    })
+  )
 
   // 计算子菜单列表样式
-  const submenuListStyle = computed((): CSSProperties => ({
-    minWidth: `${props.submenuWidth}px`,
-    padding: `${props.menuPadding}px 0`,
-    borderRadius: `${props.borderRadius}px`
-  }))
+  const submenuListStyle = computed(
+    (): CSSProperties => ({
+      minWidth: `${props.submenuWidth}px`,
+      padding: `${props.menuPadding}px 0`,
+      borderRadius: `${props.borderRadius}px`
+    })
+  )
 
   // 计算菜单高度（用于边界检测）
   const calculateMenuHeight = (): number => {

@@ -1,13 +1,24 @@
 <!-- Transaction Lens — 交易全景 -->
 <template>
   <div class="page-content">
+    <!-- ═══ Page Header ═══ -->
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div>
+        <h1 class="text-hero font-semibold text-g-900">{{ $t('txLens.pageTitle') }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ $t('txLens.pageSubtitle') }}</p>
+      </div>
+      <!-- 导出：页面级动作，放在标题栏右侧 -->
+      <el-button type="primary" plain class="flex-shrink-0" @click="handleExport">
+        <ArtSvgIcon icon="ri:download-line" class="text-icon-sm mr-1" />{{ $t('common.export') }}
+      </el-button>
+    </div>
+
     <!-- ═══ 主要筛选栏（卡片区上方） ═══ -->
     <div class="flex flex-wrap items-center gap-4 mb-5">
       <el-select
         v-model="filters.merchant"
         :placeholder="$t('txLens.merchant')"
         clearable
-        filterable
         class="!w-48"
         @change="handleSearch"
       >
@@ -16,21 +27,11 @@
       <el-date-picker
         v-model="filters.dateRange"
         type="daterange"
+        class="tx-date-range"
         :start-placeholder="$t('txLens.startDate')"
         :end-placeholder="$t('txLens.endDate')"
-        class="!w-64"
         @change="handleSearch"
       />
-      <el-input
-        v-model="filters.keyword"
-        :placeholder="$t('txLens.searchPlaceholder')"
-        clearable
-        class="!w-64"
-        @keyup.enter="handleSearch"
-        @clear="handleSearch"
-      >
-        <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
-      </el-input>
       <el-button type="primary" @click="handleSearch">{{ $t('console.refresh') }}</el-button>
     </div>
 
@@ -38,12 +39,18 @@
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
         <div
-          class="art-card h-20 px-4 mb-3 flex flex-col justify-center summary-filter-card"
+          class="art-card h-[68px] px-4 mb-3 flex flex-col justify-center summary-filter-card"
           :class="{ active: activeSummaryFilter === card.key }"
           @click="toggleSummaryFilter(card.key)"
+          role="button"
+          tabindex="0"
+          @keydown.enter.prevent="toggleSummaryFilter(card.key)"
+          @keydown.space.prevent="toggleSummaryFilter(card.key)"
         >
           <span class="text-g-700 text-xs">{{ $t(card.labelKey) }}</span>
-          <span class="text-xl font-medium mt-0.5" :class="card.valueClass">{{ card.value }}</span>
+          <span class="text-hero font-semibold mt-0.5 tabular-nums" :class="card.valueClass">{{
+            card.value
+          }}</span>
         </div>
       </ElCol>
     </ElRow>
@@ -51,105 +58,53 @@
     <!-- ═══ 审查结果卡片 ═══ -->
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="6" v-for="card in reviewCards" :key="card.key">
-        <div class="art-card h-20 px-4 mb-3 flex flex-col justify-center">
+        <div class="art-card h-[68px] px-4 mb-3 flex flex-col justify-center">
           <span class="text-g-700 text-xs">{{ $t(card.labelKey) }}</span>
-          <span class="text-lg font-medium mt-0.5" :class="card.valueClass">{{ card.value }}</span>
+          <span class="text-hero font-semibold mt-0.5 tabular-nums" :class="card.valueClass">{{
+            card.value
+          }}</span>
         </div>
       </ElCol>
     </ElRow>
 
     <!-- ═══ 交易卡片列表 ═══ -->
-    <div class="art-card mb-5">
-      <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-        <span class="text-g-900 font-medium">{{ $t('txLens.transactions') }}</span>
-        <el-button text size="small">
-          <ArtSvgIcon icon="ri:download-line" class="mr-1" />{{ $t('common.export') }}
-        </el-button>
-      </div>
-      <!-- 次要筛选栏（7组筛选） -->
+    <div class="art-card mb-4">
+      <!--
+        筛选栏。
+        用「分组标签 + 分段按钮」而非下拉框 —— 对齐原型 compliance-tx-lens.html 的
+        .filter-bar / .filter-btn（每组带 All 重置项）。
+        下拉框的问题：7 个选项默认收起，用户看不到有哪些可选项，且必须点开才能选。
+        分段按钮一次铺开全部选项，一眼可见、单击即生效。
+      -->
       <div class="p-4 border-b border-[var(--default-border)]">
-        <div class="flex flex-wrap items-center gap-4">
-          <el-select
-            v-model="filters.direction"
-            :placeholder="$t('txLens.direction')"
-            clearable
-            class="!w-36"
-            @change="handleSearch"
-          >
-            <el-option :label="$t('txLens.outgoing')" value="outgoing" />
-            <el-option :label="$t('txLens.incoming')" value="incoming" />
-          </el-select>
-          <el-select
-            v-model="filters.compliance"
-            :placeholder="$t('txLens.compliance')"
-            clearable
-            class="!w-36"
-            @change="handleSearch"
-          >
-            <el-option :label="$t('txLens.clear')" value="clear" />
-            <el-option :label="$t('txLens.flagged')" value="flagged" />
-            <el-option :label="$t('txLens.inReview')" value="review" />
-          </el-select>
-          <el-select
-            v-model="filters.travelRule"
-            :placeholder="$t('txLens.travelRule')"
-            clearable
-            class="!w-36"
-            @change="handleSearch"
-          >
-            <el-option :label="$t('txLens.trComplete')" value="complete" />
-            <el-option :label="$t('txLens.trPending')" value="pending" />
-            <el-option :label="$t('txLens.trMismatch')" value="mismatch" />
-            <el-option :label="$t('txLens.trNa')" value="na" />
-          </el-select>
-          <el-select
-            v-model="filters.signOff"
-            :placeholder="$t('txLens.signOff')"
-            clearable
-            class="!w-36"
-            @change="handleSearch"
-          >
-            <el-option :label="$t('txLens.soApproved')" value="approved" />
-            <el-option :label="$t('txLens.soRejected')" value="rejected" />
-            <el-option :label="$t('txLens.soPending')" value="pending" />
-            <el-option :label="$t('txLens.trNa')" value="na" />
-          </el-select>
-          <el-select
-            v-model="filters.onChain"
-            :placeholder="$t('txLens.onChain')"
-            clearable
-            class="!w-36"
-            @change="handleSearch"
-          >
-            <el-option :label="$t('txLens.broadcasted')" value="broadcasted" />
-            <el-option :label="$t('txLens.confirmed')" value="confirmed" />
-            <el-option :label="$t('txLens.settled')" value="settled" />
-            <el-option :label="$t('txLens.failed')" value="failed" />
-          </el-select>
-          <el-select
-            v-model="filters.fundDisposition"
-            :placeholder="$t('txLens.fundDisposition')"
-            clearable
-            class="!w-36"
-            @change="handleSearch"
-          >
-            <el-option :label="$t('txLens.fdReleased')" value="released" />
-            <el-option :label="$t('txLens.fdHeld')" value="held" />
-            <el-option :label="$t('txLens.fdForfeited')" value="forfeited" />
-            <el-option :label="$t('txLens.trNa')" value="na" />
-          </el-select>
-          <el-select
-            v-model="filters.reviewResult"
-            :placeholder="$t('txLens.reviewResult')"
-            clearable
-            class="!w-36"
-            @change="handleSearch"
-          >
-            <el-option :label="$t('txLens.rrNone')" value="none" />
-            <el-option :label="$t('txLens.truePositive')" value="tp" />
-            <el-option :label="$t('txLens.falsePositive')" value="fp" />
-            <el-option :label="$t('txLens.falseNegative')" value="fn" />
-          </el-select>
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <!-- 分组由 script 的 FILTER_GROUPS 驱动，避免 7 组重复模板 -->
+          <div v-for="g in FILTER_GROUPS" :key="g.key" class="flex items-center gap-2 min-w-0">
+            <span class="text-body font-medium text-g-700 whitespace-nowrap">{{
+              $t(g.labelKey)
+            }}</span>
+            <div class="flex items-center gap-1">
+              <!-- All：清空该组筛选 -->
+              <button
+                type="button"
+                class="filter-btn"
+                :class="{ 'is-active': !filters[g.key] }"
+                @click="setFilter(g.key, '')"
+              >
+                {{ $t('common.all') }}
+              </button>
+              <button
+                v-for="opt in g.options"
+                :key="opt.value"
+                type="button"
+                class="filter-btn"
+                :class="{ 'is-active': filters[g.key] === opt.value }"
+                @click="setFilter(g.key, opt.value)"
+              >
+                {{ $t(opt.labelKey) }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="p-4">
@@ -166,29 +121,32 @@
                     :icon="tx.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
                     :class="
                       tx.direction === 'outgoing'
-                        ? 'text-[var(--el-color-primary)]'
-                        : 'text-[var(--el-color-success)]'
+                        ? 'text-tone-outbound-text'
+                        : 'text-tone-inbound-text'
                     "
-                    class="text-base flex-shrink-0"
+                    class="text-icon-md flex-shrink-0"
                   />
-                  <span class="text-base font-semibold text-g-900">{{ tx.amountDisplay }}</span>
-                  <span class="text-xs text-g-400">{{ tx.fiatDisplay }}</span>
+                  <span class="text-metric tabular-nums font-semibold text-g-900">{{
+                    tx.amountDisplay
+                  }}</span>
+                  <span class="text-xs text-tone-muted-text">{{ tx.fiatDisplay }}</span>
                 </div>
                 <div class="flex items-center gap-2 mt-0.5">
-                  <span class="text-xs text-g-500 truncate">{{ tx.orderId }}</span>
-                  <span class="text-xs text-g-400">· {{ tx.createTime }}</span>
+                  <span class="text-xs text-g-700 truncate">{{ tx.orderId }}</span>
+                  <span class="text-xs text-tone-muted-text">· {{ tx.createTime }}</span>
                 </div>
               </div>
               <div class="flex items-center gap-1.5 flex-shrink-0">
-                <el-tag :type="tx.direction === 'outgoing' ? 'warning' : 'success'" size="small">{{
-                  directionLabel(tx.direction)
-                }}</el-tag>
-                <el-tag
-                  v-if="tx.reviewResult !== 'none'"
-                  :type="reviewTag(tx.reviewResult)"
-                  size="small"
-                  effect="light"
-                  >{{ reviewResultLabel(tx.reviewResult) }}</el-tag
+                <!-- 方向是方位语义，不是风险语义：入金=绿 / 出金=蓝，
+                     走 ArtDirectionTag 以保证与其它页面的方向标签完全同款 -->
+                <ArtDirectionTag :inbound="tx.direction !== 'outgoing'" />
+                <!-- 复核结果四色：走 reviewResultStyle，与摘要卡/详情选择器同源，
+                     避免 FN 在三处出现三种颜色 -->
+                <span
+                  v-if="tx.reviewResult && tx.reviewResult !== 'none'"
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-label font-semibold"
+                  :style="reviewResultStyle(tx.reviewResult)"
+                  >{{ reviewResultLabel(tx.reviewResult) }}</span
                 >
               </div>
             </div>
@@ -196,18 +154,18 @@
             <!-- parties 两侧 -->
             <div class="flex items-stretch gap-2 mb-2">
               <div
-                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
+                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
                 :class="
                   tx.direction === 'outgoing'
                     ? 'bg-[var(--el-color-primary-light-9)]'
-                    : 'bg-[var(--el-color-success-light-9)]'
+                    : 'bg-[var(--tone-neutral-bg)]'
                 "
               >
-                <div class="text-[10px] text-g-500 font-medium">{{
+                <div class="text-caption text-g-700 font-medium">{{
                   partyLabel(tx.direction, 'originator')
                 }}</div>
                 <div class="text-xs font-semibold text-g-900 truncate">{{ tx.originatorName }}</div>
-                <div class="text-[10px] text-g-600 font-mono truncate">{{
+                <div class="text-caption text-g-700 font-mono truncate">{{
                   tx.originator.address || '--'
                 }}</div>
               </div>
@@ -216,27 +174,27 @@
                   icon="ri:arrow-right-long-line"
                   :class="
                     tx.direction === 'outgoing'
-                      ? 'text-[var(--el-color-primary)]'
-                      : 'text-[var(--el-color-success)]'
+                      ? 'text-tone-outbound-text'
+                      : 'text-tone-inbound-text'
                   "
-                  class="text-lg"
+                  class="text-icon-lg"
                 />
               </div>
               <div
-                class="flex-1 min-w-0 rounded-md px-2.5 py-1.5"
+                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
                 :class="
                   tx.direction === 'outgoing'
-                    ? 'bg-[var(--el-color-success-light-9)]'
+                    ? 'bg-[var(--tone-neutral-bg)]'
                     : 'bg-[var(--el-color-primary-light-9)]'
                 "
               >
-                <div class="text-[10px] text-g-500 font-medium">{{
+                <div class="text-caption text-g-700 font-medium">{{
                   partyLabel(tx.direction, 'beneficiary')
                 }}</div>
                 <div class="text-xs font-semibold text-g-900 truncate">{{
                   tx.beneficiaryName
                 }}</div>
-                <div class="text-[10px] text-g-600 font-mono truncate">{{
+                <div class="text-caption text-g-700 font-mono truncate">{{
                   tx.beneficiary.address || '--'
                 }}</div>
               </div>
@@ -270,7 +228,7 @@
           </div>
           <div
             v-if="displayTransactions.length === 0"
-            class="py-10 text-center text-g-400 text-sm"
+            class="p-10 text-center text-tone-neutral-text text-body"
             >{{ $t('txLens.noResults') }}</div
           >
         </template>
@@ -279,7 +237,7 @@
       <!-- 分页 -->
       <div
         v-if="pagination.total > 0"
-        class="flex justify-end items-center px-5 py-3 border-t border-[var(--default-border)]"
+        class="flex justify-end items-center px-4 py-3 border-t border-[var(--default-border)]"
       >
         <el-pagination
           v-model:current-page="pagination.pageNum"
@@ -299,6 +257,7 @@
 <script setup lang="ts">
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { ElMessage } from 'element-plus'
   import {
     fetchTransactionLensList,
     fetchTransactionLensSummary,
@@ -317,12 +276,11 @@
     REVIEW_RESULT_DICT,
     SIGNOFF_DICT,
     TRAVEL_RULE_DICT,
-    reviewResultTagType,
+    reviewResultStyle,
     toneDotStyle,
     toneOf,
     toneTextStyle,
     txStateLabel,
-    type TagType,
     type Tone
   } from '@/features/compliance/txState'
   import {
@@ -351,7 +309,6 @@
   const filters = reactive({
     merchant: '',
     dateRange: [] as string[],
-    keyword: '',
     direction: '',
     compliance: '',
     travelRule: '',
@@ -425,19 +382,19 @@
         key: 'settled',
         labelKey: 'txLens.settled',
         value: op?.settled ?? 0,
-        valueClass: 'text-success'
+        valueClass: 'text-tone-inbound-text'
       },
       {
         key: 'rejected',
         labelKey: 'txLens.rejected',
         value: op?.rejected ?? 0,
-        valueClass: 'text-[var(--el-color-danger)]'
+        valueClass: 'text-tone-error-text'
       },
       {
         key: 'pending',
         labelKey: 'txLens.pendingReview',
         value: op?.pendingReview ?? 0,
-        valueClass: 'text-[var(--el-color-warning)]'
+        valueClass: 'text-tone-progress-text'
       }
     ]
   })
@@ -449,37 +406,31 @@
         key: 'tp',
         labelKey: 'txLens.truePositive',
         value: rr?.truePositive ?? 0,
-        valueClass: 'text-success'
+        valueClass: 'text-tone-inbound-text'
       },
       {
         key: 'tn',
         labelKey: 'txLens.trueNegative',
         value: rr?.trueNegative ?? 0,
-        valueClass: 'text-success'
+        valueClass: 'text-tone-neutral-text'
       },
       {
         key: 'fp',
         labelKey: 'txLens.falsePositive',
         value: rr?.falsePositive ?? 0,
-        valueClass: 'text-warning'
+        valueClass: 'text-tone-progress-text'
       },
       {
         key: 'fn',
         labelKey: 'txLens.falseNegative',
         value: rr?.falseNegative ?? 0,
-        valueClass: 'text-purple-600'
+        // FN 用独立紫色相：红已被 flagged/rejected 占用，且须与卡片徽章一致
+        valueClass: 'text-tone-purple-text'
       }
     ]
   })
 
   // ─── 枚举 → i18n 标签（统一走 features/compliance/txState）───
-  function directionLabel(v: string): string {
-    return v === 'outgoing'
-      ? t('txLens.outgoing')
-      : v === 'incoming'
-        ? t('txLens.incoming')
-        : v || '--'
-  }
   function complianceLabel(v: string): string {
     return txStateLabel(COMPLIANCE_DICT, v, t)
   }
@@ -556,10 +507,6 @@
     })
   })
 
-  function reviewTag(result: string): TagType {
-    return reviewResultTagType(result)
-  }
-
   function partyLabel(direction: string, party: 'originator' | 'beneficiary'): string {
     if (direction === 'outgoing') {
       return party === 'originator' ? 'Originator (Our Customer)' : 'Beneficiary (Counterparty)'
@@ -609,8 +556,7 @@
       reviewResult: filters.reviewResult || undefined,
       merchantEcode: filters.merchant || undefined,
       dateFrom: toDateParam(filters.dateRange?.[0]),
-      dateTo: toDateParam(filters.dateRange?.[1]),
-      keyword: filters.keyword || undefined
+      dateTo: toDateParam(filters.dateRange?.[1])
     }
   }
 
@@ -641,6 +587,94 @@
   }
 
   /** 顶部筛选变化：重置页码，同时刷新统计数据与交易列表 */
+  /**
+   * 次要筛选的分组定义。
+   *
+   * 原先是 7 个独立的 el-select —— 选项默认收起、必须点开才看得到有哪些可选，
+   * 与原型 compliance-tx-lens.html 的 .filter-bar / .filter-btn 不一致。
+   * 这里改成数据驱动的分段按钮：每组一个标签 + 若干选项 + 一个 All。
+   */
+  const FILTER_GROUPS = [
+    {
+      key: 'direction' as const,
+      labelKey: 'txLens.direction',
+      options: [
+        { value: 'outgoing', labelKey: 'txLens.outgoing' },
+        { value: 'incoming', labelKey: 'txLens.incoming' }
+      ]
+    },
+    {
+      key: 'compliance' as const,
+      labelKey: 'txLens.compliance',
+      options: [
+        { value: 'clear', labelKey: 'txLens.clear' },
+        { value: 'flagged', labelKey: 'txLens.flagged' },
+        { value: 'review', labelKey: 'txLens.inReview' }
+      ]
+    },
+    {
+      key: 'travelRule' as const,
+      labelKey: 'txLens.travelRule',
+      options: [
+        { value: 'complete', labelKey: 'txLens.trComplete' },
+        { value: 'pending', labelKey: 'txLens.trPending' },
+        { value: 'mismatch', labelKey: 'txLens.trMismatch' },
+        { value: 'na', labelKey: 'txLens.trNa' }
+      ]
+    },
+    {
+      key: 'signOff' as const,
+      labelKey: 'txLens.signOff',
+      options: [
+        { value: 'approved', labelKey: 'txLens.soApproved' },
+        { value: 'rejected', labelKey: 'txLens.soRejected' },
+        { value: 'pending', labelKey: 'txLens.soPending' },
+        { value: 'na', labelKey: 'txLens.trNa' }
+      ]
+    },
+    {
+      key: 'onChain' as const,
+      labelKey: 'txLens.onChain',
+      options: [
+        { value: 'broadcasted', labelKey: 'txLens.broadcasted' },
+        { value: 'confirmed', labelKey: 'txLens.confirmed' },
+        { value: 'settled', labelKey: 'txLens.settled' },
+        { value: 'failed', labelKey: 'txLens.failed' }
+      ]
+    },
+    {
+      key: 'fundDisposition' as const,
+      labelKey: 'txLens.fundDisposition',
+      options: [
+        { value: 'released', labelKey: 'txLens.fdReleased' },
+        { value: 'held', labelKey: 'txLens.fdHeld' },
+        { value: 'forfeited', labelKey: 'txLens.fdForfeited' },
+        { value: 'na', labelKey: 'txLens.trNa' }
+      ]
+    },
+    {
+      key: 'reviewResult' as const,
+      labelKey: 'txLens.reviewResult',
+      options: [
+        { value: 'none', labelKey: 'txLens.rrNone' },
+        { value: 'tp', labelKey: 'txLens.truePositive' },
+        { value: 'fp', labelKey: 'txLens.falsePositive' },
+        { value: 'fn', labelKey: 'txLens.falseNegative' }
+      ]
+    }
+  ]
+
+  /** 设置某项筛选并立即查询（替代原先的下拉框 @change） */
+  function setFilter(key: (typeof FILTER_GROUPS)[number]['key'], value: string) {
+    filters[key] = value
+    handleSearch()
+  }
+
+  function handleExport() {
+    // TODO: 后端导出接口就绪后替换为真实调用
+    ElMessage.info(t('common.export'))
+  }
+
   function handleSearch() {
     pagination.pageNum = 1
     loadSummary()
@@ -672,6 +706,56 @@
 </script>
 
 <style scoped>
+  /*
+   * 日期范围选择器宽度。
+   *
+   * EP 给 .el-range-editor 设了 flex: 1 1 auto —— 它作为 flex 子项会被拉伸，
+   * 因此 Tailwind 的 !w-* 与 --el-date-editor-width 都压不住（实测仍 915px）。
+   * 必须同时固定 width 与 flex，并用 :deep 穿透 scoped。
+   */
+  :deep(.tx-date-range.el-range-editor) {
+    flex: none;
+    width: 520px;
+  }
+
+  /*
+   * 分段筛选按钮。
+   * 规格取自原型 compliance-tx-lens.html 的 .filter-btn：
+   *   padding 4px 10px · radius 5px · font-size 11px · weight 500
+   * 选中态用主色系（原型的 accent-50/300/700 → 这里用主题色变量，随明暗模式切换）。
+   */
+  .filter-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--tone-muted-text);
+    cursor: pointer;
+    background: var(--default-box-color);
+    border: 1px solid var(--default-border);
+    border-radius: 5px;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s,
+      color 0.15s;
+  }
+
+  .filter-btn:hover {
+    background: var(--art-hover-color);
+    border-color: var(--art-gray-400);
+  }
+
+  .filter-btn.is-active {
+    color: var(--theme-text);
+    background: var(--tone-info-bg);
+    border-color: var(--theme-border);
+  }
+
+  .filter-btn:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+
   .tx-card {
     padding: 10px 12px;
     border: 1px solid var(--default-border);
@@ -679,11 +763,28 @@
     transition: border-color 0.2s;
   }
 
+  /* 卡片可点击（role=button + tabindex）后必须提供可见焦点环：
+     否则键盘用户无法定位当前选中项。focus-visible 只在键盘导航时出现，鼠标点击不触发 */
+  .tx-card:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
+  }
+
+  .tx-card:focus {
+    outline: none;
+  }
+
   .tx-card:hover {
     border-color: var(--el-color-primary-light-5);
   }
 
   /* 摘要卡片点击筛选：可点击反馈 + 激活态 */
+
+  .summary-filter-card:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
+  }
+
   .summary-filter-card {
     cursor: pointer;
     transition: all 0.2s;
@@ -691,7 +792,7 @@
 
   .summary-filter-card:hover {
     border-color: var(--el-color-primary-light-5);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+    box-shadow: var(--art-shadow-hover);
   }
 
   .summary-filter-card.active {
@@ -741,7 +842,7 @@
   }
 
   .lc-stage-label {
-    font-size: 9px;
+    font-size: var(--font-size-caption);
     font-weight: 600;
     line-height: 1;
     color: var(--el-text-color-secondary);
@@ -750,7 +851,7 @@
   }
 
   .lc-stage-state {
-    font-size: 11px;
+    font-size: var(--font-size-label);
     font-weight: 600;
     color: var(--el-text-color-primary);
   }

@@ -39,7 +39,7 @@
         <div class="btn language-btn h-8 w-8 c-p flex-cc tad-300">
           <ArtSvgIcon
             icon="ri:translate-2"
-            class="text-[19px] text-g-800 transition-colors duration-300"
+            class="text-icon-lg text-g-800 transition-colors duration-300"
           />
         </div>
         <template #dropdown>

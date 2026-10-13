@@ -56,7 +56,8 @@ export function parseIvms101Party(
   const entity = Object.keys(legal).length ? legal : natural
 
   const address = ((entity.geographicAddress as unknown[]) || [])[0] as
-    Record<string, unknown> | undefined
+    | Record<string, unknown>
+    | undefined
 
   return {
     name: extractName(entity),

@@ -19,9 +19,9 @@
         }"
       >
         <li
-          class="art-card-xs inline-flex flex-cc h-8 mr-1.5 text-xs c-p hover:text-theme group"
+          class="art-card-xs inline-flex flex-cc h-8 mr-1.5 text-xs c-p hover:text-theme-text group"
           :class="[
-            item.path === activeTab ? 'activ-tab !text-theme' : 'text-g-600 dark:text-g-800',
+            item.path === activeTab ? 'activ-tab !text-theme-text' : 'text-g-600 dark:text-g-800',
             tabStyle === 'tab-google' ? 'google-tab relative !h-8 !leading-8 !border-none' : ''
           ]"
           :style="{
@@ -41,16 +41,16 @@
           <ArtSvgIcon
             v-show="item.icon"
             :icon="item.icon"
-            class="text-base mr-1 group-hover:text-theme"
-            :class="item.path === activeTab ? 'text-theme' : 'text-g-600'"
+            class="text-base mr-1 group-hover:text-theme-text"
+            :class="item.path === activeTab ? 'text-theme-text' : 'text-g-600'"
           />
           {{ item.customTitle || formatMenuTitle(item.title) }}
           <span
             v-if="list.length > 1 && !item.fixedTab"
-            class="inline-flex flex-cc relative ml-0.5 p-1 rounded-full tad-200 hover:bg-g-200"
+            class="inline-flex flex-cc relative ml-0.5 p-1 rounded-full tad-200 hover:bg-hover-color"
             @click.stop="closeWorktab('current', item.path)"
           >
-            <ArtSvgIcon icon="ri:close-large-fill" class="text-[10px] text-g-600" />
+            <ArtSvgIcon icon="ri:close-large-fill" class="text-icon-xs text-g-600" />
           </span>
           <div
             v-if="tabStyle === 'tab-google'"
@@ -481,7 +481,7 @@
 
 <style scoped>
   .google-tab.activ-tab {
-    color: var(--theme-color) !important;
+    color: var(--theme-text) !important;
     background-color: var(--el-color-primary-light-9) !important;
     border-bottom: 0 !important;
     border-bottom-right-radius: 0 !important;

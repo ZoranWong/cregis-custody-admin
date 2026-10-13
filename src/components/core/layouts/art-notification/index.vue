@@ -11,7 +11,7 @@
   >
     <div class="flex-cb px-3.5 mt-3.5">
       <span class="text-base font-medium text-g-800">{{ $t('notice.title') }}</span>
-      <span class="text-xs text-g-800 px-1.5 py-1 c-p select-none rounded hover:bg-g-200">
+      <span class="text-xs text-g-800 px-1.5 py-1 c-p select-none rounded hover:bg-hover-color">
         {{ $t('notice.btnRead') }}
       </span>
     </div>
@@ -20,7 +20,7 @@
       <li
         v-for="(item, index) in barList"
         :key="index"
-        class="h-12 leading-12 mr-5 overflow-hidden text-[13px] text-g-700 c-p select-none"
+        class="h-12 leading-12 mr-5 overflow-hidden text-body-lg text-g-700 c-p select-none"
         :class="{ 'bar-active': barActiveIndex === index }"
         @click="changeBar(index)"
       >
@@ -35,7 +35,7 @@
           <li
             v-for="(item, index) in noticeList"
             :key="index"
-            class="box-border flex-c px-3.5 py-3.5 c-p last:border-b-0 hover:bg-g-200/60"
+            class="box-border flex-c px-3.5 py-3.5 c-p last:border-b-0 hover:bg-hover-color"
           >
             <div
               class="size-9 leading-9 text-center rounded-lg flex-cc"
@@ -55,7 +55,7 @@
           <li
             v-for="(item, index) in msgList"
             :key="index"
-            class="box-border flex-c px-3.5 py-3.5 c-p last:border-b-0 hover:bg-g-200/60"
+            class="box-border flex-c px-3.5 py-3.5 c-p last:border-b-0 hover:bg-hover-color"
           >
             <div class="w-9 h-9">
               <img :src="item.avatar" class="w-full h-full rounded-lg" />
@@ -272,7 +272,7 @@
     const noticeStyleMap: Record<NoticeType, NoticeStyle> = {
       email: {
         icon: 'ri:mail-line',
-        iconClass: 'bg-warning/12 text-warning'
+        iconClass: 'bg-warning/12 text-tone-progress-text'
       },
       message: {
         icon: 'ri:volume-down-line',
@@ -288,14 +288,14 @@
       },
       notice: {
         icon: 'ri:notification-3-line',
-        iconClass: 'bg-theme/12 text-theme'
+        iconClass: 'bg-theme/12 text-theme-text'
       }
     }
 
     const getNoticeStyle = (type: NoticeType): NoticeStyle => {
       const defaultStyle: NoticeStyle = {
         icon: 'ri:arrow-right-circle-line',
-        iconClass: 'bg-theme/12 text-theme'
+        iconClass: 'bg-theme/12 text-theme-text'
       }
 
       return noticeStyleMap[type] || defaultStyle
@@ -438,7 +438,7 @@
   }
 
   .bar-active {
-    color: var(--theme-color) !important;
+    color: var(--theme-text) !important;
     border-bottom: 2px solid var(--theme-color);
   }
 

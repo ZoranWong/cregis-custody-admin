@@ -7,7 +7,7 @@
       <div class="auth-right-wrap">
         <div class="form">
           <div class="mb-8">
-            <h1 class="text-[22px] font-semibold text-g-900">{{ $t('strongAuth.title') }}</h1>
+            <h1 class="text-hero font-semibold text-g-900">{{ $t('strongAuth.title') }}</h1>
             <p v-if="displayName" class="mt-1.5 text-sm text-g-500">{{
               $t('strongAuth.signedInAs', { name: displayName })
             }}</p>
@@ -54,7 +54,7 @@
                 <div class="text-left mb-5" v-if="!showSetupKey">
                   {{ $t('strongAuth.cantScan') }}
                   <span
-                    class="text-sm font-medium text-[var(--el-color-primary)] cursor-pointer hover:underline"
+                    class="text-sm font-medium text-[var(--theme-text)] cursor-pointer hover:underline"
                     @click="showSetupKey = true"
                     >{{ $t('strongAuth.showSetupKey') }}</span
                   >
@@ -65,7 +65,7 @@
                   }}</div>
                   <div class="flex items-center gap-2">
                     <code
-                      class="flex-1 px-3 py-2.5 border-full-d rounded-lg text-[13px] font-mono text-g-700 select-all bg-active-color"
+                      class="flex-1 px-3 py-2.5 border-full-d rounded-lg text-body-lg font-mono text-g-700 select-all bg-active-color"
                       >{{ secretKey }}</code
                     >
                     <ElButton size="small" @click="copySecret">{{
@@ -75,7 +75,7 @@
                 </div>
 
                 <ElButton
-                  class="w-full !h-[48px] !text-[15px] !font-semibold"
+                  class="w-full !h-[48px] !text-title !font-semibold"
                   type="primary"
                   @click="setupStep = 2"
                 >
@@ -96,7 +96,7 @@
                   <div class="text-xs font-medium text-g-500">{{
                     $t('strongAuth.verifyCodeLabel')
                   }}</div>
-                  <div class="flex text-[var(--el-color-warning)] items-center gap-1 text-xs">
+                  <div class="flex text-tone-progress-text items-center gap-1 text-xs">
                     <span>{{ $t('strongAuth.codeRefreshIn') }}</span>
                     <span class="font-mono font-medium min-w-[2ch] text-right"
                       >{{ formattedCountdown }}s</span
@@ -106,7 +106,7 @@
 
                 <div
                   v-if="inlineError"
-                  class="mb-3 p-3 rounded-lg bg-[var(--el-color-danger-light-9)] border border-[var(--el-color-danger-light-5)] text-[var(--el-color-danger)] text-[13px]"
+                  class="mb-3 p-3 rounded-lg bg-[var(--el-color-danger-light-9)] border border-[var(--el-color-danger-light-5)] text-tone-error-text text-body-lg"
                 >
                   {{ inlineError }}
                 </div>
@@ -143,7 +143,7 @@
                 <div
                   class="bg-[var(--el-color-success-light-9)] border border-[var(--el-color-success-light-5)] rounded-lg p-4 mb-5"
                 >
-                  <div class="text-sm font-medium text-[var(--el-color-success)] mb-1">{{
+                  <div class="text-sm font-medium text-tone-done-text mb-1">{{
                     $t('strongAuth.recoveryGenerated')
                   }}</div>
                   <p class="text-xs text-g-600">{{ $t('strongAuth.recoveryDesc') }}</p>
@@ -153,7 +153,7 @@
                   <code
                     v-for="c in recoveryCodes"
                     :key="c"
-                    class="px-3 py-2 border-full-d rounded-lg text-[13px] font-mono text-g-700 bg-active-color"
+                    class="px-3 py-2 border-full-d rounded-lg text-body-lg font-mono text-g-700 bg-active-color"
                     >{{ c }}</code
                   >
                 </div>
@@ -176,7 +176,7 @@
 
                 <ElButton
                   v-if="recoveryAcknowledged"
-                  class="w-full !h-[48px] !text-[15px] !font-semibold"
+                  class="w-full !h-[48px] !text-title !font-semibold"
                   type="primary"
                   @click="continueToChallenge"
                   >{{ $t('strongAuth.continueBtn') }}</ElButton
@@ -202,7 +202,7 @@
 
             <div
               v-if="inlineError"
-              class="mb-4 p-3 rounded-lg bg-[var(--el-color-danger-light-9)] border border-[var(--el-color-danger-light-5)] text-[var(--el-color-danger)] text-[13px]"
+              class="mb-4 p-3 rounded-lg bg-[var(--el-color-danger-light-9)] border border-[var(--el-color-danger-light-5)] text-tone-error-text text-body-lg"
             >
               {{ inlineError }}
             </div>

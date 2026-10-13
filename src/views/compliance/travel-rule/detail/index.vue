@@ -4,20 +4,17 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-xl font-semibold text-g-900">{{ $t('travelRule.detailTitle') }}</h1>
-        <p class="text-sm text-g-500 mt-1">{{ $t('travelRule.detailSubtitle') }}</p>
+        <h1 class="text-hero font-semibold text-g-900">{{ $t('travelRule.detailTitle') }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ $t('travelRule.detailSubtitle') }}</p>
       </div>
-      <el-button text @click="router.back()">
-        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />{{ $t('travelRule.backToEvents') }}
-      </el-button>
+      <ArtBackButton history />
     </div>
-
     <!-- Loading / Error -->
     <div v-if="loading" class="art-card p-10 text-center">
       <el-skeleton :rows="8" animated />
     </div>
     <div v-else-if="errorMessage" class="art-card p-10 text-center">
-      <p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p>
+      <p class="text-tone-error-text mb-4">{{ errorMessage }}</p>
       <el-button type="primary" @click="loadDetail">{{ $t('console.refresh') }}</el-button>
     </div>
 
@@ -29,23 +26,21 @@
             <div class="flex items-center gap-2 mb-1">
               <ArtSvgIcon
                 :icon="isInbound ? 'ri:arrow-down-line' : 'ri:arrow-up-line'"
-                :class="
-                  isInbound ? 'text-[var(--el-color-success)]' : 'text-[var(--el-color-primary)]'
-                "
-                class="text-xl"
+                :class="isInbound ? 'text-tone-inbound-text' : 'text-tone-outbound-text'"
+                class="text-icon-md"
               />
-              <span class="text-xl font-bold text-g-900">{{ amountDisplay }}</span>
-              <span class="text-sm text-g-400">{{ assetLabel }}</span>
+              <span class="text-hero tabular-nums font-semibold text-g-900">{{
+                amountDisplay
+              }}</span>
+              <span class="text-sm text-tone-muted-text">{{ assetLabel }}</span>
             </div>
-            <div class="text-xs text-g-500 font-mono">{{ detail.transferId }}</div>
-            <div class="text-[10px] text-g-500 mt-1">{{ formatTime(detail.createTime) }}</div>
+            <div class="text-xs text-g-700 font-mono">{{ detail.transferId }}</div>
+            <div class="text-caption text-g-700 mt-1">{{ formatTime(detail.createTime) }}</div>
           </div>
           <div class="text-right">
             <div class="flex gap-1 justify-end">
-              <el-tag :type="isInbound ? 'success' : 'warning'" size="small" effect="dark">{{
-                isInbound ? $t('travelRule.incoming') : $t('travelRule.outgoing')
-              }}</el-tag>
-              <el-tag :type="statusTagType(detail.status)" size="small" effect="dark">{{
+              <ArtDirectionTag :inbound="isInbound" />
+              <el-tag :type="statusTagType(detail.status)" size="small">{{
                 statusLabel(detail.status)
               }}</el-tag>
             </div>
@@ -54,31 +49,31 @@
 
         <!-- Parties -->
         <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-          <div class="originator-box rounded-md p-3">
-            <div class="text-[10px] font-bold text-g-500 uppercase tracking-wider mb-1">
+          <div class="originator-box rounded-lg p-3">
+            <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-1">
               {{ $t('travelRule.originator') }}
             </div>
             <div class="text-xs text-g-700 font-mono break-all mb-1.5">{{
               detail.originatorDid || '--'
             }}</div>
-            <div class="text-xs text-g-500 font-mono break-all">{{
+            <div class="text-xs text-g-700 font-mono break-all">{{
               detail.sourceAddress || '--'
             }}</div>
           </div>
           <div
-            class="text-xl font-bold"
-            :class="isInbound ? 'text-[var(--el-color-success)]' : 'text-[var(--el-color-primary)]'"
+            class="text-hero font-semibold"
+            :class="isInbound ? 'text-tone-inbound-text' : 'text-tone-outbound-text'"
           >
             {{ isInbound ? '→' : '→' }}
           </div>
-          <div class="beneficiary-box rounded-md p-3">
-            <div class="text-[10px] font-bold text-g-500 uppercase tracking-wider mb-1">
+          <div class="beneficiary-box rounded-lg p-3">
+            <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-1">
               {{ $t('travelRule.beneficiary') }}
             </div>
             <div class="text-xs text-g-700 font-mono break-all mb-1.5">{{
               detail.beneficiaryDid || '--'
             }}</div>
-            <div class="text-xs text-g-500 font-mono break-all">{{
+            <div class="text-xs text-g-700 font-mono break-all">{{
               detail.settlementAddress || '--'
             }}</div>
           </div>
@@ -97,8 +92,8 @@
             <div v-for="node in statusTimeline" :key="node.status" class="timeline-node">
               <div class="timeline-dot" :class="node.dotClass" />
               <div class="text-sm font-semibold" :class="node.labelClass">{{ node.label }}</div>
-              <div class="text-xs text-g-600 mt-0.5">{{ node.detail }}</div>
-              <div class="text-[11px] text-g-400 mt-0.5">{{ node.time }}</div>
+              <div class="text-xs text-g-700 mt-0.5">{{ node.detail }}</div>
+              <div class="text-label text-tone-muted-text mt-0.5">{{ node.time }}</div>
             </div>
           </div>
         </div>
@@ -111,35 +106,35 @@
         </div>
         <div class="p-4 grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">Transfer ID</span>
+            <span class="text-label font-semibold text-g-700 uppercase">Transfer ID</span>
             <span class="text-sm text-g-800 font-mono">{{ detail.transferId }}</span>
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+            <span class="text-label font-semibold text-g-700 uppercase">{{
               $t('travelRule.notabeneTxId')
             }}</span>
             <span class="text-sm text-g-800 font-mono">{{ detail.notabeneTxId || '--' }}</span>
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+            <span class="text-label font-semibold text-g-700 uppercase">{{
               $t('travelRule.assetAmount')
             }}</span>
             <span class="text-sm text-g-800">{{ amountDisplay }}</span>
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+            <span class="text-label font-semibold text-g-700 uppercase">{{
               $t('travelRule.assetCode')
             }}</span>
             <span class="text-sm text-g-800">{{ assetLabel }}</span>
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+            <span class="text-label font-semibold text-g-700 uppercase">{{
               $t('travelRule.createTime')
             }}</span>
             <span class="text-sm text-g-800">{{ formatTime(detail.createTime) }}</span>
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-[11px] font-semibold text-g-500 uppercase">Notabene Status</span>
+            <span class="text-label font-semibold text-g-700 uppercase">Notabene Status</span>
             <span class="text-sm text-g-800">{{ detail.notabeneStatus || '--' }}</span>
           </div>
         </div>
@@ -155,13 +150,13 @@
         <div class="p-4">
           <div v-if="counterparty" class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+              <span class="text-label font-semibold text-g-700 uppercase">{{
                 $t('travelRule.piiName')
               }}</span>
               <span class="text-sm text-g-800">{{ counterparty.name || '--' }}</span>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+              <span class="text-label font-semibold text-g-700 uppercase">{{
                 $t('travelRule.piiAccountNumber')
               }}</span>
               <span class="text-xs text-g-700 font-mono break-all">{{
@@ -169,25 +164,25 @@
               }}</span>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+              <span class="text-label font-semibold text-g-700 uppercase">{{
                 $t('travelRule.piiCountry')
               }}</span>
               <span class="text-sm text-g-800">{{ counterparty.country || '--' }}</span>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+              <span class="text-label font-semibold text-g-700 uppercase">{{
                 $t('travelRule.piiTownName')
               }}</span>
               <span class="text-sm text-g-800">{{ counterparty.townName || '--' }}</span>
             </div>
             <div class="flex flex-col gap-0.5 col-span-2">
-              <span class="text-[11px] font-semibold text-g-500 uppercase">{{
+              <span class="text-label font-semibold text-g-700 uppercase">{{
                 $t('travelRule.piiAddressLine')
               }}</span>
               <span class="text-sm text-g-800">{{ counterparty.addressLine || '--' }}</span>
             </div>
           </div>
-          <div v-else class="text-xs text-g-400 py-4 text-center">--</div>
+          <div v-else class="text-xs text-tone-muted-text py-4 text-center">--</div>
         </div>
       </div>
 
@@ -196,11 +191,15 @@
         <div
           class="p-4 border-b border-[var(--default-border)] flex items-center justify-between cursor-pointer"
           @click="rawExpanded = !rawExpanded"
+          role="button"
+          tabindex="0"
+          @keydown.enter.prevent="rawExpanded = !rawExpanded"
+          @keydown.space.prevent="rawExpanded = !rawExpanded"
         >
           <span class="text-sm font-semibold text-g-900">{{ $t('travelRule.piiRaw') }}</span>
           <ArtSvgIcon
             :icon="rawExpanded ? 'ri:arrow-up-s-line' : 'ri:arrow-down-s-line'"
-            class="text-g-500"
+            class="text-icon-sm text-g-700"
           />
         </div>
         <div v-if="rawExpanded" class="p-4">
@@ -210,7 +209,7 @@
           >
             <pre class="text-xs text-g-700 whitespace-pre-wrap break-all">{{ ivms101Text }}</pre>
           </div>
-          <div v-else class="text-xs text-g-400 py-4 text-center">--</div>
+          <div v-else class="text-xs text-tone-muted-text py-4 text-center">--</div>
         </div>
       </div>
 
@@ -229,7 +228,7 @@
 
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
+  import { useRoute } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { useCountryStore } from '@/store/modules/country'
@@ -246,7 +245,6 @@
   defineOptions({ name: 'TravelRuleDetail' })
 
   const route = useRoute()
-  const router = useRouter()
   const { locale, t } = useI18n()
   const countryStore = useCountryStore()
   const coinStore = useCoinStore()
@@ -356,10 +354,10 @@
   // 状态文字颜色：与圆点颜色一致
   function dotLabelClass(dotClass: string): string {
     const map: Record<string, string> = {
-      completed: 'text-[var(--el-color-success)]',
-      active: 'text-[var(--el-color-primary)]',
-      failed: 'text-[var(--el-color-danger)]',
-      upcoming: 'text-g-400'
+      completed: 'text-tone-inbound-text',
+      active: 'text-tone-info-text',
+      failed: 'text-tone-error-text',
+      upcoming: 'text-tone-muted-text'
     }
     return map[dotClass] || 'text-g-800'
   }
@@ -466,14 +464,22 @@
 </script>
 
 <style scoped>
+  /* 折叠头可聚焦 → 需可见焦点环 */
+  [role='button']:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
+  }
+
   .originator-box {
     background: var(--el-color-primary-light-9);
     border-left: 3px solid var(--el-color-primary);
   }
 
   .beneficiary-box {
-    background: var(--el-color-success-light-9);
-    border-left: 3px solid var(--el-color-success);
+    /* 对手方：中性底 + 中性描边。此前用 success 色，与我方的品牌色同为绿系，
+       两块并排时分不出「我方 / 对手方」。 */
+    background: var(--tone-neutral-bg);
+    border-left: 3px solid var(--tone-neutral-mark);
   }
 
   .timeline-chain {
@@ -510,7 +516,7 @@
     width: 14px;
     height: 14px;
     background: var(--el-color-success);
-    border: 2px solid #fff;
+    border: 2px solid var(--el-bg-color);
     border-radius: 50%;
   }
 
@@ -532,7 +538,7 @@
   }
 
   .timeline-dot.upcoming {
-    background: #fff;
+    background: var(--default-box-color);
     border: 2px solid var(--default-border);
   }
 </style>

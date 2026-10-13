@@ -59,7 +59,7 @@
           transition: border-color 0.15s;
 
           &:hover:not(.is-disabled) {
-            color: var(--theme-color);
+            color: var(--theme-text);
             border-color: var(--theme-color);
           }
         }

@@ -86,6 +86,93 @@
   border: 1px solid var(--art-card-border) !important;
 }
 
+/* ==================== 悬浮态底色 ====================
+ *
+ * 全站大量 hover 原本用 bg-g-200，但 --art-gray-200 在暗色下是「背景级」灰阶
+ * #17171c —— 与侧边栏/卡片底 #161618 仅差 1.01:1，hover 几乎看不出来。
+ *
+ * 这里提供 hover:bg-hover-color，走语义 token --art-hover-color
+ * （亮 #edeff0 / 暗 #252530，与底色差 1.15–1.19:1，两模式均清晰）。
+ *
+ * 注意：本项目未对全局 CSS 启用 Tailwind 变体扫描（在 .vue 模板里写
+ * hover:bg-hover-color 不会自动生成规则），所以这里手工声明。
+ */
+.hover\:bg-hover-color:hover {
+  background-color: var(--art-hover-color);
+}
+
+/* ==================== 键盘焦点可见性 ====================
+ *
+ * 此前全站没有任何 :focus-visible 定义（实测聚焦后 outline:none、box-shadow:none，
+ * 连主按钮也如此），键盘用户完全无法定位当前位置 —— WCAG 2.4.7 违规。
+ *
+ * 用 outline 而非 box-shadow：outline 不参与布局、不改变元素尺寸，
+ * 因此不会引起 CLS 或触发相邻元素重排。颜色取 --focus-ring
+ * （品牌绿在白底仅 2.43:1，需用加深档才能满足 3:1）。
+ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible,
+[role='button']:focus-visible,
+[contenteditable]:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px; /* 与 Element 按钮/输入框的 outline-offset 保持一致 */
+}
+
+/* ---- 撤销上述规则对 Element 托管输入元素的命中 ----
+ *
+ * EP 的 .el-input__inner 等自身 outline:none，焦点样式画在【外层 wrapper】上；
+ * 且它们带 tabindex="0"，会被上面的 [tabindex] 分支命中，导致输入框出现
+ * 双重焦点环、内环内缩错位。这里显式撤销，改由下方 EP 专属规则接管。
+ */
+.el-input__inner:focus-visible,
+.el-textarea__inner:focus-visible,
+.el-select__input:focus-visible,
+.el-range-input:focus-visible,
+.el-input__wrapper:focus-visible,
+.el-select__wrapper:focus-visible {
+  outline: none !important;
+}
+
+/* ==================== Element 输入类组件的焦点环颜色 ====================
+ *
+ * EP 把焦点环画在【外层 wrapper / 原生 textarea】上，自带全高、且覆盖左右前后缀。
+ * 所以这里【只换颜色、绝不重绘几何】：
+ *
+ *   输入框： .el-input__wrapper.is-focus
+ *          → box-shadow: 0 0 0 1px var(--el-input-focus-border-color) inset
+ *   文本域： .el-textarea__inner:focus
+ *          → box-shadow: 0 0 0 1px var(--el-input-focus-border-color) inset
+ *   选择器： .el-select__wrapper.is-focused
+ *          → box-shadow: 0 0 0 1px var(--el-color-primary) inset
+ *
+ * 这些变量定义在组件作用域（.el-input 等）而非 :root，所以必须在组件选择器上覆盖，
+ * 写在 :root 会被遮蔽。1px 宽度保持不变 —— 与 EP 原始几何完全一致。
+ */
+.el-input,
+.el-textarea,
+.el-select,
+.el-range-editor {
+  --el-input-focus-border-color: var(--focus-ring) !important;
+}
+
+.el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--focus-ring) inset !important;
+}
+
+/* ==================== 表格数字等宽 ====================
+ *
+ * 比例数字下每行「1」与「8」宽度不同，导致数字列视觉参差、刷新时列宽跳动。
+ * tabular-nums 只影响数字字形，对文本无副作用，故可安全地作用于所有单元格。
+ */
+.el-table .cell {
+  font-variant-numeric: tabular-nums;
+}
+
 @mixin art-card-base($border-color, $shadow: none, $radius-diff: 4px) {
   background: var(--default-box-color);
   border: 1px solid #{$border-color} !important;

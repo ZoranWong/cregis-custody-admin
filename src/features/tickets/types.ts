@@ -1,7 +1,12 @@
 export type TicketCenter = 'operations' | 'risk' | 'compliance'
 export type TicketQueue = 'all' | 'triage' | 'domain_processing' | 'supervisor_escalation'
 export type TicketDisplayStatus =
-  'all_open' | 'new' | 'in_progress' | 'pending_review' | 'completed' | 'closed'
+  | 'all_open'
+  | 'new'
+  | 'in_progress'
+  | 'pending_review'
+  | 'completed'
+  | 'closed'
 export type TicketUrgency = 'all' | 'critical' | 'high' | 'medium' | 'low'
 export type TicketScope = 'all' | 'mine'
 export type TicketAction =
@@ -253,5 +258,11 @@ export interface KybContextAttachRequest {
   verificationSessionRefId?: string
   manualReviewTaskRefId?: string
   kybActionHint?:
-    'submit' | 'request_docs' | 'resubmit' | 'review' | 'approve' | 'reject' | 'escalate'
+    | 'submit'
+    | 'request_docs'
+    | 'resubmit'
+    | 'review'
+    | 'approve'
+    | 'reject'
+    | 'escalate'
 }

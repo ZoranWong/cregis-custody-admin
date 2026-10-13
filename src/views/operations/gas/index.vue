@@ -11,7 +11,7 @@
     </div>
 
     <!-- ═══ Needs Attention ═══ -->
-    <div v-if="activeTab === 'overview'" class="art-card art-table-card mb-5 overflow-hidden">
+    <div v-if="activeTab === 'overview'" class="art-card art-table-card mb-4 overflow-hidden">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <h3 class="text-base font-semibold text-g-900 mr-4">{{ $t('gas.needsAttention') }}</h3>
@@ -49,9 +49,12 @@
         <el-skeleton :rows="10" animated class="p-5" />
       </template>
       <template v-else-if="errorMessage">
-        <div class="p-10 text-center text-[var(--el-color-danger)]">{{ errorMessage }}</div>
+        <div class="p-10 text-center text-tone-error-text">{{ errorMessage }}</div>
       </template>
       <el-table v-else :data="needsAttentionRows" stripe size="small">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column :label="$t('gas.level')" width="80">
           <template #default="{ row }"
             ><el-tag :type="severityTagType(row.severity)" size="small">{{
@@ -99,7 +102,7 @@
     </div>
 
     <!-- ═══ Recent Activities ═══ -->
-    <div v-if="activeTab === 'overview'" class="art-card art-table-card mb-5 overflow-hidden">
+    <div v-if="activeTab === 'overview'" class="art-card art-table-card mb-4 overflow-hidden">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <h3 class="text-base font-semibold text-g-900 mr-4">{{ $t('gas.recentActivities') }}</h3>
@@ -140,9 +143,12 @@
         <el-skeleton :rows="10" animated class="p-5" />
       </template>
       <template v-else-if="errorMessage">
-        <div class="p-10 text-center text-[var(--el-color-danger)]">{{ errorMessage }}</div>
+        <div class="p-10 text-center text-tone-error-text">{{ errorMessage }}</div>
       </template>
       <el-table v-else :data="filteredActivities" stripe size="small">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column :label="$t('gas.time')" width="140">
           <template #default="{ row }">{{ formatTime(row.occurredAt) }}</template>
         </el-table-column>
@@ -188,7 +194,7 @@
     </div>
 
     <!-- ═══ Account Lookup ═══ -->
-    <div v-if="activeTab === 'accounts'" class="art-card art-table-card mb-5 overflow-hidden">
+    <div v-if="activeTab === 'accounts'" class="art-card art-table-card mb-4 overflow-hidden">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <h3 class="text-base font-semibold text-g-900 mr-4">{{ $t('gas.accounts') }}</h3>
@@ -208,9 +214,12 @@
         <el-skeleton :rows="10" animated class="p-5" />
       </template>
       <template v-else-if="errorMessage">
-        <div class="p-10 text-center text-[var(--el-color-danger)]">{{ errorMessage }}</div>
+        <div class="p-10 text-center text-tone-error-text">{{ errorMessage }}</div>
       </template>
       <el-table v-else :data="overviewRows" stripe size="small">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column :label="$t('gas.merchant')" min-width="180">
           <template #default="{ row }">
             <div class="text-sm text-g-900">{{ row.merchantName || row.ecode || '-' }}</div>
@@ -266,7 +275,7 @@
             </div>
             <div
               v-else-if="isZeroBalance(row)"
-              class="flex items-center gap-1 text-[var(--el-color-danger)]"
+              class="flex items-center gap-1 text-tone-error-text"
             >
               <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                 <path
@@ -514,9 +523,9 @@
   }
   function balanceStatusColor(row: { balance: string; threshold: string }): string {
     const ratio = balanceStatusRatio(row)
-    if (ratio < 1) return 'var(--el-color-danger)'
-    if (ratio < 2) return 'var(--el-color-warning)'
-    return 'var(--el-color-success)'
+    if (ratio < 1) return 'var(--tone-error-text)'
+    if (ratio < 2) return 'var(--tone-progress-text)'
+    return 'var(--tone-done-text)'
   }
   function balanceStatusDash(row: { balance: string; threshold: string }): string {
     const ratio = balanceStatusRatio(row)

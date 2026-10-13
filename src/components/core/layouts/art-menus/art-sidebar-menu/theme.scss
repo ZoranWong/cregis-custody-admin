@@ -4,7 +4,17 @@
 $menu-height: 42px;
 $menu-icon-size: 20px;
 $menu-font-size: 14px;
-$hover-bg-color: var(--art-gray-200);
+/*
+ * 菜单 hover 底色。
+ *
+ * 原为 --art-gray-200：亮色下是 #f2f4f5（与白底 1.10:1，可见），
+ * 但暗色下该变量是「背景级」灰阶 #17171c —— 与侧边栏底色 #161618 几乎同色
+ * （1.01:1），hover 完全看不出来。
+ *
+ * 改用语义正确的 --art-hover-color（亮 #edeff0 / 暗 #252530，与底色差 1.15–1.19:1），
+ * 它在两种模式下都是为「悬浮态」设计的。
+ */
+$hover-bg-color: var(--art-hover-color);
 $popup-menu-height: 40px;
 $popup-menu-padding: 8px;
 $popup-menu-margin: 5px;
@@ -30,7 +40,7 @@ $popup-menu-radius: 6px;
 }
 
 // 通用选中样式
-@mixin menu-active($color, $bg-color, $icon-color: var(--theme-color)) {
+@mixin menu-active($color, $bg-color, $icon-color: var(--theme-text)) {
   .el-menu-item.is-active {
     color: $color !important;
     background-color: $bg-color;
@@ -144,7 +154,7 @@ $popup-menu-radius: 6px;
         .menu-icon {
           .art-svg-icon {
             // 选中菜单图标颜色
-            color: var(--theme-color) !important;
+            color: var(--theme-text) !important;
           }
         }
       }
@@ -154,7 +164,10 @@ $popup-menu-radius: 6px;
   // ---------------------- Design theme menu ----------------------
   .el-menu-design {
     @include theme-menu-base;
-    @include menu-active(var(--theme-color), var(--el-color-primary-light-9));
+    // 选中项文字/图标用 --theme-text 而非 --theme-color：
+    // 主题色是为「实心底+白字」设计的，直接当文字压浅绿底上只有 4.3:1，不达标。
+    // --theme-text 是按底色算出的达标变体（详见 utils/ui/colors.ts）。
+    @include menu-active(var(--theme-text), var(--el-color-primary-light-9), var(--theme-text));
     @include menu-hover($hover-bg-color);
 
     .el-sub-menu__icon-arrow {
@@ -166,7 +179,15 @@ $popup-menu-radius: 6px;
   .el-menu-dark {
     @include theme-menu-base;
     @include menu-active(#fff, #27282d, #fff);
-    @include menu-hover(#0f1015);
+    /*
+     * hover 底色。
+     *
+     * 原为 #0f1015 —— 比菜单底色 #161618 **更暗**，方向是反的：
+     * 悬停时元素反而下沉，且两者仅差 1.05:1，几乎看不出反馈。
+     * 改为比底色亮一档的 #212228（1.14:1），与激活态 #27282d 也能区分
+     * （激活态另有白字 + 左侧 4px 指示条，不会混淆）。
+     */
+    @include menu-hover(#212228);
 
     .el-sub-menu__icon-arrow {
       color: var(--art-gray-400);
@@ -186,7 +207,7 @@ $popup-menu-radius: 6px;
       background-color: var(--el-color-primary-light-9);
 
       .art-svg-icon {
-        color: var(--theme-color) !important;
+        color: var(--theme-text) !important;
       }
 
       &::before {
@@ -225,14 +246,14 @@ $popup-menu-radius: 6px;
 // 菜单折叠 hover 弹窗样式（浅色主题）
 .el-menu--vertical,
 .el-menu--popup-container {
-  @include popup-menu-base(var(--art-gray-200), var(--art-gray-900), var(--art-gray-200));
+  @include popup-menu-base(var(--art-hover-color), var(--art-gray-900), var(--art-hover-color));
 }
 
 // 暗黑模式菜单样式
 .dark {
   .el-menu--vertical,
   .el-menu--popup-container {
-    @include popup-menu-base(var(--art-gray-200), var(--art-gray-900), #292a2e);
+    @include popup-menu-base(var(--art-hover-color), var(--art-gray-900), #33343c);
   }
 
   .layout-sidebar {
@@ -242,11 +263,11 @@ $popup-menu-radius: 6px;
       color: var(--art-gray-800) !important;
     }
 
-    // 选中的文字颜色跟图标颜色
+    // 选中的文字颜色跟图标颜色（用 --theme-text 保证压在选中底色上仍达标）
     .el-menu-item.is-active {
       span,
       .menu-icon .art-svg-icon {
-        color: var(--theme-color) !important;
+        color: var(--theme-text) !important;
       }
     }
 

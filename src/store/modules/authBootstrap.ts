@@ -34,7 +34,13 @@ export interface StrongAuthState {
   displayNameOrEmail?: string
   identifiedEmail?: string
   totpChallengeState:
-    'ready' | 'pending' | 'verified' | 'recovery' | 'expired' | 'invalid_code' | 'too_many_attempts'
+    | 'ready'
+    | 'pending'
+    | 'verified'
+    | 'recovery'
+    | 'expired'
+    | 'invalid_code'
+    | 'too_many_attempts'
   recoveryModeState: 'totp_primary' | 'recovery_substep'
   recoveryCodes?: string[]
   recoveryAcknowledged?: boolean

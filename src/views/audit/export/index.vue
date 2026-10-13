@@ -5,7 +5,7 @@
       <h2 class="text-base font-semibold text-g-900">{{ $t('audit.export') }}</h2>
     </div>
 
-    <div class="art-card p-5 mb-5">
+    <div class="art-card p-5 mb-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
           <span class="text-xs text-g-500">{{ $t('audit.dateRange') }}</span>

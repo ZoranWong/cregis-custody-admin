@@ -8,7 +8,12 @@
     >
       <div class="p-5 text-center select-none">
         <div class="mb-7.5 text-5xl">🔒</div>
-        <h1 class="m-0 mb-5 text-3xl font-semibold text-danger">系统已锁定</h1>
+        <!--
+          这一层恒为深色渐变底（与明暗模式无关），颜色必须按深底取值：
+          text-danger 现已映射到 --tone-error-text，亮色模式下是深红 #b91c1c，
+          压在 #1e1e1e 上仅 2.58:1；改用浅红 #f87171 为 6.03:1。
+        -->
+        <h1 class="m-0 mb-5 text-3xl font-semibold text-[#f87171]">系统已锁定</h1>
         <p class="max-w-125 m-0 text-lg leading-relaxed text-white">
           检测到开发者工具已打开<br />
           为了系统安全，请关闭开发者工具后继续使用
@@ -100,7 +105,7 @@
           <div class="w-full text-center">
             <ElButton
               text
-              class="mt-2.5 !text-g-600 hover:!text-theme hover:!bg-transparent"
+              class="mt-2.5 !text-g-600 hover:!text-theme-text hover:!bg-transparent"
               @click="toLogin"
             >
               {{ $t('lockScreen.unlock.backBtnText') }}

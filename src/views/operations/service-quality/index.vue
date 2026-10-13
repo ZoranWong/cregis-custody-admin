@@ -4,9 +4,9 @@
     <!-- ═══ 指标卡片 ═══ -->
     <ElRow :gutter="20" class="flex">
       <ElCol :sm="12" :md="8" v-for="card in metricCards" :key="card.key">
-        <div class="art-card h-28 px-5 mb-5 flex flex-col justify-center">
+        <div class="art-card h-28 px-5 mb-4 flex flex-col justify-center">
           <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
-          <span class="text-[26px] font-medium mt-1 text-g-900">{{ card.value }}</span>
+          <span class="text-display font-semibold mt-1 text-g-900">{{ card.value }}</span>
           <span class="text-xs mt-1" :class="card.trendClass">{{ card.trend }}</span>
         </div>
       </ElCol>
@@ -15,7 +15,7 @@
     <!-- ═══ 图表区 ═══ -->
     <ElRow :gutter="20">
       <ElCol :sm="24" :md="12">
-        <div class="art-card mb-5">
+        <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-g-900 font-medium">{{ $t('serviceQuality.sentimentTrend') }}</span>
           </div>
@@ -30,7 +30,7 @@
         </div>
       </ElCol>
       <ElCol :sm="24" :md="12">
-        <div class="art-card mb-5">
+        <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-g-900 font-medium">{{
               $t('serviceQuality.complaintStatistics')
@@ -42,7 +42,7 @@
         </div>
       </ElCol>
       <ElCol :sm="24" :md="12">
-        <div class="art-card mb-5">
+        <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-g-900 font-medium">{{ $t('serviceQuality.feedbackSummary') }}</span>
           </div>
@@ -56,7 +56,7 @@
         </div>
       </ElCol>
       <ElCol :sm="24" :md="12">
-        <div class="art-card mb-5">
+        <div class="art-card mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
             <span class="text-g-900 font-medium">{{ $t('serviceQuality.slaCompliance') }}</span>
           </div>

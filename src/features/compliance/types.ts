@@ -4,7 +4,12 @@ import type { TicketPagination, TicketSla } from '@/features/tickets/types'
 export type ComplianceCaseType = 'rule_review' | 'escalation'
 export type CompliancePriority = 'high' | 'medium' | 'low'
 export type ComplianceFinalDecision =
-  'approve' | 'reject' | 'request_revision' | 'confirm' | 'overturn' | 'return_for_supplement'
+  | 'approve'
+  | 'reject'
+  | 'request_revision'
+  | 'confirm'
+  | 'overturn'
+  | 'return_for_supplement'
 
 export interface ComplianceCaseQueueRequest {
   tab?: ComplianceCaseType | 'all' | 'travel_rule'

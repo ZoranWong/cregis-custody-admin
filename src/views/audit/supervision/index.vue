@@ -9,7 +9,7 @@
     <template v-if="loading">
       <ElRow :gutter="20" class="flex mb-5">
         <ElCol v-for="i in 4" :key="i" :sm="12" :md="6">
-          <div class="art-card h-28 mb-5 flex flex-col justify-center px-5"
+          <div class="art-card h-28 mb-4 flex flex-col justify-center px-5"
             ><el-skeleton :rows="2" animated
           /></div>
         </ElCol>
@@ -18,16 +18,18 @@
     <template v-else>
       <ElRow :gutter="20" class="flex mb-5">
         <ElCol :sm="12" :md="6" v-for="m in metrics" :key="m.key">
-          <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-5 max-sm:mb-4">
+          <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-4">
             <span class="text-g-700 text-sm">{{ m.label }}</span>
-            <span class="text-[22px] font-medium mt-1 text-g-900">{{ m.value }}{{ m.unit }}</span>
+            <span class="text-display font-semibold mt-1 text-g-900"
+              >{{ m.value }}{{ m.unit }}</span
+            >
             <span
               class="text-xs mt-1"
               :class="
                 m.trend > 0
-                  ? 'text-[var(--el-color-success)]'
+                  ? 'text-tone-done-text'
                   : m.trend < 0
-                    ? 'text-[var(--el-color-danger)]'
+                    ? 'text-tone-error-text'
                     : 'text-g-400'
               "
               >{{ m.trend > 0 ? '↑' : '↓' }} {{ Math.abs(m.trend) }}% vs last period</span
@@ -37,7 +39,7 @@
       </ElRow>
     </template>
 
-    <div class="art-card art-table-card overflow-hidden mb-5">
+    <div class="art-card art-table-card overflow-hidden mb-4">
       <div class="p-4 border-b border-[var(--default-border)]"
         ><h3 class="text-base font-semibold text-g-900">{{ $t('audit.recentEvents') }}</h3></div
       >

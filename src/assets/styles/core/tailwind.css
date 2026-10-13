@@ -6,6 +6,17 @@
   /* Base Colors */
   --art-color: #ffffff;
   --theme-color: var(--main-color);
+  /*
+   * 主题色作为【文字】使用时的达标变体（侧边栏选中项、链接等）。
+   * 此处仅为静态兜底；运行时由 utils/ui/colors.ts 的 getThemeTextColor()
+   * 按当前主题色与明暗模式重新计算并覆盖。
+   */
+  --theme-text: #0f7350;
+  /*
+   * 主题色 tag 的描边。与 --tone-*-border 同强度（浅色 300 级 / 暗色 40% 透明度），
+   * 否则 primary tag 的边框会是深色实色，跟其它 tag 的浅描边明显不一致。
+   */
+  --theme-border: #86efac;
 
   /* Theme Colors - OKLCH Format */
   --art-primary: oklch(0.7 0.23 260);
@@ -45,6 +56,152 @@
 
   /* Element Component Active Color */
   --art-el-active-color: #f2f4f5;
+
+  /* ==================== Status Tone (Light) ====================
+   *
+   * 状态色分两个用途，取值不同：
+   *   -text  用作文字颜色，需 ≥4.5:1 (WCAG AA)
+   *   -mark  用作圆点/形状标记，需 ≥3:1 (WCAG 1.4.11 非文本对比)
+   *
+   * 不能直接用 --el-color-success 等 500 级基色：它们是为「实心块 + 白字」设计的，
+   * 当文字用在白底上实测仅 1.84–3.29:1，全部不达标。
+   * 亮色模式取原型 (pages-v2) 的 700 级配色，暗色模式品牌原色本身即达标。
+   */
+  --tone-done-text: #15803d; /* 5.02:1 · 原型 success-700 */
+  --tone-done-mark: #00a578; /* 3.02:1 */
+  --tone-progress-text: #b45309; /* 5.02:1 · 原型 warning-700 */
+  --tone-progress-mark: #bc8733; /* 3.02:1 */
+  --tone-error-text: #b91c1c; /* 6.47:1 · 原型 danger-700 */
+  --tone-error-mark: #ff4c4c; /* 3.14:1 */
+  --tone-info-text: #1d4ed8; /* 6.70:1 · 原型 accent-700，注意非 --el-color-primary(3.00:1) */
+  --tone-info-mark: #3c96ff; /* 3.03:1 */
+  --tone-neutral-text: #475569; /* 7.58:1 · 原型 ink-600，替代 g-600(3.62:1) */
+  --tone-neutral-mark: #94a3b8; /* 3.10:1 */
+  --tone-purple-text: #6b21a8; /* 8.72:1 · 复核结果 FN 专用色相 */
+  --tone-purple-mark: #a855f7; /* 3.29:1 */
+
+  /* ==================== 交易方向（出入金）====================
+   *
+   * 金融惯例：入金 = 绿（资金流入），出金 = 蓝（资金流出）。
+   * 不可复用 tone-done/error：那是「处理结果」语义，与「方向」是正交的两个维度，
+   * 混用会让「入金但被拒」这类组合无从表达。
+   * 已实测两模式均在白底/深底上达标（见各行注释）。
+   */
+  --tone-inbound-text: #15803d; /* 5.02:1 白底 */
+  --tone-inbound-bg: #f0fdf4;
+  --tone-outbound-text: #1d4ed8; /* 6.70:1 白底 */
+  --tone-outbound-bg: #eff6ff;
+  /* 描边：与 el-tag 的几何保持一致（el-tag 自带 1px 边框，颜色需与语义匹配） */
+  --tone-inbound-border: #86efac;
+  --tone-outbound-border: #93c5fd;
+  /* 语义描边（与出入金同强度，供 el-tag 统一使用）。
+     EP 默认用 light-8（80% 向白混合）过淡，与出入金 tag 的可见描边不一致。 */
+  --tone-done-border: #86efac;
+  --tone-progress-border: #fcd34d;
+  --tone-error-border: #fca5a5;
+  --tone-info-border: #93c5fd;
+  --tone-neutral-border: #cbd5e1;
+
+  /* 状态底色（-bg）。文字必须配 --tone-*-text，不可用 --el-color-*-light-N：
+     后者在暗色模式下不翻转，会留下亮色残底。实测配对对比度：
+       done 4.79 · progress 4.68 · error 5.91 · info 6.16  (均 ≥4.5:1 AA)
+     暗色模式单独定义，见 .dark 段。 */
+  --tone-done-bg: #f0fdf4;
+  --tone-progress-bg: #fdf6ec;
+  --tone-error-bg: #fef2f2;
+  --tone-info-bg: #eff6ff;
+  --tone-purple-bg: #faf5ff;
+  --tone-neutral-bg: #f5f7fa;
+
+  /* 进行中「连线/轨道」等非文本元素：需 ≥3:1。
+     不能复用 -ring（16% 透明度在白底仅 1.17:1，肉眼几乎不可见）。 */
+  --tone-track-done: #00a578; /* 3.16:1 */
+  --tone-track-progress: #bd8025; /* 3.34:1 */
+  --tone-track-idle: #cbd5e1; /* 未开始轨道，极淡中性底 */
+
+  /* 打点外环：小圆点(12px)用 -ring，大圆(步骤条)用 -ring-soft。
+     外环是装饰性光晕，不承担对比度要求，但需与上面的 mark 色相一致。 */
+  --tone-done-ring: rgb(0 165 120 / 16%);
+  --tone-done-ring-soft: rgb(0 165 120 / 10%);
+  --tone-progress-ring: rgb(188 135 51 / 16%);
+  --tone-progress-ring-soft: rgb(188 135 51 / 10%);
+  --tone-error-ring: rgb(255 76 76 / 16%);
+  --tone-error-ring-soft: rgb(255 76 76 / 10%);
+  --tone-info-ring: rgb(60 150 255 / 16%);
+  --tone-info-ring-soft: rgb(60 150 255 / 10%);
+  --tone-neutral-ring: rgb(71 85 105 / 16%);
+  --tone-neutral-ring-soft: rgb(71 85 105 / 8%);
+  --tone-purple-ring: rgb(168 85 247 / 16%);
+  --tone-purple-ring-soft: rgb(168 85 247 / 10%);
+
+  /* ==================== Type Scale ====================
+   *
+   * 六级字阶，每级有唯一职责，不允许跨级使用。
+   * 替代此前散落的 79 处任意 px（9/10/11/12/13/15px）。
+   * 9px 已废弃：低于可读性下限。
+   */
+  --font-size-caption: 10px; /* 全大写微标签：字段名、阶段名 */
+  --font-size-label: 11px; /* 徽章、辅助标签 */
+  --font-size-body: 12px; /* 次级正文：地址、时间、说明 */
+  --font-size-body-lg: 13px; /* 主正文：步骤标题、说明 */
+  --font-size-title: 15px; /* 卡片/区块标题 (h2/h3) */
+  --font-size-metric: 16px; /* 数据数值：列表金额、KPI 数字 */
+  --font-size-hero: 20px; /* 页面 h1、详情页主金额 */
+  /*
+   * KPI 大数字档。原刻度最高只到 20px，而 KPI 数值实测分布为 18/20/22/24/26/30px
+   * —— 没有任何一档能覆盖，导致 14 处 KPI 全部写成 text-[22px]/[24px]/[26px] 的
+   * 「刻度外」任意值。补这一档后 KPI 可归一。
+   * 取值对齐原型 .mc-value（24px / 700 / line-height 1.1）。
+   */
+  --font-size-display: 24px;
+
+  /* ==================== Icon Scale ====================
+   *
+   * ArtSvgIcon 默认继承上下文 font-size —— 同一图标在不同字号容器里会渲染成不同大小。
+   * 因此内联图标必须显式声明尺寸，不得依赖继承。
+   *   12px 微标签内图标 / 14px 正文内图标 / 16px 常规 / 18px 流向箭头 / 24px 首屏方向
+   */
+  --icon-xs: 12px;
+  --icon-sm: 14px;
+  --icon-md: 16px;
+  --icon-lg: 18px;
+  --icon-xl: 24px;
+
+  /* ==================== Font Weight Roles ====================
+   *
+   * 四级字重各有唯一职责，禁止跨级：
+   *   700 bold     仅用于全大写微标签（upper + tracking 已损失可读性，需加重补偿）
+   *   600 semibold 全部标题、卡片标题、状态文字、徽章、数字
+   *   500 medium   标签、按钮、次级强调
+   *   400 regular  正文
+   */
+  --weight-caption: 700;
+  --weight-heading: 600;
+
+  /* ==================== Text Hierarchy ====================
+   *
+   * 文本三级，全部满足 WCAG AA 4.5:1。层级由「色相深浅」表达，不靠降透明度。
+   * 现有 g-500(2.68:1) / g-600(3.62:1) / g-400(3.62:1) 均不达标，不得用于正文。
+   *   弱化  地址、时间戳、来源标注     4.76:1
+   *   次级  订单号、字段说明、辅助信息  7.07:1
+   *   主要  g-900 标题与核心数据
+   */
+  --tone-muted-text: #64748b; /* 与原型 ink-500 同值 */
+  --tone-secondary-text: #4d5875;
+
+  /* ==================== Elevation ==================== */
+  --art-shadow-hover: 0 2px 8px rgb(0 0 0 / 8%);
+  --art-shadow-raised: 0 2px 8px rgb(0 0 0 / 12%);
+  --art-shadow-subtle: 0 1px 3px rgb(0 0 0 / 8%);
+
+  /* ==================== Focus Ring ====================
+   *
+   * 键盘焦点指示器。WCAG 1.4.11 要求非文本对比 ≥3:1。
+   * 不能用品牌绿 #00BE78 —— 白底上仅 2.43:1，不达标（Element 默认用的是
+   * --el-color-primary-light-5，白底仅 1.68:1，更差）。
+   * 亮色取品牌绿加深档（5.85:1），保持品牌观感；暗色回归原色（7.43:1）。
+   */
+  --focus-ring: #0f7350; /* 5.85:1 on white（暗色见 .dark 段）*/
 }
 
 /* ==================== Dark Mode Variables ==================== */
@@ -81,6 +238,75 @@
 
   /* Element Component Active Color */
   --art-el-active-color: #2e2e38;
+
+  /* Status Tone (Dark) —— 品牌原色在深底上本身即达标，无需暗化 */
+  --tone-done-text: #00d99e; /* 9.83:1 */
+  --tone-done-mark: #00d99e;
+  --tone-progress-text: #eba940; /* 8.85:1 */
+  --tone-progress-mark: #eba940;
+  --tone-error-text: #ff4c4c; /* 5.50:1 */
+  --tone-error-mark: #ff4c4c;
+  --tone-info-text: #3c96ff; /* 6.02:1 */
+  --tone-info-mark: #3c96ff;
+  --tone-neutral-text: #94a3b8;
+  --tone-neutral-mark: #64748b;
+  --tone-purple-text: #c084fc;
+  --tone-purple-mark: #a855f7;
+
+  /* 交易方向（暗色）：深底上需提亮，品牌级色相直接提升亮度即可达标 */
+  --tone-inbound-text: #4ade80; /* 10.37:1 深底 */
+  --tone-inbound-bg: rgb(74 222 128 / 14%);
+  --tone-outbound-text: #60a5fa; /* 7.11:1 深底 */
+  --tone-outbound-bg: rgb(96 165 250 / 14%);
+  --tone-inbound-border: rgb(74 222 128 / 40%);
+  --tone-outbound-border: rgb(96 165 250 / 40%);
+  --tone-done-border: rgb(74 222 128 / 40%);
+  --tone-progress-border: rgb(251 191 36 / 40%);
+  --tone-error-border: rgb(248 113 113 / 40%);
+  --tone-info-border: rgb(96 165 250 / 40%);
+  --tone-neutral-border: rgb(148 163 184 / 35%);
+
+  /* 状态底色（暗色）：深底上提高不透明度形成可见色晕，
+     不与文字色争对比度。实测 text 于 bg 上 4.67–7.60:1 */
+  --tone-done-bg: rgb(0 217 158 / 14%);
+  --tone-progress-bg: rgb(235 169 64 / 14%);
+  --tone-error-bg: rgb(255 76 76 / 14%);
+  --tone-info-bg: rgb(60 150 255 / 14%);
+  --tone-purple-bg: rgb(192 132 252 / 14%);
+  --tone-neutral-bg: rgb(148 163 184 / 12%);
+
+  /* 暗色下轨道色本身即达标，与 mark 同值 */
+  --tone-track-done: #00d99e;
+  --tone-track-progress: #eba940;
+  --tone-track-idle: #393946;
+
+  /* 打点外环（暗色）：低透明度色晕在深底上不明显，提高不透明度 */
+  --tone-done-ring: rgb(0 217 158 / 22%);
+  --tone-done-ring-soft: rgb(0 217 158 / 14%);
+  --tone-progress-ring: rgb(235 169 64 / 22%);
+  --tone-progress-ring-soft: rgb(235 169 64 / 14%);
+  --tone-error-ring: rgb(255 76 76 / 22%);
+  --tone-error-ring-soft: rgb(255 76 76 / 14%);
+  --tone-info-ring: rgb(60 150 255 / 22%);
+  --tone-info-ring-soft: rgb(60 150 255 / 14%);
+  --tone-neutral-ring: rgb(148 163 184 / 22%);
+  --tone-neutral-ring-soft: rgb(148 163 184 / 12%);
+  --tone-purple-ring: rgb(192 132 252 / 22%);
+  --tone-purple-ring-soft: rgb(192 132 252 / 14%);
+
+  /* Text Hierarchy (Dark) —— 深底上需提亮，且不用 g-500(在深底仅约 2.3:1) */
+  --tone-muted-text: #94a3b8;
+  --tone-secondary-text: #ababba;
+
+  /* Elevation —— 暗色下纯黑阴影会消失，改用高不透明度深阴影 */
+  --art-shadow-hover: 0 2px 8px rgb(0 0 0 / 32%);
+  --art-shadow-raised: 0 2px 8px rgb(0 0 0 / 40%);
+  --art-shadow-subtle: 0 1px 3px rgb(0 0 0 / 32%);
+
+  /* Focus Ring（暗色）—— 品牌原色在深底上 7.43:1，直接用 */
+  --focus-ring: #00be78;
+
+  --theme-border: rgb(74 222 128 / 40%);
 }
 
 /* ==================== Tailwind Theme Configuration ==================== */
@@ -90,6 +316,11 @@
 
   /* System Theme Color */
   --color-theme: var(--theme-color);
+  /*
+   * 主题色「作文字」专用。--color-theme 会同时驱动 bg-theme（填充场景，
+   * 必须保持原色配白字），所以文字单独给一个变体，避免误伤填充色。
+   */
+  --color-theme-text: var(--theme-text);
 
   /* Hover Color */
   --color-hover-color: var(--art-hover-color);
@@ -134,6 +365,51 @@
   --color-g-700: var(--art-gray-700);
   --color-g-800: var(--art-gray-800);
   --color-g-900: var(--art-gray-900);
+
+  /* Status Tone (Auto-adapts to dark mode) —— 用法：text-tone-done-text / bg-tone-done-mark */
+  --color-tone-done-text: var(--tone-done-text);
+  --color-tone-done-mark: var(--tone-done-mark);
+  --color-tone-progress-text: var(--tone-progress-text);
+  --color-tone-progress-mark: var(--tone-progress-mark);
+  --color-tone-error-text: var(--tone-error-text);
+  --color-tone-error-mark: var(--tone-error-mark);
+  --color-tone-info-text: var(--tone-info-text);
+  --color-tone-info-mark: var(--tone-info-mark);
+  --color-tone-neutral-text: var(--tone-neutral-text);
+  --color-tone-neutral-mark: var(--tone-neutral-mark);
+  --color-tone-purple-text: var(--tone-purple-text);
+  --color-tone-inbound-text: var(--tone-inbound-text);
+  --color-tone-outbound-text: var(--tone-outbound-text);
+  --color-tone-inbound-bg: var(--tone-inbound-bg);
+  --color-tone-outbound-bg: var(--tone-outbound-bg);
+  --color-tone-purple-mark: var(--tone-purple-mark);
+  --color-tone-muted-text: var(--tone-muted-text);
+  --color-tone-secondary-text: var(--tone-secondary-text);
+
+  /* 状态底色 —— 用法：bg-tone-progress-bg，必须与 text-tone-progress-text 配对 */
+  --color-tone-done-bg: var(--tone-done-bg);
+  --color-tone-progress-bg: var(--tone-progress-bg);
+  --color-tone-error-bg: var(--tone-error-bg);
+  --color-tone-info-bg: var(--tone-info-bg);
+  --color-tone-purple-bg: var(--tone-purple-bg);
+  --color-tone-neutral-bg: var(--tone-neutral-bg);
+
+  /* Type Scale —— 用法：text-caption / text-label / text-body / text-body-lg / text-title / text-page */
+  --text-caption: var(--font-size-caption);
+  --text-label: var(--font-size-label);
+  --text-body: var(--font-size-body);
+  --text-body-lg: var(--font-size-body-lg);
+  --text-title: var(--font-size-title);
+  --text-metric: var(--font-size-metric);
+  --text-hero: var(--font-size-hero);
+  --text-display: var(--font-size-display);
+
+  /* Icon sizes —— ArtSvgIcon 以 font-size 驱动渲染，用法：text-icon-xs|sm|md|lg|xl */
+  --text-icon-xs: var(--icon-xs);
+  --text-icon-sm: var(--icon-sm);
+  --text-icon-md: var(--icon-md);
+  --text-icon-lg: var(--icon-lg);
+  --text-icon-xl: var(--icon-xl);
 }
 
 /* ==================== Custom Border Radius Utilities ==================== */
@@ -203,17 +479,53 @@
 /*
  * Text color overrides for the light-gray steps.
  *
- * g-200 (#f2f4f5) / g-300 (#e6eaeb) / g-400 (#dbdfe1) are background-level grays.
- * As text on a white card their contrast is only ~1.2–1.3:1 — effectively invisible.
- * The CSS variables stay unchanged (they still back 39 background/border utilities),
- * only the text utilities are remapped to the secondary-text step:
- *   text-g-200 / text-g-300 / text-g-400  →  g-600 (3.62:1 light / dark variant)
+ * g-200 (#f2f4f5) / g-300 (#e6eaeb) / g-400 (#dbdfe1) 是背景级灰阶，
+ * g-500 (#949eb7) 是图标/占位级灰阶。四者作为文字放在白底上实测：
+ *   g-200 ≈1.06:1 · g-300 ≈1.6:1 · g-400 ≈1.34:1 · g-500 =2.68:1
+ * 全部远低于 WCAG AA 正文要求的 4.5:1。
+ *
+ * 这些 CSS 变量本身保持不变（它们仍要支撑背景/边框类），
+ * 仅把「文字用途」的 utility 统一重映射到弱化文字层级：
+ *   --tone-muted-text = #64748b → 4.76:1(浅色) / 6.2:1(深色)，达标
+ *
+ * 注意：此前这里只重映射到 g-600（3.62:1），仍不达标，且漏掉了使用量最大的
+ * g-500（全站 193 处）。现统一收敛到 muted 层级。
  */
+/*
+ * 语义色的【文字】用途重映射。
+ *
+ * --color-success / -warning / -danger / -info 是 500 级基色，为「实心块 + 白字」
+ * 设计：作文字压白底仅 1.84–3.29:1，压深底（如暗色模式）低至 1.34:1，全部不达标。
+ *
+ * 但这些变量同时驱动 bg-success 等【填充】用法（约 40 处），不能直接改变量本身，
+ * 否则填充色会被一并改掉。因此只重映射文字 utility —— 与 text-g-* 的处理方式一致。
+ */
+@layer utilities {
+  .text-success {
+    color: var(--tone-done-text) !important;
+  }
+
+  .text-warning {
+    color: var(--tone-progress-text) !important;
+  }
+
+  .text-danger,
+  .text-error {
+    color: var(--tone-error-text) !important;
+  }
+
+  .text-info {
+    color: var(--tone-info-text) !important;
+  }
+}
+
 @layer utilities {
   .text-g-200,
   .text-g-300,
-  .text-g-400 {
-    color: var(--art-gray-600) !important;
+  .text-g-400,
+  .text-g-500,
+  .text-g-600 {
+    color: var(--tone-muted-text) !important;
   }
 }
 

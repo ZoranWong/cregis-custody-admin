@@ -21,8 +21,28 @@
   --el-messagebox-border-radius: calc(var(--custom-radius) / 3 + 4px) !important;
   --el-popover-border-radius: calc(var(--custom-radius) / 3 + 4px) !important;
 
+  /*
+   * ==================== EP 文字语义色 → 设计 token 桥接 ====================
+   *
+   * Element 默认的文字级语义色在白底上不达标，实测：
+   *   --el-text-color-secondary   #909399 = 3.08:1 ✗  ← 表头就用它，全站 32 张表受影响
+   *   --el-text-color-placeholder #a8abb2 = 2.30:1 ✗  ← 输入框占位
+   *   --el-text-color-regular     #606266 = 6.11:1 ✓
+   *
+   * 重绑到本项目 token（token 自身已分 :root/.dark 两套，故一处声明覆盖双模）。
+   * !important 是必需的：EP 暗色变量定义在 html.dark（0,1,1），
+   * 特异性高于 :root（0,1,0），不加会被反向压过。
+   *
+   * 表头只需改 --el-text-color-secondary —— .el-table 自身定义的是
+   * --el-table-header-text-color: var(--el-text-color-secondary)，是引用非重定义。
+   */
+  --el-text-color-primary: var(--art-gray-900) !important; /* 12.28:1 / 暗 14.13:1 */
+  --el-text-color-regular: var(--tone-secondary-text) !important; /* 7.07:1 / 暗 7.97:1 */
+  --el-text-color-secondary: var(--tone-muted-text) !important; /* 4.76:1 / 暗 6.20:1 ← 表头 */
+  --el-text-color-placeholder: var(--tone-muted-text) !important; /* 4.76:1 / 暗 6.20:1 */
+
   .region .el-radio-button__original-radio:checked + .el-radio-button__inner {
-    color: var(--theme-color);
+    color: var(--theme-text);
   }
 }
 
@@ -233,6 +253,86 @@ html.dark .el-card {
 
 // 修改el-button样式
 .el-button {
+  /*
+   * 焦点环颜色。
+   *
+   * EP 为每种 type 各定义一条 --el-button-outline-color，且都指向
+   * --el-color-{type}-light-5（白底仅约 1.7:1，远低于 WCAG 1.4.11 要求的 3:1）。
+   * 这里按组件作用域覆盖 —— 写在 :root 无效，会被 .el-button 的组件级定义遮蔽。
+   *
+   * 只改颜色不改几何：outline 的位置/宽度仍由 EP 控制（2px + offset 1px），
+   * 早前版本用 :has() 自绘 inset 阴影，会破坏按钮/输入框的外框尺寸与前后缀范围。
+   */
+  --el-button-outline-color: var(--focus-ring) !important;
+
+  /*
+   * 次要按钮（无 type 的默认按钮）的文字色。
+   *
+   * EP 把 .el-button 的 --el-button-text-color 设为 --el-color-primary，
+   * 即「品牌色当文字」：亮色下 #12805A 压白底 4.93:1 尚可，但暗色下同一值
+   * 压深底只有 3.67:1，不达标。改走 --theme-text（按模式运行时推导）。
+   *
+   * ⚠️ 必须排除带 type 的按钮：
+   *   EP 的 .el-button--default 是【尺寸】类而非类型类 —— <el-button type="primary">
+   *   渲染出来同时带 el-button--primary 和 el-button--default。若只写
+   *   &.el-button--default，会把主按钮的文字也改成主题色，
+   *   结果 #107351 压在 #12805A 底上只有 1.19:1，按钮完全看不清。
+   *   （这正是此前引入过的回归。）
+   */
+  &:not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(
+      .el-button--danger
+    ):not(.el-button--info) {
+    --el-button-text-color: var(--theme-text);
+    --el-button-hover-text-color: var(--theme-text);
+    --el-button-active-text-color: var(--theme-text);
+  }
+
+  /*
+   * 朴素/描边按钮（is-plain）。EP 同样用「类型色作文字」：
+   *   primary → --el-color-primary 等。这些 500 级基色是为「实心块+白字」设计的，
+   *   当文字压在浅色底上普遍不达标（主色暗色下 3.67:1、压浅绿底 4.3:1）。
+   * 统一改绑到对应的已达标 token。
+   */
+  /*
+   * ⚠️ 只改【静止态】文字色，绝不动 hover / active。
+   *
+   * EP 的 plain 按钮 hover 时会切成【实心类型色底 + 白字】：
+   *   --el-button-hover-bg-color: var(--el-color-primary)
+   *   --el-button-hover-text-color: var(--el-color-white)
+   * 如果连同 hover 文字色一起覆盖成深色，hover 就变成
+   * 「深色字压深色实心底」，按钮直接看不见（此前出现过的回归）。
+   *
+   * 这里只把静止态的基色文字换成达标 token；hover/active 保持 EP 原样。
+   */
+  &.el-button--primary.is-plain,
+  &.el-button--primary.is-text,
+  &.el-button--primary.is-link {
+    --el-button-text-color: var(--theme-text);
+  }
+
+  &.el-button--success.is-plain,
+  &.el-button--success.is-text,
+  &.el-button--success.is-link {
+    --el-button-text-color: var(--tone-done-text);
+  }
+
+  &.el-button--warning.is-plain,
+  &.el-button--warning.is-text,
+  &.el-button--warning.is-link {
+    --el-button-text-color: var(--tone-progress-text);
+  }
+
+  &.el-button--danger.is-plain,
+  &.el-button--danger.is-text,
+  &.el-button--danger.is-link {
+    --el-button-text-color: var(--tone-error-text);
+  }
+
+  &.el-button--info.is-plain,
+  &.el-button--info.is-text,
+  &.el-button--info.is-link {
+    --el-button-text-color: var(--tone-info-text);
+  }
   &.el-button--text {
     background-color: transparent !important;
     padding: 0 !important;
@@ -248,8 +348,103 @@ html.dark .el-card {
   font-weight: 500;
   transition: all 0s !important;
 
-  &.el-tag--default {
-    height: 26px !important;
+  /*
+   * ==================== 统一文字色与描边（全 effect）====================
+   *
+   * EP 为三种 effect 各定义一套边框色，彼此强度差异很大，所以并排时会
+   * 「有的 tag 边框很亮、有的几乎看不见」：
+   *     light → {type}-light-8（80% 向白混合，极淡）
+   *     plain → {type}-light-5
+   *     dark  → {type}（500 级基色，最亮）
+   * 而且 EP 的 dark 规则是 .el-tag--dark.el-tag--{type}（三个类，特异性更高），
+   * 只写 .el-tag.el-tag--{type} 覆盖不到它 —— 这正是此前 dark tag 边框不一致的原因。
+   *
+   * 这里让三种 effect **共用同一套 tone 描边**（与出入金 tag 同强度），
+   * 使全站 tag 的描边完全一致；文字色同样改绑到达标的 tone 文字色。
+   * 边框宽度/圆角仍是 EP 的 1px + 4px，几何一致。
+   *
+   * 用 .el-tag.el-tag--{effect}.el-tag--{type} 三个类，与 EP 的 dark 规则同特异性，
+   * 靠「本文件在 EP 之后加载」取胜。
+   */
+  $tag-types: (
+    primary: (
+      var(--theme-text),
+      var(--theme-border)
+    ),
+    success: (
+      var(--tone-done-text),
+      var(--tone-done-border)
+    ),
+    warning: (
+      var(--tone-progress-text),
+      var(--tone-progress-border)
+    ),
+    danger: (
+      var(--tone-error-text),
+      var(--tone-error-border)
+    ),
+    info: (
+      var(--tone-info-text),
+      var(--tone-info-border)
+    )
+  );
+
+  @each $type, $pair in $tag-types {
+    $text: nth($pair, 1);
+    $border: nth($pair, 2);
+
+    /*
+     * !important 是必需的，不是保守写法：
+     * 这些选择器与 EP 的 .el-tag.el-tag--{type} 特异性相同（均为 0,2,0），
+     * 而 EP 的 tag 样式按需注入、加载在本文件之后 —— 同特异性下后者胜，
+     * 我们的边框会被打回 {type}-light-8（淡到看不见）。
+     * 结果就是「出入金 tag 有边框、其它 tag 没有」的不一致。
+     */
+    &.el-tag--#{$type} {
+      --el-tag-text-color: #{$text} !important;
+      --el-tag-border-color: #{$border} !important;
+    }
+
+    // dark：文字压实心底本已达标，保持 EP 的白字；仅统一描边
+    &.el-tag--dark.el-tag--#{$type} {
+      --el-tag-border-color: #{$border} !important;
+    }
+
+    &.el-tag--plain.el-tag--#{$type} {
+      --el-tag-text-color: #{$text} !important;
+      --el-tag-border-color: #{$border} !important;
+    }
+  }
+
+  /*
+   * 中性 tag（元数据用，如「通道」）。
+   *
+   * ⚠️ 不能用 .el-tag--default —— EP 的 ElTag 默认 type 是 "primary"
+   * （tag.mjs: default: "primary"），**从不产生 el-tag--default 类**，
+   * 写那条规则是死代码（此前确实这么写过，实测无效）。
+   * EP 的 tag 也没有 neutral 类型，所以中性 tag 只能走专用类。
+   */
+  &.art-tag-neutral {
+    --el-tag-text-color: var(--tone-neutral-text) !important;
+    --el-tag-border-color: var(--tone-neutral-border) !important;
+    --el-tag-bg-color: var(--tone-neutral-bg) !important;
+  }
+
+  /*
+   * ==================== 交易方向 tag（入金 / 出金）====================
+   *
+   * 用 class 而非内联 :style —— 见组件内注释：本文件的 !important 会压过内联样式。
+   */
+  &.art-dir-in {
+    --el-tag-text-color: var(--tone-inbound-text) !important;
+    --el-tag-bg-color: var(--tone-inbound-bg) !important;
+    --el-tag-border-color: var(--tone-inbound-border) !important;
+  }
+
+  &.art-dir-out {
+    --el-tag-text-color: var(--tone-outbound-text) !important;
+    --el-tag-bg-color: var(--tone-outbound-bg) !important;
+    --el-tag-border-color: var(--tone-outbound-border) !important;
   }
 }
 
@@ -345,7 +540,7 @@ html.dark .el-card {
 }
 
 .el-table__column-filter-trigger i {
-  color: var(--theme-color) !important;
+  color: var(--theme-text) !important;
   margin: -3px 0 0 2px;
 }
 

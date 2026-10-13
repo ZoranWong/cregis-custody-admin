@@ -26,7 +26,7 @@
           <div
             v-for="application in enabledApplications"
             :key="application.name"
-            class="mr-3 c-p flex-c gap-3 rounded-lg p-2 hover:bg-g-200/70 dark:hover:bg-g-200/90 hover:[&_.app-icon]:!bg-transparent"
+            class="mr-3 c-p flex-c gap-3 rounded-lg p-2 hover:bg-hover-color/70 dark:hover:bg-hover-color/90 hover:[&_.app-icon]:!bg-transparent"
             @click="handleApplicationClick(application)"
           >
             <div class="app-icon size-12 flex-cc rounded-lg bg-g-200/80 dark:bg-g-300/30">
@@ -50,7 +50,7 @@
           <li
             v-for="quickLink in enabledQuickLinks"
             :key="quickLink.name"
-            class="c-p py-2 hover:[&_span]:text-theme"
+            class="c-p py-2 hover:[&_span]:text-theme-text"
             @click="handleQuickLinkClick(quickLink)"
           >
             <span class="text-g-600 no-underline">{{ quickLink.name }}</span>

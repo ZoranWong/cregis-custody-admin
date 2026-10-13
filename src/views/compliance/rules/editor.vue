@@ -4,20 +4,42 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-xl font-semibold text-g-900">{{ pageTitle }}</h1>
-        <p class="text-sm text-g-500 mt-1">{{ pageSubtitle }}</p>
+        <h1 class="text-hero font-semibold text-g-900">{{ pageTitle }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ pageSubtitle }}</p>
       </div>
-      <el-button text @click="router.back()">
-        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />{{ $t('rules.backToRules') }}
-      </el-button>
+      <ArtBackButton history />
+    </div>
+
+    <!--
+      自定义规则说明条。
+      新增模式：一定显示（即将创建的就是自定义规则）；
+      编辑模式：仅非内置规则显示（isBuiltIn 加载后自动隐藏）。
+      后端合规流程尚未接入自定义规则引擎 —— 用户应知道「能存但不生效」。
+    -->
+    <div
+      v-if="!isBuiltIn"
+      class="flex items-start gap-2 p-3 mb-4 bg-tone-progress-bg border border-[var(--tone-progress-border)] rounded-lg"
+    >
+      <ArtSvgIcon
+        icon="ri:alert-line"
+        class="text-tone-progress-text text-icon-md mt-0.5 flex-shrink-0"
+      />
+      <div class="min-w-0">
+        <div class="text-body font-semibold text-g-900">
+          {{ $t('rules.customRuleNoticeTitle') }}
+        </div>
+        <div class="text-body text-g-700 mt-0.5 leading-relaxed">
+          {{ $t('rules.customRuleNoticeBody') }}
+        </div>
+      </div>
     </div>
 
     <!-- Rule Form Card -->
-    <div class="art-card mb-5">
-      <div class="p-5 border-b border-[var(--default-border)]">
-        <h2 class="text-lg font-semibold text-g-900">{{ $t('rules.basicInfo') }}</h2>
+    <div class="art-card mb-4">
+      <div class="p-4 border-b border-[var(--default-border)]">
+        <h2 class="text-title font-semibold text-g-900">{{ $t('rules.basicInfo') }}</h2>
       </div>
-      <div class="p-5">
+      <div class="p-4">
         <el-form label-width="140px" :model="form">
           <el-form-item :label="$t('rules.ruleName')">
             <el-input v-model="form.ruleName" :disabled="isBuiltIn" />
@@ -106,15 +128,15 @@
     </div>
 
     <!-- Risk Factors Card -->
-    <div class="art-card mb-5">
-      <div class="p-5 border-b border-[var(--default-border)]">
-        <h2 class="text-lg font-semibold text-g-900">{{ $t('rules.riskFactors') }}</h2>
-        <p class="text-xs text-g-500 mt-1">{{ $t('rules.riskFactorHint') }}</p>
+    <div class="art-card mb-4">
+      <div class="p-4 border-b border-[var(--default-border)]">
+        <h2 class="text-title font-semibold text-g-900">{{ $t('rules.riskFactors') }}</h2>
+        <p class="text-xs text-g-700 mt-1">{{ $t('rules.riskFactorHint') }}</p>
       </div>
-      <div class="p-5">
+      <div class="p-4">
         <div v-for="domain in factorCatalog" :key="domain.domain" class="mb-6">
           <div
-            class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-2 pb-1 border-b border-[var(--default-border)]"
+            class="text-caption font-bold text-g-700 uppercase tracking-wider mb-2 pb-1 border-b border-[var(--default-border)]"
           >
             {{ domain.domain }}
           </div>
@@ -125,8 +147,15 @@
               class="factor-row"
               :class="{ active: isFactorActive(factor.key), disabled: !factor.supported }"
             >
-              <div class="factor-toggle" @click="factor.supported && toggleFactor(factor.key)">
-                <span v-if="isFactorActive(factor.key)" class="text-white text-[10px]">✓</span>
+              <div
+                class="factor-toggle"
+                @click="factor.supported && toggleFactor(factor.key)"
+                role="button"
+                tabindex="0"
+                @keydown.enter.prevent="factor.supported && toggleFactor(factor.key)"
+                @keydown.space.prevent="factor.supported && toggleFactor(factor.key)"
+              >
+                <span v-if="isFactorActive(factor.key)" class="text-white text-caption">✓</span>
               </div>
               <span class="factor-label">{{ factor.label }}</span>
 
@@ -140,7 +169,9 @@
                     class="!w-40"
                     @update:model-value="setFactorValue(factor.key, $event)"
                   />
-                  <span v-if="factor.hint" class="text-xs text-g-400">{{ factor.hint }}</span>
+                  <span v-if="factor.hint" class="text-xs text-tone-muted-text">{{
+                    factor.hint
+                  }}</span>
                 </div>
                 <span v-else class="factor-options-hint">{{ factor.hint }}</span>
               </div>
@@ -203,8 +234,12 @@
   import countriesEn from '@/data/countries-en.json'
   import countriesZh from '@/data/countries-zh.json'
   import { fetchMerchantList } from '@/api/merchant'
-  // createComplianceRule / updateComplianceRule 待接口开放后重新引入
-  import { fetchComplianceFactors, fetchComplianceRuleDetail } from '@/api/compliance'
+  import {
+    createComplianceRule,
+    updateComplianceRule,
+    fetchComplianceFactors,
+    fetchComplianceRuleDetail
+  } from '@/api/compliance'
   import type { RuleCondition, FactorView } from '@/features/compliance/types'
   import {
     DECISION_DICT,
@@ -413,7 +448,7 @@
 
   // ─── conditions ↔ activeFactors 映射（operator/valueType 用接口数据）───
   // 供 saveRule 提交时使用；接口开放后恢复调用
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   function buildConditions(): RuleCondition[] {
     const conds: RuleCondition[] = []
     let sort = 1
@@ -475,14 +510,51 @@
     }
   }
 
-  /** 提交：接口暂未开放，先提示开发中（表单校验保留，便于后续直接接入） */
-  function saveRule() {
+  /**
+   * 提交：新增走 POST /compliance/rules，编辑走 PUT /compliance/rules/{id}。
+   *
+   * ⚠️ 后端合规流程尚未接入自定义规则引擎 —— 提交成功只代表规则已保存，
+   * 不会影响实际交易的筛查/审批（页面顶部有对应说明条）。
+   * 接口接入流程后该提示与说明条应一并移除。
+   */
+  async function saveRule() {
     if (!form.ruleName.trim()) {
       ElMessage.warning(t('rules.ruleName') + ' is required')
       return
     }
-    // TODO: 接口就绪后恢复 createComplianceRule / updateComplianceRule 调用
-    ElMessage.info(t('common.underDevelopment'))
+    if (form.scopeType === 'MERCHANT' && !form.scopeValue) {
+      ElMessage.warning(t('rules.scopeValue') + ' is required')
+      return
+    }
+    saving.value = true
+    try {
+      const request = {
+        ruleName: form.ruleName.trim(),
+        description: form.description || '',
+        direction: form.direction,
+        scopeType: form.scopeType,
+        scopeValue: form.scopeType === 'MERCHANT' ? form.scopeValue : null,
+        decision: form.decision,
+        severity: form.severity,
+        minAmountUsd: form.minAmountUsd ?? null,
+        enabled: form.enabled,
+        conditions: buildConditions()
+      }
+      if (isEdit.value) {
+        await updateComplianceRule(ruleId.value, request)
+        ElMessage.success(t('common.updateSuccess'))
+      } else {
+        await createComplianceRule(request)
+        ElMessage.success(t('common.addSuccess'))
+      }
+      // 成功后返回列表（列表页会重新拉取）
+      router.back()
+    } catch (e) {
+      // apiRequest 抛出的 ApiError 自带可读信息
+      ElMessage.error(e instanceof Error ? e.message : String(e))
+    } finally {
+      saving.value = false
+    }
   }
 
   onMounted(async () => {
@@ -532,6 +604,12 @@
     cursor: not-allowed;
   }
 
+  .factor-toggle:focus-visible,
+  .condition-toggle:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
+  }
+
   .factor-toggle {
     display: grid;
     flex-shrink: 0;
@@ -551,14 +629,14 @@
 
   .factor-label {
     min-width: 140px;
-    font-size: 13px;
+    font-size: var(--font-size-body-lg);
     font-weight: 500;
     color: var(--el-text-color-primary);
   }
 
   .factor-options-hint {
     margin-left: auto;
-    font-size: 12px;
+    font-size: var(--font-size-body);
     color: var(--el-text-color-secondary);
   }
 

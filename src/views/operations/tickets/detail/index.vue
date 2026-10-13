@@ -1,15 +1,12 @@
 <template>
   <div class="page-content">
-    <div class="mb-5">
-      <el-button text @click="router.back()">
-        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />Back
-      </el-button>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-xl font-semibold text-g-900">CryptoVault Ltd</h1>
+      <ArtBackButton history />
     </div>
 
-    <h1 class="text-xl font-semibold text-g-900 mb-5">CryptoVault Ltd</h1>
-
     <!-- VASP Due Diligence Progress -->
-    <div class="art-card mb-5">
+    <div class="art-card mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <h2 class="text-base font-semibold text-g-900">VASP Due Diligence Progress</h2>
       </div>
@@ -40,7 +37,7 @@
     </div>
 
     <!-- Ticket Context -->
-    <div class="art-card mb-5">
+    <div class="art-card mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <h2 class="text-base font-semibold text-g-900">Ticket Context</h2>
       </div>
@@ -83,7 +80,7 @@
     </div>
 
     <!-- Communication Records -->
-    <div class="art-card mb-5">
+    <div class="art-card mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <h2 class="text-base font-semibold text-g-900">Communication Records</h2>
       </div>
@@ -121,7 +118,7 @@
     </div>
 
     <!-- Follow-up Actions -->
-    <div class="art-card mb-5">
+    <div class="art-card mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <h2 class="text-base font-semibold text-g-900">Follow-up Actions</h2>
       </div>
@@ -160,6 +157,5 @@
   defineOptions({ name: 'ticket-detail' })
 
   const route = useRoute()
-  const router = useRouter()
   const ticketId = route.params.ticketId as string
 </script>

@@ -4,38 +4,44 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-xl font-semibold text-g-900">{{ $t('rules.ruleDetailTitle') }}</h1>
-        <p class="text-sm text-g-500 mt-1">{{ $t('rules.ruleDetailSubtitle') }}</p>
+        <h1 class="text-hero font-semibold text-g-900">{{ $t('rules.ruleDetailTitle') }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ $t('rules.ruleDetailSubtitle') }}</p>
       </div>
-      <el-button text @click="router.back()">
-        <ArtSvgIcon icon="ri:arrow-left-line" class="mr-1" />{{ $t('rules.backToRules') }}
-      </el-button>
+      <ArtBackButton history />
     </div>
-
     <!-- Loading / Error -->
     <div v-if="loading" class="art-card p-10 text-center">
       <el-skeleton :rows="8" animated />
     </div>
     <div v-else-if="errorMessage" class="art-card p-10 text-center">
-      <p class="text-[var(--el-color-danger)] mb-4">{{ errorMessage }}</p>
+      <p class="text-tone-error-text mb-4">{{ errorMessage }}</p>
       <el-button type="primary" @click="loadDetail">{{ $t('console.refresh') }}</el-button>
     </div>
 
     <template v-else-if="currentRule">
       <!-- Rule Detail Card -->
-      <div class="art-card mb-5">
-        <div class="p-5 border-b border-[var(--default-border)] flex items-center justify-between">
+      <div class="art-card mb-4">
+        <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-g-900">{{ currentRule.ruleName }}</h2>
-            <div class="text-xs text-g-400 font-mono mt-1">{{ currentRule.ruleCode }}</div>
+            <h2 class="text-title font-semibold text-g-900">{{ currentRule.ruleName }}</h2>
+            <div class="text-xs text-tone-muted-text font-mono mt-1">{{
+              currentRule.ruleCode
+            }}</div>
           </div>
           <div class="flex items-center gap-2">
             <el-tag :type="currentRule.enabled ? 'success' : 'info'" size="default" effect="light">
               {{ currentRule.enabled ? $t('rules.enabled') : $t('rules.disabled') }}
             </el-tag>
             <!-- built-in 提示仅内置规则显示 -->
-            <el-tag v-if="currentRule.builtIn" type="warning" size="default" effect="plain">
+            <el-tag v-if="currentRule.builtIn" type="warning" size="default" effect="light">
               {{ $t('rules.builtIn') }}
+            </el-tag>
+            <!--
+              非内置（自定义）规则：后端合规流程尚未接入自定义规则引擎，
+              配置可保存但不会影响实际交易 —— 用警示条明确告知，避免误以为已生效。
+            -->
+            <el-tag v-if="!currentRule.builtIn" class="art-tag-neutral">
+              {{ $t('rules.customRuleTag') }}
             </el-tag>
             <!-- 操作（原列表页按钮移入详情） -->
             <el-button
@@ -55,14 +61,32 @@
             </el-button>
           </div>
         </div>
-        <div class="p-5">
+        <div class="p-4">
+          <!-- 自定义规则说明条：可配置但业务上不生效（后端流程未接入） -->
+          <div
+            v-if="!currentRule.builtIn"
+            class="flex items-start gap-2 p-3 mb-5 bg-tone-progress-bg border border-[var(--tone-progress-border)] rounded-lg"
+          >
+            <ArtSvgIcon
+              icon="ri:alert-line"
+              class="text-tone-progress-text text-icon-md mt-0.5 flex-shrink-0"
+            />
+            <div class="min-w-0">
+              <div class="text-body font-semibold text-g-900">
+                {{ $t('rules.customRuleNoticeTitle') }}
+              </div>
+              <div class="text-body text-g-700 mt-0.5 leading-relaxed">
+                {{ $t('rules.customRuleNoticeBody') }}
+              </div>
+            </div>
+          </div>
           <!-- Description -->
           <div class="mb-5">
-            <label class="text-xs font-semibold text-g-600 block mb-1">{{
+            <label class="text-xs font-semibold text-g-700 block mb-1">{{
               $t('rules.description')
             }}</label>
             <div
-              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800 leading-relaxed"
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-lg text-sm text-g-800 leading-relaxed"
             >
               {{ currentRule.description || '—' }}
             </div>
@@ -71,21 +95,21 @@
           <!-- Direction + Min Amount + Severity -->
           <div class="grid grid-cols-3 gap-4 mb-5">
             <div>
-              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              <label class="text-xs font-semibold text-g-700 block mb-1">{{
                 $t('rules.direction')
               }}</label>
               <div
-                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-lg text-sm text-g-800"
               >
                 {{ directionLabel(currentRule.direction) }}
               </div>
             </div>
             <div>
-              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              <label class="text-xs font-semibold text-g-700 block mb-1">{{
                 $t('rules.minAmountUsd')
               }}</label>
               <div
-                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-lg text-sm text-g-800"
               >
                 {{
                   currentRule.minAmountUsd != null
@@ -95,11 +119,11 @@
               </div>
             </div>
             <div>
-              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              <label class="text-xs font-semibold text-g-700 block mb-1">{{
                 $t('rules.severity')
               }}</label>
               <div
-                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-lg text-sm text-g-800"
               >
                 {{ severityLabel(currentRule.severity) }}
               </div>
@@ -109,21 +133,21 @@
           <!-- Decision + Scope -->
           <div class="grid grid-cols-2 gap-4 mb-5">
             <div>
-              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              <label class="text-xs font-semibold text-g-700 block mb-1">{{
                 $t('rules.decision')
               }}</label>
               <div
-                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-lg text-sm text-g-800"
               >
                 {{ decisionLabel(currentRule.decision) }}
               </div>
             </div>
             <div>
-              <label class="text-xs font-semibold text-g-600 block mb-1">{{
+              <label class="text-xs font-semibold text-g-700 block mb-1">{{
                 $t('rules.scope')
               }}</label>
               <div
-                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-800"
+                class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-lg text-sm text-g-800"
               >
                 {{ scopeLabel(currentRule.scopeType)
                 }}{{ currentRule.scopeValue ? `: ${currentRule.scopeValue}` : '' }}
@@ -133,19 +157,19 @@
 
           <!-- Risk Factors -->
           <div>
-            <label class="text-xs font-semibold text-g-600 block mb-2">{{
+            <label class="text-xs font-semibold text-g-700 block mb-2">{{
               $t('rules.riskFactors')
             }}</label>
             <div
               v-if="activeFactors.length === 0"
-              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-md text-sm text-g-400 italic"
+              class="px-3 py-2 bg-g-50 border border-[var(--default-border)] rounded-lg text-sm text-tone-muted-text italic"
             >
               {{ $t('rules.noRiskFactors') }}
             </div>
             <div v-else class="space-y-4">
               <div v-for="domain in groupedFactors" :key="domain.domain">
                 <div
-                  class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-1.5 pb-2 border-b border-[var(--default-border)]"
+                  class="text-caption font-bold text-g-700 uppercase tracking-wider mb-1.5 pb-2 border-b border-[var(--default-border)]"
                 >
                   {{ domain.domain }}
                 </div>
@@ -156,13 +180,13 @@
                     class="flex items-center gap-2 px-3 py-2 bg-[var(--el-color-primary-light-9)] border border-[var(--el-color-primary-light-5)] rounded-lg"
                   >
                     <span
-                      class="w-4 h-4 rounded bg-[var(--el-color-primary)] flex items-center justify-center text-white text-[10px] flex-shrink-0"
+                      class="w-4 h-4 rounded bg-[var(--el-color-primary)] flex items-center justify-center text-white text-caption flex-shrink-0"
                       >✓</span
                     >
                     <span class="text-sm font-medium text-g-800 min-w-[140px]">{{
                       factorLabel(factor.label)
                     }}</span>
-                    <span class="text-xs text-[var(--el-color-primary)] font-medium ml-auto">{{
+                    <span class="text-xs text-tone-info-text font-medium ml-auto">{{
                       factor.values.map(factorOptionLabel).join(', ')
                     }}</span>
                   </div>
@@ -178,7 +202,7 @@
 
 <script setup lang="ts">
   import { computed, ref, onMounted } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
+  import { useRoute } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { ElMessage } from 'element-plus'
   import { fetchComplianceRuleDetail, updateComplianceRuleEnabled } from '@/api/compliance'
@@ -196,7 +220,6 @@
   defineOptions({ name: 'ComplianceRuleDetail' })
 
   const route = useRoute()
-  const router = useRouter()
   const { t } = useI18n()
 
   const loading = ref(false)

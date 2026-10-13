@@ -10,7 +10,7 @@
   >
     <div
       v-show="showButton"
-      class="fixed right-10 bottom-15 size-9.5 flex-cc c-p border border-g-300 rounded-md tad-300 hover:bg-g-200"
+      class="fixed right-10 bottom-15 size-9.5 flex-cc c-p border border-g-300 rounded-md tad-300 hover:bg-hover-color"
       @click="scrollToTop"
     >
       <ArtSvgIcon icon="ri:arrow-up-wide-line" class="text-g-500 text-lg" />

@@ -11,7 +11,12 @@ export type GasHealthState =
 
 export type GasSourceStatus = 'ok' | 'degraded' | 'unavailable' | 'not_revived'
 export type GasTopUpStatus =
-  'submitted' | 'processing' | 'succeeded' | 'failed' | 'fulfilled_recorded' | 'unknown'
+  | 'submitted'
+  | 'processing'
+  | 'succeeded'
+  | 'failed'
+  | 'fulfilled_recorded'
+  | 'unknown'
 
 export interface GasOperationsSourceAvailabilityView {
   sourceFamily: string
@@ -110,7 +115,10 @@ export type GasHomeTaskType =
 
 export type GasHomeSeverity = 'action_needed' | 'degraded' | 'unknown' | 'not_available'
 export type GasHomeTargetRouteRef =
-  'account_detail' | 'consumption_ledger' | 'top_up_records' | 'configuration_guardrails'
+  | 'account_detail'
+  | 'consumption_ledger'
+  | 'top_up_records'
+  | 'configuration_guardrails'
 export type GasHomeActivityType = 'submitted' | 'processing' | 'succeeded' | 'failed' | 'unknown'
 export type GasHomeLookupMatchedField =
   | 'merchant_name'

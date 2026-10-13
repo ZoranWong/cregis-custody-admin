@@ -1,9 +1,9 @@
 <template>
-  <div class="art-card p-5 h-128 overflow-hidden mb-5 max-sm:mb-4">
+  <div class="art-card p-5 h-128 overflow-hidden mb-4">
     <div class="art-card-header">
       <div class="title">
-        <h4>新用户</h4>
-        <p>这个月增长<span class="text-success">+20%</span></p>
+        <h4>{{ $t('dashboard.newUser') }}</h4>
+        <p>{{ $t('dashboard.monthGrowth') }}<span class="text-success">+20%</span></p>
       </div>
       <ElRadioGroup v-model="radio2">
         <ElRadioButton value="本月" label="本月"></ElRadioButton>
@@ -21,7 +21,7 @@
       :header-cell-style="{ background: 'transparent' }"
     >
       <template #default>
-        <ElTableColumn label="头像" prop="avatar" width="150px">
+        <ElTableColumn :label="$t('dashboard.avatar')" prop="avatar" width="150px">
           <template #default="scope">
             <div style="display: flex; align-items: center">
               <img class="size-9 rounded-lg" :src="scope.row.avatar" alt="avatar" />
@@ -29,15 +29,15 @@
             </div>
           </template>
         </ElTableColumn>
-        <ElTableColumn label="地区" prop="province" />
-        <ElTableColumn label="性别" prop="avatar">
+        <ElTableColumn :label="$t('dashboard.region')" prop="province" />
+        <ElTableColumn :label="$t('dashboard.gender')" prop="avatar">
           <template #default="scope">
             <div style="display: flex; align-items: center">
               <span style="margin-left: 10px">{{ scope.row.sex === 1 ? '男' : '女' }}</span>
             </div>
           </template>
         </ElTableColumn>
-        <ElTableColumn label="进度" width="240">
+        <ElTableColumn :label="$t('dashboard.progress')" width="240">
           <template #default="scope">
             <ElProgress
               :percentage="scope.row.pro"
@@ -162,7 +162,7 @@
 <style lang="scss" scoped>
   .art-card {
     :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-      color: var(--el-color-primary) !important;
+      color: var(--theme-text) !important;
       background: transparent !important;
     }
   }

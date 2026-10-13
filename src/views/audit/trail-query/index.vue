@@ -6,7 +6,7 @@
       <ElButton @click="load">{{ $t('console.refresh') }}</ElButton>
     </div>
 
-    <div class="art-card art-table-card overflow-hidden mb-5">
+    <div class="art-card art-table-card overflow-hidden mb-4">
       <div class="p-4 border-b border-[var(--default-border)]">
         <div class="flex flex-wrap items-center gap-3">
           <el-select
@@ -53,6 +53,9 @@
 
       <template v-if="loading"><el-skeleton :rows="10" animated class="p-5" /></template>
       <el-table v-else :data="events" stripe size="small">
+        <template #empty>
+          <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+        </template>
         <el-table-column prop="occurredAt" :label="$t('audit.time')" width="180" />
         <el-table-column prop="actorName" :label="$t('audit.actor')" width="140" />
         <el-table-column prop="actorRole" :label="$t('audit.actorRole')" width="120" />
