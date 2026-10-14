@@ -92,14 +92,15 @@
               $t('txLens.detail.reviewResult')
             }}</span>
             <div class="flex items-center gap-1.5">
-              <!-- 四色与列表徽章/摘要卡同源（reviewResultStyle），选中态用实心边框强调 -->
+              <!-- 仅当前值着色（reviewResultStyle），未选中的 tag 一律灰（与 none 同款），
+                   避免固定 none 时五颜六色误导「已有结论」 -->
               <button
                 v-for="opt in reviewResultOptions"
                 :key="opt.value"
                 type="button"
                 class="review-pill rounded-full px-2.5 py-0.5 text-label font-semibold transition-colors"
                 :class="{ 'is-selected': reviewResult === opt.value }"
-                :style="reviewResultStyle(opt.value)"
+                :style="reviewResult === opt.value ? reviewResultStyle(opt.value) : undefined"
                 @click="handleReviewResultClick"
               >
                 {{ opt.label }}
@@ -279,9 +280,11 @@
     return outgoing ? t('txLens.detail.beneficiaryCounterparty') : 'Beneficiary (Our Customer)'
   })
 
-  // Review Result：多 tag 可切换设置（当前值高亮）。
-  // 固定为 none —— 接口当前的 reviewResult 实现有误，暂不取用；
-  // 后端修复后改为 `ref(overview.value?.reviewResult || 'none')` 即可。
+  // Review Result：多 tag 可切换设置（当前值着色，其余灰）。
+  // 固定为 none —— 接口当前的 reviewResult 实现有误，暂不取用。
+  // 后端修复后接入：REVIEW_RESULT_DICT 归一化取值
+  // （兼容 tp/true_positive 两种写法，未登记取值回退 none），
+  // 即 `reviewResult.value = 归一化(overview.value?.reviewResult)`。
   const reviewResult = ref('none')
 
   const reviewResultOptions = computed(() => [
@@ -294,7 +297,7 @@
 
   function handleReviewResultClick() {
     // TODO: 接口就绪后替换为设置 reviewResult 的调用
-    ElMessage.info(t('common.underDevelopment'))
+    ElMessage.info(t('txLens.detail.reviewResultPending'))
   }
 
   // 阶段序列与列表页同源：方向决定槽位与时序；N/A 阶段统一置灰不可点击
@@ -534,10 +537,12 @@
     color: var(--el-text-color-secondary);
   }
 
-  /* 复核结果选择：底色与文字色由 reviewResultStyle 内联注入（与列表徽章同源），
-     选中态用 currentColor 描边强调，无需再引入第二套颜色 */
+  /* 复核结果选择：仅当前值由 reviewResultStyle 内联注入彩色（与列表徽章同源），
+     未选中一律灰底（与 none 同款）、选中态用 currentColor 描边强调 */
   .review-pill {
+    color: var(--el-text-color-secondary);
     cursor: pointer;
+    background: var(--el-fill-color-light);
     border: none;
     outline: none;
   }

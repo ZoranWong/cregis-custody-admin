@@ -26,11 +26,12 @@ export type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
 
 const NA_ITEM: TxStateItem = { value: 'na', labelKey: 'txLens.trNa' }
 
-/** 合规状态 */
+/** 合规状态（na = 后端未执行该检查，如个人转账无合规流程） */
 export const COMPLIANCE_DICT: TxStateItem[] = [
   { value: 'clear', labelKey: 'txLens.clear' },
   { value: 'flagged', labelKey: 'txLens.flagged' },
-  { value: 'review', labelKey: 'txLens.inReview' }
+  { value: 'review', labelKey: 'txLens.inReview' },
+  NA_ITEM
 ]
 
 /** Travel Rule 状态 */

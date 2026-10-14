@@ -405,7 +405,6 @@
     return 'warning'
   }
 
-
   /** 状态 → 描述文案（对齐原型 .tr-status-text，取代原 Notabene Tx ID 展示） */
   function statusDescription(status: string): string {
     const map: Record<string, string> = {

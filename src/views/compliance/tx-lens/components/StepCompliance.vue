@@ -262,15 +262,75 @@
       </div>
     </div>
 
-    <!-- Communication（功能开发中，入口保留） -->
+    <!-- Communication（按原型展示 mock 问答轮次；按钮未实现，点击提示开发中） -->
     <div v-show="activeTab === 'communication'">
       <div class="art-card mb-4">
         <div class="p-4">
+          <!-- mock 提示：接口无数据源，内容仅样式参考 -->
           <div
-            class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
+            class="flex items-center gap-2 px-4 py-3 mb-4 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
           >
-            <ArtSvgIcon icon="ri:hammer-line" class="text-[var(--el-color-info)] text-base" />
-            <span class="text-sm text-g-700">{{ $t('common.underDevelopment') }}</span>
+            <ArtSvgIcon icon="ri:information-line" class="text-[var(--el-color-info)] text-base" />
+            <span class="text-sm text-g-700">{{ $t('txLens.detail.commMockHint') }}</span>
+          </div>
+
+          <!-- 操作按钮（对齐原型右上角）：弹框交互可用，提交时提示开发中 -->
+          <div class="flex justify-end gap-2 mb-4">
+            <el-button size="small" @click="openRequestInfo">{{
+              $t('txLens.detail.requestInfo')
+            }}</el-button>
+            <el-button size="small" @click="openRequestPii">{{
+              $t('txLens.detail.requestPiiUpdate')
+            }}</el-button>
+          </div>
+
+          <!-- 问答轮次（mock 数据，新→旧） -->
+          <div v-for="round in commRounds" :key="round.n" class="question-round">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[13px] font-semibold text-g-900">{{
+                $t('txLens.detail.roundQuestionsRaised', { n: round.n })
+              }}</span>
+              <span class="text-[11px] text-g-400">{{ round.time }}</span>
+            </div>
+            <div class="text-[11px] text-g-500 mb-1.5">{{
+              $t('txLens.detail.byComplianceTeam')
+            }}</div>
+            <div class="text-xs text-g-600 mb-2.5">
+              {{
+                round.n === 1
+                  ? $t('txLens.detail.complianceReviewed')
+                  : $t('txLens.detail.additionalClarification')
+              }}
+            </div>
+            <div v-for="qa in round.qas" :key="qa.q" class="mb-2.5">
+              <div class="flex gap-1.5 mb-1">
+                <span class="text-[11px] font-bold text-[var(--el-color-primary)] flex-shrink-0"
+                  >Q{{ qa.idx }}</span
+                >
+                <span class="text-xs text-g-800">{{ qa.q }}</span>
+              </div>
+              <div class="pl-5">
+                <div class="text-[10px] font-semibold uppercase text-g-400 mb-0.5">
+                  {{ $t('txLens.detail.answer') }}
+                </div>
+                <!-- 文件型回答：文件名可点（原型为下载语义），下载功能未实现 -->
+                <button
+                  v-if="qa.file"
+                  type="button"
+                  class="flex items-center gap-1.5 text-xs text-[var(--el-color-primary)] hover:underline"
+                  @click="notifyDev('txLens.detail.fileDownloadPending')"
+                >
+                  <ArtSvgIcon icon="ri:file-text-line" class="text-icon-sm" />
+                  {{ qa.a }}
+                </button>
+                <div v-else class="text-xs text-g-700 leading-relaxed">{{ qa.a }}</div>
+              </div>
+            </div>
+            <div
+              class="text-[11px] text-g-400 mt-2 pt-1.5 border-t border-dashed border-[var(--el-border-color-light)]"
+            >
+              {{ $t('txLens.detail.responseSubmitted') }}: {{ round.respondedAt }}
+            </div>
           </div>
         </div>
       </div>
@@ -303,6 +363,74 @@
         </div>
       </div>
     </div>
+
+    <!-- Request Information 弹框（对齐原型 requestInfoModal）：动态问题列表，提交时提示开发中 -->
+    <el-dialog
+      v-model="requestInfoVisible"
+      :title="$t('txLens.detail.requestInfoTitle')"
+      width="560px"
+      :close-on-click-modal="true"
+      append-to-body
+    >
+      <div class="flex flex-col gap-2">
+        <div v-for="(q, i) in requestQuestions" :key="i" class="flex items-center gap-2">
+          <el-input
+            v-model="requestQuestions[i]"
+            :placeholder="$t('txLens.detail.questionPlaceholder')"
+            maxlength="200"
+          />
+          <el-button
+            text
+            type="danger"
+            :disabled="requestQuestions.length <= 1"
+            @click="removeQuestion(i)"
+          >
+            <ArtSvgIcon icon="ri:subtract-line" class="text-icon-md" />
+          </el-button>
+        </div>
+        <el-button text type="primary" class="self-start !px-0" @click="addQuestion">
+          <ArtSvgIcon icon="ri:add-line" class="text-icon-sm mr-1" />
+          {{ $t('txLens.detail.addQuestion') }}
+        </el-button>
+      </div>
+      <template #footer>
+        <el-button @click="requestInfoVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submitRequestInfo">{{
+          $t('txLens.detail.sendRequest')
+        }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- Request PII Update 确认框：列出 mock 缺失字段，提交时提示开发中 -->
+    <el-dialog
+      v-model="requestPiiVisible"
+      :title="$t('txLens.detail.requestPiiUpdate')"
+      width="560px"
+      :close-on-click-modal="true"
+      append-to-body
+    >
+      <div class="text-xs text-g-600 mb-3">
+        {{ $t('txLens.detail.piiFieldsRequireResubmission') }}
+      </div>
+      <div class="flex flex-col gap-2">
+        <div
+          v-for="f in PII_MISSING_FIELDS"
+          :key="f"
+          class="flex items-center justify-between px-3 py-2 bg-[var(--el-fill-color-light)] rounded-md"
+        >
+          <span class="text-sm text-g-800">{{ f }}</span>
+          <el-tag type="danger" size="small" effect="light">{{
+            $t('txLens.detail.piiMissing')
+          }}</el-tag>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="requestPiiVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submitRequestPii">{{
+          $t('txLens.detail.sendRequest')
+        }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -310,6 +438,7 @@
   import { computed, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { ElMessage } from 'element-plus'
   import type {
     ComplianceTabView,
     OnchainScreeningItemView,
@@ -341,6 +470,104 @@
     rejecting?: boolean
   }>()
   const emit = defineEmits<{ (e: 'approve'): void; (e: 'reject'): void }>()
+
+  /**
+   * Communication 问答轮次（mock）。
+   * 接口暂无数据源，内容取自原型 compliance-tx-lens-detail.html 的两轮问答，
+   * 仅作样式参考；接口就绪后删除本常量并改接 props.data 即可。
+   */
+  const commRounds = [
+    {
+      n: 2,
+      time: '2026-07-28 10:30 UTC',
+      respondedAt: '2026-07-28 11:45 UTC',
+      qas: [
+        {
+          idx: 1,
+          q: 'Please provide proof of business relationship with the beneficiary.',
+          a: 'Business_relationship_contract.pdf',
+          file: true
+        },
+        {
+          idx: 2,
+          q: 'Please clarify the purpose of this transaction.',
+          a: 'Payment for consulting services provided by the beneficiary for regulatory audit preparation.',
+          file: false
+        }
+      ]
+    },
+    {
+      n: 1,
+      time: '2026-07-28 09:15 UTC',
+      respondedAt: '2026-07-28 10:05 UTC',
+      qas: [
+        {
+          idx: 1,
+          q: 'Please provide source of funds documentation.',
+          a: 'Source_of_funds_statement.pdf',
+          file: true
+        },
+        {
+          idx: 2,
+          q: "Clarify the beneficiary's identity and relationship.",
+          a: 'Independent compliance consultant engaged on a project basis.',
+          file: false
+        }
+      ]
+    }
+  ]
+
+  /** 文件下载：功能未实现，给出具体提示 */
+  function notifyDev(pendingKey: string) {
+    ElMessage.info(t(pendingKey))
+  }
+
+  // ─── Request Information / Request PII Update 弹框（交互可用，提交提示开发中）───
+  const requestInfoVisible = ref(false)
+  /** 问题列表：至少保留一行，最后一行不可删 */
+  const requestQuestions = ref<string[]>([''])
+  const requestPiiVisible = ref(false)
+  /** IVMS101 校验缺失字段（mock，对齐原型 PII_VALIDATION_RESULT） */
+  const PII_MISSING_FIELDS = [
+    'Originator Date of Birth',
+    'Originator National ID',
+    'Beneficiary Address'
+  ]
+
+  function openRequestInfo() {
+    // 每次打开重置为单行空问题
+    requestQuestions.value = ['']
+    requestInfoVisible.value = true
+  }
+
+  function addQuestion() {
+    requestQuestions.value.push('')
+  }
+
+  function removeQuestion(i: number) {
+    if (requestQuestions.value.length > 1) requestQuestions.value.splice(i, 1)
+  }
+
+  function submitRequestInfo() {
+    const filled = requestQuestions.value.filter((q) => q.trim() !== '')
+    if (!filled.length) {
+      ElMessage.warning(t('txLens.detail.questionRequired'))
+      return
+    }
+    // TODO: 接口就绪后在此发起提交
+    requestInfoVisible.value = false
+    ElMessage.info(t('txLens.detail.requestInfoPending'))
+  }
+
+  function openRequestPii() {
+    requestPiiVisible.value = true
+  }
+
+  function submitRequestPii() {
+    // TODO: 接口就绪后在此发起提交
+    requestPiiVisible.value = false
+    ElMessage.info(t('txLens.detail.requestPiiPending'))
+  }
 
   /** 出金方向：链上筛查按地址级（KYA）展示，入金按交易级（KYT） */
   const isOutgoing = computed(() => String(props.direction).toLowerCase() === 'outgoing')
@@ -632,9 +859,23 @@
     left: -20px;
     width: 12px;
     height: 12px;
+
     /* 用容器底色而非硬编码白：暗色模式下白圈会在深底上形成刺眼光晕 */
     border: 2px solid var(--default-box-color);
     border-radius: 50%;
+  }
+
+  /* Communication 问答轮次分隔（对齐原型 .question-round：轮与轮之间细线隔开） */
+  .question-round {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+
+  .question-round:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: none;
   }
 
   /* 圆点颜色由 toneDotStyle 内联注入 */

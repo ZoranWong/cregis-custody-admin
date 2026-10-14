@@ -62,12 +62,12 @@
               {{ $t('txLens.detail.offNetworkDescription') }}
             </div>
             <div class="flex gap-3 mb-4 flex-wrap">
-              <el-button size="small">
+              <el-button size="small" @click="notifyDev('txLens.detail.shareLinkPending')">
                 <ArtSvgIcon icon="ri:link" class="text-icon-sm mr-1" />{{
                   $t('txLens.detail.generateShareLink')
                 }}
               </el-button>
-              <el-button size="small">
+              <el-button size="small" @click="notifyDev('txLens.detail.uploadProofPending')">
                 <ArtSvgIcon icon="ri:upload-line" class="text-icon-sm mr-1" />{{
                   $t('txLens.detail.uploadProof')
                 }}
@@ -76,17 +76,30 @@
             <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-3">
               {{ $t('txLens.detail.manualTrace') }}
             </div>
-            <div v-if="!manualTrace.length" class="text-xs text-tone-muted-text py-4 text-center"
-              >--</div
+            <!-- 接口无数据时展示原型 mock（带提示条）：仅样式参考 -->
+            <div
+              v-if="manualTraceIsMock"
+              class="flex items-center gap-2 px-3 py-2 mb-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
             >
+              <ArtSvgIcon icon="ri:information-line" class="text-tone-info-text flex-shrink-0" />
+              <span class="text-xs text-g-700">{{ $t('txLens.detail.manualTraceMockHint') }}</span>
+            </div>
+            <div
+              v-if="!manualTrace.length"
+              class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
+            >
+              <ArtSvgIcon
+                icon="ri:information-line"
+                class="text-[var(--el-color-info)] text-base"
+              />
+              <span class="text-sm text-g-700">{{ $t('txLens.detail.noTimeline') }}</span>
+            </div>
             <div v-else class="timeline-chain">
               <div v-for="node in manualTrace" :key="node.label + node.time" class="timeline-node">
-                <div class="timeline-dot" :style="toneDotStyle(toneOf(node.status))" />
+                <div class="timeline-dot" :style="toneDotStyle(timelineNodeTone(node))" />
                 <div class="text-sm font-semibold text-g-800">{{ traceLabel(node.label) }}</div>
-                <div class="text-xs text-g-700 mt-0.5">{{ node.detail }}</div>
-                <div class="text-label text-tone-muted-text mt-0.5">{{
-                  formatTime(node.time)
-                }}</div>
+                <div class="text-xs text-g-600 mt-0.5">{{ traceDetail(node.detail) }}</div>
+                <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
               </div>
             </div>
           </div>
@@ -96,47 +109,33 @@
             <div class="text-xs text-g-700 mb-3 leading-relaxed">
               {{ $t('txLens.detail.networkLifecycleDescription') }}
             </div>
-            <div
-              v-if="showResolveRejectButtons || props.direction === 'outgoing'"
-              class="flex gap-3 mb-4 flex-wrap"
-            >
-              <template v-if="showResolveRejectButtons">
-                <el-button type="primary" size="small" :loading="acting" @click="handleResolve">{{
-                  $t('txLens.detail.resolve')
-                }}</el-button>
-                <el-button
-                  type="danger"
-                  plain
-                  size="small"
-                  :loading="acting"
-                  @click="handleReject"
-                  >{{ $t('txLens.detail.reject') }}</el-button
-                >
-              </template>
-              <el-button
-                v-if="props.direction === 'outgoing'"
-                type="danger"
-                plain
-                size="small"
-                :loading="acting"
-                @click="handleCancelTransfer"
-                >{{ $t('txLens.detail.cancelTransfer') }}</el-button
-              >
+            <div v-if="showResolveRejectButtons" class="flex gap-3 mb-4 flex-wrap">
+              <el-button type="primary" size="small" :loading="acting" @click="handleResolve">{{
+                $t('txLens.detail.resolve')
+              }}</el-button>
+              <el-button type="danger" plain size="small" :loading="acting" @click="handleReject">{{
+                $t('txLens.detail.reject')
+              }}</el-button>
             </div>
             <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-3">
               {{ $t('txLens.detail.networkTrace') }}
             </div>
-            <div v-if="!networkTrace.length" class="text-xs text-tone-muted-text py-4 text-center"
-              >--</div
+            <div
+              v-if="!networkTrace.length"
+              class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
             >
+              <ArtSvgIcon
+                icon="ri:information-line"
+                class="text-[var(--el-color-info)] text-base"
+              />
+              <span class="text-sm text-g-700">{{ $t('txLens.detail.noTimeline') }}</span>
+            </div>
             <div v-else class="timeline-chain">
               <div v-for="node in networkTrace" :key="node.label + node.time" class="timeline-node">
-                <div class="timeline-dot" :style="toneDotStyle(toneOf(node.status))" />
+                <div class="timeline-dot" :style="toneDotStyle(timelineNodeTone(node))" />
                 <div class="text-sm font-semibold text-g-800">{{ traceLabel(node.label) }}</div>
-                <div class="text-xs text-g-700 mt-0.5">{{ node.detail }}</div>
-                <div class="text-label text-tone-muted-text mt-0.5">{{
-                  formatTime(node.time)
-                }}</div>
+                <div class="text-xs text-g-600 mt-0.5">{{ node.detail }}</div>
+                <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
               </div>
             </div>
           </div>
@@ -150,17 +149,13 @@
   import { computed, onMounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { ElMessage, ElMessageBox } from 'element-plus'
-  import type { TravelRuleTabView } from '@/features/compliance/types'
-  import { toneDotStyle, toneOf } from '@/features/compliance/txState'
+  import type { TimelineNodeView, TravelRuleTabView } from '@/features/compliance/types'
+  import { toneDotStyle, timelineNodeTone } from '@/features/compliance/txState'
   import { parseIvms101Party } from '@/features/compliance/ivms101'
   import { useCountryStore } from '@/store/modules/country'
   import { formatTime } from '@/utils/format'
   // rejectInboundNotification 待接口开放后重新引入
-  import {
-    acceptInboundNotification,
-    fetchInboundNotifications,
-    rejectTransaction
-  } from '@/api/compliance'
+  import { acceptInboundNotification, fetchInboundNotifications } from '@/api/compliance'
 
   const props = defineProps<{
     data: TravelRuleTabView | null
@@ -289,31 +284,12 @@
   /** Reject：拒绝入金通知（接口暂未开放，先提示开发中，不发起请求） */
   function handleReject() {
     // TODO: 接口就绪后恢复 rejectInboundNotification 调用
-    ElMessage.info(t('common.underDevelopment'))
+    ElMessage.info(t('txLens.detail.rejectPending'))
   }
 
-  /** Cancel Transfer：取消出金交易（仅出金交易显示） */
-  async function handleCancelTransfer() {
-    if (!props.orderId) return
-    try {
-      await ElMessageBox.confirm(t('travelRule.confirmReject'), t('txLens.detail.cancelTransfer'), {
-        confirmButtonText: t('common.confirm'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning'
-      })
-    } catch {
-      return
-    }
-    acting.value = true
-    try {
-      await rejectTransaction(props.orderId)
-      ElMessage.success(t('txLens.detail.cancelTransfer') + ' OK')
-      emit('reviewed')
-    } catch (err) {
-      ElMessage.error(err instanceof Error ? err.message : 'Failed to cancel')
-    } finally {
-      acting.value = false
-    }
+  /** Generate Share Link / Upload Proof：功能未实现，按按钮给出具体提示 */
+  function notifyDev(pendingKey: string) {
+    ElMessage.info(t(pendingKey))
   }
 
   // ─── PII 语义化展示（对齐原型：Originator/Beneficiary 两块字段）───
@@ -346,7 +322,36 @@
   const piiFields = computed(() => [...piiRows('originator'), ...piiRows('beneficiary')])
 
   const networkTrace = computed(() => props.data?.networkTrace || [])
-  const manualTrace = computed(() => props.data?.manualTrace || [])
+
+  /*
+   * Manual Trace：接口暂无数据源，先用原型（compliance-tx-lens-detail.html）的
+   * 三条事件做样式演示，并显示「mock 数据」提示条；接口就绪后删掉
+   * MANUAL_TRACE_MOCK 与 manualTraceIsMock 即可切换回真实数据。
+   */
+  const MANUAL_TRACE_MOCK: TimelineNodeView[] = [
+    {
+      label: 'VASP_NOT_FOUND',
+      detail: 'txLens.detail.vaspNotFoundDetail',
+      time: '2026-07-28 09:01:15',
+      status: 'info'
+    },
+    {
+      label: 'SHARE_LINK_GENERATED',
+      detail: 'txLens.detail.shareLinkDetail',
+      time: '2026-07-28 09:05:00',
+      status: 'pending'
+    },
+    {
+      label: 'BENEFICIARY_AUTHORIZED',
+      detail: 'txLens.detail.beneficiaryAuthorizedDetail',
+      time: '2026-07-28 09:30:00',
+      status: 'completed'
+    }
+  ]
+  const manualTraceIsMock = computed(() => !(props.data?.manualTrace || []).length)
+  const manualTrace = computed(() =>
+    manualTraceIsMock.value ? MANUAL_TRACE_MOCK : props.data?.manualTrace || []
+  )
 
   // ─── 网络追踪 label：后端返回 i18n key（notification.* / tap.*），统一翻译 ───
   const TRACE_LABEL_KEYS: Record<string, string> = {
@@ -354,12 +359,21 @@
     'notification.transferStatusChanged': 'txLens.detail.traceTransferStatusChanged',
     'notification.transferAgentStatusChanged': 'txLens.detail.traceAgentStatusChanged',
     'tap.requirePresentationSatisfied': 'txLens.detail.tracePresentationSatisfied',
-    'tap.requireAuthorizationSatisfied': 'txLens.detail.traceAuthorizationSatisfied'
+    'tap.requireAuthorizationSatisfied': 'txLens.detail.traceAuthorizationSatisfied',
+    // manual trace 的 mock 节点（label 为前端自定义枚举）
+    VASP_NOT_FOUND: 'txLens.detail.vaspNotFound',
+    SHARE_LINK_GENERATED: 'txLens.detail.shareLinkGenerated',
+    BENEFICIARY_AUTHORIZED: 'txLens.detail.beneficiaryAuthorized'
   }
 
   function traceLabel(label: string): string {
     const key = TRACE_LABEL_KEYS[label]
     return key ? t(key) : label
+  }
+
+  /** detail 可能是 i18n key（mock 节点）或后端原文 */
+  function traceDetail(detail: string): string {
+    return detail.startsWith('txLens.detail.') ? t(detail) : detail
   }
 </script>
 
@@ -440,11 +454,18 @@
     padding-left: 24px;
   }
 
-  .timeline-chain::before {
+  /*
+   * 连接线与 StepCompliance 的 timeline 同款（节点间线段）：
+   *   ① 容器级 ::before 会一直延伸到容器底部，最后一个圆点下方仍拖出一条线；
+   *   ② left:7px 与圆心差 2px，连线不过圆心。
+   * 几何：圆点相对节点 left:-20 / width:12 → 圆心 x=-14px，
+   *       2px 线取 left:-15px 即对齐；纵向覆盖到下一节点圆点顶边。
+   */
+  .timeline-node:not(:last-child)::before {
     position: absolute;
-    top: 8px;
-    bottom: 8px;
-    left: 7px;
+    top: 16px;
+    bottom: -4px;
+    left: -15px;
     width: 2px;
     content: '';
     background: var(--el-border-color-light);
@@ -465,7 +486,9 @@
     left: -20px;
     width: 12px;
     height: 12px;
-    border: 2px solid var(--el-bg-color);
+
+    /* 用容器底色而非硬编码白：暗色模式下白圈会在深底上形成刺眼光晕 */
+    border: 2px solid var(--default-box-color);
     border-radius: 50%;
   }
 

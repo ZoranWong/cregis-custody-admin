@@ -70,7 +70,11 @@ export default ({ mode }: { mode: string }) => {
       }
     },
     build: {
-      target: 'es2015',
+      // es2015 会让 terser 把 a ** b 统一折叠成 Math.pow(a, b)，
+      // 依赖里的 2n ** 64n（BigInt）因此变成 Math.pow(2n, 64n) → 运行时
+      // "Cannot convert a BigInt value to a number"（StepOnChain 加载即崩）。
+      // es2020 起原生支持 BigInt 与 **，不再触发该折叠。
+      target: 'es2020',
       outDir: 'dist',
       chunkSizeWarningLimit: 2000,
       minify: 'terser',
