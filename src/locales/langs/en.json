@@ -149,6 +149,8 @@
     "time": "Time",
     "action": "Action",
     "inspect": "Inspect",
+    "densityCozy": "4 per row (comfortable)",
+    "densityDense": "8 per row (compact)",
     "detail": {
       "title": "Transaction Inspection",
       "subtitle": "Complete transaction history — on-chain, compliance, and Travel Rule.",

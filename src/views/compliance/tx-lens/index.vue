@@ -33,39 +33,58 @@
         @change="handleSearch"
       />
       <el-button type="primary" @click="handleSearch">{{ $t('console.refresh') }}</el-button>
+      <!-- 卡片密度切换（refresh 同行最右）：4 列宽松 / 8 列紧凑，选择全局记忆 -->
+      <div class="ml-auto flex items-center gap-1.5 flex-shrink-0">
+        <el-tooltip :content="$t('txLens.densityCozy')" placement="top">
+          <button
+            type="button"
+            class="density-btn"
+            :class="{ 'is-active': cardLayout.density === 4 }"
+            @click="cardLayout.setDensity(4)"
+          >
+            <ArtSvgIcon icon="ri:layout-grid-line" class="text-icon-md" />
+          </button>
+        </el-tooltip>
+        <el-tooltip :content="$t('txLens.densityDense')" placement="top">
+          <button
+            type="button"
+            class="density-btn"
+            :class="{ 'is-active': cardLayout.density === 8 }"
+            @click="cardLayout.setDensity(8)"
+          >
+            <ArtSvgIcon icon="ri:layout-masonry-line" class="text-icon-md" />
+          </button>
+        </el-tooltip>
+      </div>
     </div>
 
-    <!-- ═══ 摘要卡片（可点击筛选：all ↔ 各状态，切换时独立发请求）═══ -->
-    <ElRow :gutter="20" class="flex">
-      <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
-        <div
-          class="art-card h-[68px] px-4 mb-3 flex flex-col justify-center summary-filter-card"
-          :class="{ active: activeSummaryFilter === card.key }"
-          @click="toggleSummaryFilter(card.key)"
-          role="button"
-          tabindex="0"
-          @keydown.enter.prevent="toggleSummaryFilter(card.key)"
-          @keydown.space.prevent="toggleSummaryFilter(card.key)"
-        >
-          <span class="text-g-700 text-xs">{{ $t(card.labelKey) }}</span>
-          <span class="text-hero font-semibold mt-0.5 tabular-nums" :class="card.valueClass">{{
-            card.value
-          }}</span>
-        </div>
-      </ElCol>
-    </ElRow>
-
-    <!-- ═══ 审查结果卡片 ═══ -->
-    <ElRow :gutter="20" class="flex">
-      <ElCol :sm="12" :md="6" v-for="card in reviewCards" :key="card.key">
-        <div class="art-card h-[68px] px-4 mb-3 flex flex-col justify-center">
-          <span class="text-g-700 text-xs">{{ $t(card.labelKey) }}</span>
-          <span class="text-hero font-semibold mt-0.5 tabular-nums" :class="card.valueClass">{{
-            card.value
-          }}</span>
-        </div>
-      </ElCol>
-    </ElRow>
+    <!-- ═══ 卡片区：摘要卡 + 审查结果卡共 8 张放同一个 grid，自动流排列 ——
+         4 列档两行（摘要一行 + 审查结果一行），8 列档单行。纯展示，不可点击 ═══ -->
+    <div
+      class="summary-grid"
+      :class="cardLayout.density === 8 ? 'summary-grid--dense' : 'summary-grid--cozy'"
+    >
+      <div
+        v-for="card in summaryCards"
+        :key="card.key"
+        class="art-card px-4 py-2.5 flex flex-col justify-center"
+      >
+        <span class="text-g-700 text-xs">{{ $t(card.labelKey) }}</span>
+        <span class="text-hero font-semibold mt-0.5 tabular-nums" :class="card.valueClass">{{
+          card.value
+        }}</span>
+      </div>
+      <div
+        v-for="card in reviewCards"
+        :key="card.key"
+        class="art-card px-4 py-2.5 flex flex-col justify-center"
+      >
+        <span class="text-g-700 text-xs">{{ $t(card.labelKey) }}</span>
+        <span class="text-hero font-semibold mt-0.5 tabular-nums" :class="card.valueClass">{{
+          card.value
+        }}</span>
+      </div>
+    </div>
 
     <!-- ═══ 交易卡片列表 ═══ -->
     <div class="art-card mb-4">
@@ -292,12 +311,15 @@
     type StageKey
   } from '@/features/compliance/txStages'
   import { formatCoinBalance, formatTime } from '@/utils/format'
+  import { useCardLayoutStore } from '@/store/modules/cardLayout'
   import BigNumber from 'bignumber.js'
 
   defineOptions({ name: 'TransactionLens' })
 
   const router = useRouter()
   const { t } = useI18n()
+  // 卡片密度（4/8 列）：pinia persist，全局记忆
+  const cardLayout = useCardLayoutStore()
 
   // ─── State ───
   const loading = ref(false)
@@ -323,34 +345,6 @@
     pageSize: 10,
     total: 0
   })
-
-  // ─── 摘要卡片点击筛选（all ↔ pending 等，每次切换独立发请求）───
-  const activeSummaryFilter = ref<'all' | 'pending' | string>('all')
-
-  /** 卡片 key → 列表查询条件（pending = 合规审查中） */
-  const SUMMARY_FILTER_QUERIES: Record<string, Record<string, string>> = {
-    pending: { compliance: 'review' }
-  }
-
-  function toggleSummaryFilter(key: string) {
-    // 再点一次取消筛选；切换时重置页码并单独发请求
-    activeSummaryFilter.value = activeSummaryFilter.value === key ? 'all' : key
-    applySummaryFilter()
-    pagination.pageNum = 1
-    loadList()
-  }
-
-  function applySummaryFilter() {
-    const query = SUMMARY_FILTER_QUERIES[activeSummaryFilter.value]
-    if (query) {
-      Object.assign(filters, query)
-    } else {
-      // all：清掉卡片引入的筛选条件（不影响用户手动设置的其他筛选）
-      for (const k of Object.keys(SUMMARY_FILTER_QUERIES.pending || {})) {
-        ;(filters as Record<string, unknown>)[k] = ''
-      }
-    }
-  }
 
   // ─── 商户下拉：走接口（ecode 作为查询值，名称仅展示）───
   const merchants = ref<Array<{ ecode: string; name: string }>>([])
@@ -719,6 +713,67 @@
   }
 
   /*
+   * 摘要卡片区网格。
+   * 密度两档（--cozy 默认 4 列 / --dense 8 列），列间距 12px 与行间距 mb-3 对齐；
+   * 卡片高度不固定 —— 由内容（label + 数值）与 py-2.5 决定，长文案换行时卡片自然撑高。
+   * 窄屏（<768px）回落 2 列，避免 4 列下文字挤压成竖排。
+   */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  @media (width >= 768px) {
+    .summary-grid--cozy {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .summary-grid--dense {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+
+  /*
+   * 密度切换按钮：方形图标按钮，高度与同行 el-button 一致
+   * （--el-component-size = 36px），选中态同 .is-active（主色系），未选中灰。
+   */
+  .density-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--el-component-size);
+    height: var(--el-component-size);
+    padding: 0;
+    color: var(--tone-muted-text);
+    cursor: pointer;
+    background: var(--default-box-color);
+    border: 1px solid var(--default-border);
+    border-radius: 5px;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s,
+      color 0.15s;
+  }
+
+  .density-btn:hover {
+    background: var(--art-hover-color);
+    border-color: var(--art-gray-400);
+  }
+
+  .density-btn.is-active {
+    color: var(--theme-text);
+    background: var(--tone-info-bg);
+    border-color: var(--theme-border);
+  }
+
+  .density-btn:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+
+  /*
    * 分段筛选按钮。
    * 规格取自原型 compliance-tx-lens.html 的 .filter-btn：
    *   padding 4px 10px · radius 5px · font-size 11px · weight 500
@@ -776,28 +831,6 @@
 
   .tx-card:hover {
     border-color: var(--el-color-primary-light-5);
-  }
-
-  /* 摘要卡片点击筛选：可点击反馈 + 激活态 */
-
-  .summary-filter-card:focus-visible {
-    outline: 2px solid var(--el-color-primary);
-    outline-offset: 2px;
-  }
-
-  .summary-filter-card {
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .summary-filter-card:hover {
-    border-color: var(--el-color-primary-light-5);
-    box-shadow: var(--art-shadow-hover);
-  }
-
-  .summary-filter-card.active {
-    background: var(--el-color-primary-light-9);
-    border-color: var(--el-color-primary);
   }
 
   /* 阶段条：横向排布，圆点 + 标签/状态两行；阶段数随场景变化，自适应 */

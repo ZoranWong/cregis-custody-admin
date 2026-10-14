@@ -149,6 +149,8 @@
     "time": "时间",
     "action": "操作",
     "inspect": "查看",
+    "densityCozy": "每行 4 张（宽松）",
+    "densityDense": "每行 8 张（紧凑）",
     "detail": {
       "title": "交易检查",
       "subtitle": "完整交易历史 — 链上、合规与 Travel Rule。",
