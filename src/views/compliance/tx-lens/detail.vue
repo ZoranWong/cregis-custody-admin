@@ -251,6 +251,15 @@
   })
   const fiatDisplay = computed(() => {
     if (!overview.value) return '--'
+    // 优先使用接口直接返回的 fiatAmount + fiatCurrency
+    if (overview.value.fiatAmount && overview.value.fiatCurrency) {
+      const formatted = new BigNumber(overview.value.fiatAmount).toFormat(
+        2,
+        BigNumber.ROUND_HALF_UP
+      )
+      return `≈ ${overview.value.fiatCurrency} ${formatted}`
+    }
+    // 回退到 USD 汇率计算
     const decimals = coinDecimals.value[overview.value.coinId]
     const usdRate = coinUsdRate.value[overview.value.coinId]
     if (decimals == null || usdRate == null) return '--'

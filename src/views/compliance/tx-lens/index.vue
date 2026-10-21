@@ -33,6 +33,12 @@
         @change="handleSearch"
       />
       <el-button type="primary" @click="handleSearch">{{ $t('console.refresh') }}</el-button>
+      <!-- 高级筛选入口：列表卡片内的 7 组筛选收进弹框，条件对统计卡与列表同时生效 -->
+      <el-button :type="activeFilterCount ? 'primary' : 'default'" plain @click="openFilterDialog">
+        <ArtSvgIcon icon="ri:filter-3-line" class="text-icon-sm mr-1" />
+        {{ $t('txLens.filters') }}
+        <span v-if="activeFilterCount" class="ml-1">({{ activeFilterCount }})</span>
+      </el-button>
       <!-- 卡片密度切换（refresh 同行最右）：4 列宽松 / 8 列紧凑，选择全局记忆 -->
       <div class="ml-auto flex items-center gap-1.5 flex-shrink-0">
         <el-tooltip :content="$t('txLens.densityCozy')" placement="top">
@@ -88,44 +94,6 @@
 
     <!-- ═══ 交易卡片列表 ═══ -->
     <div class="art-card mb-4">
-      <!--
-        筛选栏。
-        用「分组标签 + 分段按钮」而非下拉框 —— 对齐原型 compliance-tx-lens.html 的
-        .filter-bar / .filter-btn（每组带 All 重置项）。
-        下拉框的问题：7 个选项默认收起，用户看不到有哪些可选项，且必须点开才能选。
-        分段按钮一次铺开全部选项，一眼可见、单击即生效。
-      -->
-      <div class="p-4 border-b border-[var(--default-border)]">
-        <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
-          <!-- 分组由 script 的 FILTER_GROUPS 驱动，避免 7 组重复模板 -->
-          <div v-for="g in FILTER_GROUPS" :key="g.key" class="flex items-center gap-2 min-w-0">
-            <span class="text-body font-medium text-g-700 whitespace-nowrap">{{
-              $t(g.labelKey)
-            }}</span>
-            <div class="flex items-center gap-1">
-              <!-- All：清空该组筛选 -->
-              <button
-                type="button"
-                class="filter-btn"
-                :class="{ 'is-active': !filters[g.key] }"
-                @click="setFilter(g.key, '')"
-              >
-                {{ $t('common.all') }}
-              </button>
-              <button
-                v-for="opt in g.options"
-                :key="opt.value"
-                type="button"
-                class="filter-btn"
-                :class="{ 'is-active': filters[g.key] === opt.value }"
-                @click="setFilter(g.key, opt.value)"
-              >
-                {{ $t(opt.labelKey) }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
       <div class="p-4">
         <template v-if="loading">
           <el-skeleton :rows="6" animated />
@@ -270,6 +238,47 @@
         />
       </div>
     </div>
+
+    <!-- ═══ 高级筛选弹框：原列表内嵌的 7 组分段筛选，点「应用」后统计卡与列表一起刷新 ═══ -->
+    <el-dialog
+      v-model="filterDialogVisible"
+      :title="$t('txLens.filters')"
+      width="min(920px, 94vw)"
+      append-to-body
+      @open="resetFilterDraft"
+    >
+      <!-- 两列网格：条件标题在上、选项在下；标题与选项、组与组之间留出呼吸感 -->
+      <div class="filter-dialog-grid">
+        <div v-for="g in FILTER_GROUPS" :key="g.key" class="filter-group">
+          <span class="filter-group-label">{{ $t(g.labelKey) }}</span>
+          <div class="filter-group-options">
+            <!-- All：清空该组筛选 -->
+            <button
+              type="button"
+              class="filter-btn"
+              :class="{ 'is-active': !filterDraft[g.key] }"
+              @click="filterDraft[g.key] = ''"
+            >
+              {{ $t('common.all') }}
+            </button>
+            <button
+              v-for="opt in g.options"
+              :key="opt.value"
+              type="button"
+              class="filter-btn"
+              :class="{ 'is-active': filterDraft[g.key] === opt.value }"
+              @click="filterDraft[g.key] = opt.value"
+            >
+              {{ $t(opt.labelKey) }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="resetFilters">{{ $t('common.reset') }}</el-button>
+        <el-button type="primary" @click="applyFilters">{{ $t('common.confirm') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -458,9 +467,17 @@
     return transactions.value.map((tx) => {
       const decimals = coinDecimals.value[tx.coinId]
       const amount = decimals ? formatCoinBalance(tx.amount, decimals) : tx.amount
-      const usdRate = coinUsdRate.value[tx.coinId]
-      const fiat = usdRate != null && decimals ? new BigNumber(amount).times(usdRate) : null
-      const fiatDisplay = fiat != null ? `≈ $${fiat.toFormat(2, BigNumber.ROUND_HALF_UP)}` : '--'
+
+      // 优先使用接口直接返回的 fiatAmount + fiatCurrency，回退到 USD 汇率计算
+      let fiatDisplay = '--'
+      if (tx.fiatAmount && tx.fiatCurrency) {
+        const formatted = new BigNumber(tx.fiatAmount).toFormat(2, BigNumber.ROUND_HALF_UP)
+        fiatDisplay = `≈ ${tx.fiatCurrency} ${formatted}`
+      } else {
+        const usdRate = coinUsdRate.value[tx.coinId]
+        const fiat = usdRate != null && decimals ? new BigNumber(amount).times(usdRate) : null
+        if (fiat != null) fiatDisplay = `≈ $${fiat.toFormat(2, BigNumber.ROUND_HALF_UP)}`
+      }
 
       // 状态取值统一走 stageStateOf：无 Travel Rule 信息时 travelRule 按 na 处理
       const stages: Stage[] = buildStages(tx).map((key) => {
@@ -580,21 +597,21 @@
     }
   }
 
-  /** 顶部筛选变化：重置页码，同时刷新统计数据与交易列表 */
   /**
-   * 次要筛选的分组定义。
+   * 筛选弹框的分组定义。
    *
-   * 原先是 7 个独立的 el-select —— 选项默认收起、必须点开才看得到有哪些可选，
-   * 与原型 compliance-tx-lens.html 的 .filter-bar / .filter-btn 不一致。
-   * 这里改成数据驱动的分段按钮：每组一个标签 + 若干选项 + 一个 All。
+   * 数据驱动的分段按钮：每组一个标签 + 若干选项 + 一个 All。
+   * 条件统一在弹框里勾选，点「应用」后写回 filters —— 统计卡与列表共用
+   * buildQueryParams()，保证两边口径一致。
    */
   const FILTER_GROUPS = [
     {
       key: 'direction' as const,
       labelKey: 'txLens.direction',
       options: [
-        { value: 'outgoing', labelKey: 'txLens.outgoing' },
-        { value: 'incoming', labelKey: 'txLens.incoming' }
+        // 与交易卡上的方向 tag（ArtDirectionTag）同一套文案，避免入金/出金叫法不一致
+        { value: 'outgoing', labelKey: 'common.outbound' },
+        { value: 'incoming', labelKey: 'common.inbound' }
       ]
     },
     {
@@ -658,10 +675,11 @@
     }
   ]
 
-  /** 设置某项筛选并立即查询（替代原先的下拉框 @change） */
-  function setFilter(key: (typeof FILTER_GROUPS)[number]['key'], value: string) {
-    filters[key] = value
-    handleSearch()
+  /** 设置某项筛选并立即查询（筛选弹框内直接修改草稿，点「应用」才查询） */
+  function handleSearch() {
+    pagination.pageNum = 1
+    loadSummary()
+    loadList()
   }
 
   function handleExport() {
@@ -669,10 +687,41 @@
     ElMessage.info(t('common.export'))
   }
 
-  function handleSearch() {
-    pagination.pageNum = 1
-    loadSummary()
-    loadList()
+  // ─── 高级筛选弹框：草稿态，点「应用」才写回 filters 并查询 ───
+  type FilterKey = (typeof FILTER_GROUPS)[number]['key']
+  const FILTER_KEYS = FILTER_GROUPS.map((g) => g.key)
+
+  const filterDialogVisible = ref(false)
+  const filterDraft = reactive<Record<FilterKey, string>>(
+    Object.fromEntries(FILTER_KEYS.map((k) => [k, ''])) as Record<FilterKey, string>
+  )
+
+  /** 当前生效的筛选组数（弹框按钮上的角标） */
+  const activeFilterCount = computed(() => FILTER_KEYS.filter((k) => filters[k]).length)
+
+  function openFilterDialog() {
+    filterDialogVisible.value = true
+  }
+
+  /** 每次打开弹框都从已生效条件回填，取消不会留下未应用的草稿 */
+  function resetFilterDraft() {
+    for (const k of FILTER_KEYS) filterDraft[k] = filters[k]
+  }
+
+  function applyFilters() {
+    for (const k of FILTER_KEYS) filters[k] = filterDraft[k]
+    filterDialogVisible.value = false
+    handleSearch()
+  }
+
+  /** 重置：清空草稿并立即按无条件查询 */
+  function resetFilters() {
+    for (const k of FILTER_KEYS) {
+      filterDraft[k] = ''
+      filters[k] = ''
+    }
+    filterDialogVisible.value = false
+    handleSearch()
   }
 
   function handleSizeChange() {
@@ -771,6 +820,50 @@
   .density-btn:focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: 1px;
+  }
+
+  /*
+   * 筛选弹框：一行两组条件，列宽自适应。
+   * auto-fit + minmax 让宽屏保持两列、窄屏自动回落一列，不写死列宽；
+   * 组内标题在上、选项在下，标题与选项间距 8px；组与组行距 22px、列距 28px。
+   */
+  .filter-dialog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 22px 28px;
+    padding: 4px 2px 8px;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .filter-group-label {
+    font-size: var(--font-size-body);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--el-text-color-regular);
+    letter-spacing: 0.01em;
+  }
+
+  /* 选项不换行：一行铺开整组按钮，列宽不足时按钮自身收缩而不是折行 */
+  .filter-group-options {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .filter-group-options .filter-btn {
+    flex-shrink: 1;
+    min-width: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 
   /*

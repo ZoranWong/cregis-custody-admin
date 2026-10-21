@@ -10,7 +10,49 @@
     </div>
 
     <template v-else>
-      <!-- VASP Identity 卡已移除：接口不再下发 VASP 机构信息（仅 {name:null}），无数据不展示 -->
+      <!-- VASP Identity：字段对齐原型（名称 + 双列网格 + IVMS 状态行），接口无数据的字段不展示 -->
+      <div v-if="hasVaspDeclaration" class="art-card mb-4">
+        <div class="p-4 border-b border-[var(--default-border)]">
+          <span class="text-sm font-semibold text-g-900">{{
+            $t('txLens.detail.vaspIdentity')
+          }}</span>
+        </div>
+        <div class="p-4">
+          <div class="vasp-identity-box">
+            <div class="text-sm font-semibold text-g-900 mb-2">{{ vaspDisplayName }}</div>
+            <div class="grid grid-cols-2 gap-3">
+              <div v-if="vaspJurisdiction" class="flex flex-col gap-0.5">
+                <span class="field-label">{{ $t('txLens.detail.vaspJurisdiction') }}</span>
+                <span class="text-sm text-g-800 font-medium">{{ vaspJurisdiction }}</span>
+              </div>
+              <div v-if="vaspRegulatory" class="flex flex-col gap-0.5">
+                <span class="field-label">{{ $t('txLens.detail.vaspRegulatory') }}</span>
+                <span class="text-sm text-g-800 font-medium">{{ vaspRegulatory }}</span>
+              </div>
+              <div v-if="vaspTrCapable" class="flex flex-col gap-0.5">
+                <span class="field-label">{{ $t('txLens.detail.trCapableLabel') }}</span>
+                <span class="text-sm text-g-800 font-medium">{{ vaspTrCapable }}</span>
+              </div>
+              <div v-if="vaspDid" class="flex flex-col gap-0.5">
+                <span class="field-label">{{ $t('txLens.detail.vaspDid') }}</span>
+                <span class="text-xs text-g-800 font-medium font-mono break-all">{{
+                  vaspDid
+                }}</span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="flex items-center justify-between px-3 py-2.5 bg-g-100 border border-[var(--default-border)] rounded-md"
+          >
+            <span class="text-xs font-semibold text-g-600">{{
+              $t('txLens.detail.ivms101PiiExchange')
+            }}</span>
+            <span class="text-xs font-semibold" :class="ivms101StatusClass">{{
+              ivms101StatusText
+            }}</span>
+          </div>
+        </div>
+      </div>
 
       <!-- IVMS101 PII Details（对齐原型：双列语义化字段） -->
       <div class="art-card mb-4">
@@ -197,8 +239,8 @@
   // 是否收到 Travel Rule 通知
   /**
    * 是否有 Travel Rule 数据。
-   * 注意：vaspIdentity 现在恒为 {name:null}（接口已不下发 VASP 机构信息），
-   * 不能再作为判据，改看真正有内容的字段。
+   * 注意：vaspIdentity 现在恒为 {name:null}（接口已不下发 VASP 机构信息，
+   * 改由 vaspDeclaration 下发），不能再作为判据，改看真正有内容的字段。
    */
   const hasTravelRule = computed(() => {
     const d = props.data
@@ -209,8 +251,61 @@
       d.ivms101Status ||
       typeof d.ivms101Valid === 'boolean' ||
       (d.ivms101Pii && Object.keys(d.ivms101Pii).length > 0) ||
-      (d.networkTrace && d.networkTrace.length > 0)
+      (d.networkTrace && d.networkTrace.length > 0) ||
+      d.vaspDeclaration
     )
+  })
+
+  // ─── VASP Identity（接口 vaspDeclaration，展示字段严格对齐原型）───
+  const declaration = computed(() => props.data?.vaspDeclaration || null)
+  const hasVaspDeclaration = computed(() => {
+    const d = declaration.value
+    return !!d && !!(d.declaredName || d.declaredDid || d.discoveredName || d.discoveredDid)
+  })
+
+  /**
+   * 原型字段 → 接口字段映射：
+   *   名称      ← discoveredName，为空退回 declaredName
+   *   DID       ← declaredDid（申报身份；与 discoveredDid 不一致即为未匹配）
+   *   司法辖区  ← DID 的 did:web 域名最后一段（如 :ae → AE），原型展示属地
+   *   监管状态 / TR 能力 ← 接口已不下发，不展示
+   */
+  const vaspDisplayName = computed(
+    () => declaration.value?.discoveredName || declaration.value?.declaredName || '--'
+  )
+
+  const vaspDid = computed(() => declaration.value?.declaredDid || null)
+
+  const vaspJurisdiction = computed(() => {
+    const did = vaspDid.value
+    if (!did?.startsWith('did:web:')) return null
+    const host = did.slice('did:web:'.length).split(':')[0]
+    const tld = host.split('.').filter(Boolean).pop()?.toUpperCase()
+    return tld ? countryStore.countryName(tld) : null
+  })
+
+  // 接口未下发监管状态 / TR 能力，保持为空即不渲染
+  const vaspRegulatory = computed(() => null as string | null)
+  const vaspTrCapable = computed(() => null as string | null)
+
+  /** IVMS101 PII 交换状态：优先 ivms101Valid，兼容旧版 ivms101Status */
+  const ivms101StatusText = computed(() => {
+    const d = props.data
+    if (!d) return '--'
+    if (typeof d.ivms101Valid === 'boolean') {
+      return d.ivms101Valid
+        ? `${t('txLens.detail.ivmsValid')} ✓`
+        : `${t('txLens.detail.ivmsInvalid')} ✕`
+    }
+    if (d.ivms101Status) return d.ivms101Status
+    return '--'
+  })
+
+  const ivms101StatusClass = computed(() => {
+    const valid = props.data?.ivms101Valid
+    if (valid === true) return 'text-[var(--el-color-success)]'
+    if (valid === false) return 'text-[var(--el-color-danger)]'
+    return 'text-g-600'
   })
 
   onMounted(() => {

@@ -21,23 +21,28 @@
           <h3 class="text-sm font-semibold text-g-900">{{ $t('system.owner') }}</h3>
         </div>
         <div class="p-4">
-          <div class="owner-card">
-            <div
-              class="w-10 h-10 rounded-full bg-[var(--el-color-primary)] text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
-            >
-              {{ ownerInitials }}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="text-sm font-semibold text-g-900">{{ owner?.name }}</span>
-                <span class="owner-badge">{{ $t('system.ownerBadge') }}</span>
+          <template v-if="loading">
+            <el-skeleton :rows="1" animated />
+          </template>
+          <template v-else>
+            <div class="owner-card">
+              <div
+                class="w-10 h-10 rounded-full bg-[var(--el-color-primary)] text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
+              >
+                {{ ownerInitials }}
               </div>
-              <div class="text-xs text-g-500">{{ owner?.email }}</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-0.5">
+                  <span class="text-sm font-semibold text-g-900">{{ owner?.name }}</span>
+                  <span class="owner-badge">{{ $t('system.ownerBadge') }}</span>
+                </div>
+                <div class="text-xs text-g-500">{{ owner?.email }}</div>
+              </div>
+              <el-button size="small" type="primary" plain @click="showTransferDialog = true">
+                {{ $t('system.transferOwnership') }}
+              </el-button>
             </div>
-            <el-button size="small" type="primary" plain @click="showTransferDialog = true">
-              {{ $t('system.transferOwnership') }}
-            </el-button>
-          </div>
+          </template>
         </div>
       </div>
 
@@ -50,249 +55,294 @@
           </el-button>
         </div>
         <div class="p-4">
-          <div v-for="member in regularMembers" :key="member.id" class="member-row">
-            <div
-              class="w-8 h-8 rounded-full bg-g-100 text-g-600 flex items-center justify-center text-xs font-semibold flex-shrink-0"
-            >
-              {{ member.initials }}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="text-body-lg font-semibold text-g-900">{{ member.name }}</span>
-                <span class="status-badge" :class="member.status.toLowerCase()">
-                  {{ member.status }}
-                </span>
+          <template v-if="loading">
+            <el-skeleton :rows="5" animated />
+          </template>
+          <template v-else>
+            <div v-for="member in regularMembers" :key="member.id" class="member-row">
+              <div
+                class="w-8 h-8 rounded-full bg-g-100 text-g-600 flex items-center justify-center text-xs font-semibold flex-shrink-0"
+              >
+                {{ member.initials }}
               </div>
-              <div class="text-label text-g-500">{{ member.email }}</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-body-lg font-semibold text-g-900">{{ member.name }}</span>
+                  <span class="status-badge" :class="member.status.toLowerCase()">
+                    {{ member.status }}
+                  </span>
+                </div>
+                <div class="text-label text-g-500">{{ member.email }}</div>
+              </div>
+              <el-button
+                v-if="member.status !== 'Suspended'"
+                size="small"
+                type="danger"
+                plain
+                @click="handleSuspendMember(member.id)"
+              >
+                {{ $t('system.suspend') }}
+              </el-button>
+              <el-button
+                v-else
+                size="small"
+                type="success"
+                plain
+                @click="handleRecoverMember(member.id)"
+              >
+                {{ $t('system.recover') }}
+              </el-button>
             </div>
-            <el-button
-              v-if="member.status !== 'Suspended'"
-              size="small"
-              type="danger"
-              plain
-              @click="handleSuspendMember(member.id)"
-            >
-              {{ $t('system.suspend') }}
-            </el-button>
-            <el-button
-              v-else
-              size="small"
-              type="success"
-              plain
-              @click="handleRecoverMember(member.id)"
-            >
-              {{ $t('system.recover') }}
-            </el-button>
-          </div>
-          <div v-if="regularMembers.length === 0" class="py-6 text-center text-g-400 text-sm">
-            {{ $t('system.noEmployees') }}
-          </div>
+            <div v-if="regularMembers.length === 0" class="py-6 text-center text-g-400 text-sm">
+              {{ $t('system.noEmployees') }}
+            </div>
+          </template>
         </div>
       </div>
     </template>
 
     <!-- ═══════ Roles Tab ═══════ -->
     <template v-if="currentTab === 'roles'">
-      <!-- System Administrators -->
-      <div class="art-card mb-4 overflow-hidden">
-        <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.systemAdmins') }}</h3>
-          <el-button
-            size="small"
-            text
-            @click="editSection = editSection === 'admins' ? null : 'admins'"
-          >
-            {{ editSection === 'admins' ? $t('system.save') : $t('system.edit') }}
-          </el-button>
+      <template v-if="loading">
+        <!-- System Administrators skeleton -->
+        <div class="art-card mb-4 overflow-hidden">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <el-skeleton :rows="1" animated />
+          </div>
+          <div class="p-4"><el-skeleton :rows="2" animated /></div>
         </div>
-        <div class="p-4">
-          <div class="flex flex-wrap gap-3">
-            <div
-              v-for="person in adminPeople"
-              :key="person.id"
-              class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
+        <!-- Compliance Officers skeleton -->
+        <div class="art-card mb-4 overflow-hidden">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <el-skeleton :rows="1" animated />
+          </div>
+          <div class="p-4"><el-skeleton :rows="2" animated /></div>
+        </div>
+        <!-- Tx Review Flow skeleton -->
+        <div class="art-card mb-4 overflow-hidden">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <el-skeleton :rows="1" animated />
+          </div>
+          <div class="p-4"><el-skeleton :rows="4" animated /></div>
+        </div>
+        <!-- Travel Rule Team skeleton -->
+        <div class="art-card mb-4 overflow-hidden">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <el-skeleton :rows="1" animated />
+          </div>
+          <div class="p-4"><el-skeleton :rows="2" animated /></div>
+        </div>
+      </template>
+      <template v-else>
+        <!-- System Administrators -->
+        <div class="art-card mb-4 overflow-hidden">
+          <div
+            class="p-4 border-b border-[var(--default-border)] flex items-center justify-between"
+          >
+            <h3 class="text-sm font-semibold text-g-900">{{ $t('system.systemAdmins') }}</h3>
+            <el-button
+              size="small"
+              text
+              @click="editSection = editSection === 'admins' ? null : 'admins'"
             >
+              {{ editSection === 'admins' ? $t('system.save') : $t('system.edit') }}
+            </el-button>
+          </div>
+          <div class="p-4">
+            <div class="flex flex-wrap gap-3">
               <div
-                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
+                v-for="person in adminPeople"
+                :key="person.id"
+                class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
               >
-                {{ person.initials }}
+                <div
+                  class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
+                >
+                  {{ person.initials }}
+                </div>
+                <span class="text-sm text-g-900">{{ person.name }}</span>
+                <el-button
+                  v-if="editSection === 'admins'"
+                  :icon="'ri:close-line'"
+                  circle
+                  size="small"
+                  @click="removeFromSection('admins', person.id)"
+                />
               </div>
-              <span class="text-sm text-g-900">{{ person.name }}</span>
-              <el-button
-                v-if="editSection === 'admins'"
-                :icon="'ri:close-line'"
-                circle
-                size="small"
-                @click="removeFromSection('admins', person.id)"
-              />
+            </div>
+            <div v-if="editSection === 'admins'" class="mt-3 flex flex-wrap gap-2">
+              <el-select
+                v-model="newAdminId"
+                :placeholder="$t('system.addMember')"
+                clearable
+                class="!w-56"
+                @change="
+                  (v: string) => {
+                    if (v) {
+                      adminIds.push(v)
+                      newAdminId = ''
+                    }
+                  }
+                "
+              >
+                <el-option
+                  v-for="p in availablePeople('admins')"
+                  :key="p.id"
+                  :label="p.name"
+                  :value="p.id"
+                />
+              </el-select>
             </div>
           </div>
-          <div v-if="editSection === 'admins'" class="mt-3 flex flex-wrap gap-2">
-            <el-select
-              v-model="newAdminId"
-              :placeholder="$t('system.addMember')"
-              clearable
-              class="!w-56"
-              @change="
-                (v: string) => {
-                  if (v) {
-                    adminIds.push(v)
-                    newAdminId = ''
-                  }
-                }
-              "
-            >
-              <el-option
-                v-for="p in availablePeople('admins')"
-                :key="p.id"
-                :label="p.name"
-                :value="p.id"
-              />
-            </el-select>
-          </div>
         </div>
-      </div>
 
-      <!-- Compliance Officers -->
-      <div class="art-card mb-4 overflow-hidden">
-        <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.complianceOfficers') }}</h3>
-          <el-button
-            size="small"
-            text
-            @click="editSection = editSection === 'officers' ? null : 'officers'"
+        <!-- Compliance Officers -->
+        <div class="art-card mb-4 overflow-hidden">
+          <div
+            class="p-4 border-b border-[var(--default-border)] flex items-center justify-between"
           >
-            {{ editSection === 'officers' ? $t('system.save') : $t('system.edit') }}
-          </el-button>
-        </div>
-        <div class="p-4">
-          <div class="mb-3 flex flex-wrap gap-2">
-            <el-tag size="small">{{ $t('system.permSetRules') }}</el-tag>
-            <el-tag size="small">{{ $t('system.permMonitor') }}</el-tag>
-            <el-tag size="small">{{ $t('system.permLabelFPFN') }}</el-tag>
-          </div>
-          <div class="flex flex-wrap gap-3">
-            <div
-              v-for="person in officerPeople"
-              :key="person.id"
-              class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
+            <h3 class="text-sm font-semibold text-g-900">{{ $t('system.complianceOfficers') }}</h3>
+            <el-button
+              size="small"
+              text
+              @click="editSection = editSection === 'officers' ? null : 'officers'"
             >
+              {{ editSection === 'officers' ? $t('system.save') : $t('system.edit') }}
+            </el-button>
+          </div>
+          <div class="p-4">
+            <div class="mb-3 flex flex-wrap gap-2">
+              <el-tag size="small">{{ $t('system.permSetRules') }}</el-tag>
+              <el-tag size="small">{{ $t('system.permMonitor') }}</el-tag>
+              <el-tag size="small">{{ $t('system.permLabelFPFN') }}</el-tag>
+            </div>
+            <div class="flex flex-wrap gap-3">
               <div
-                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
+                v-for="person in officerPeople"
+                :key="person.id"
+                class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
               >
-                {{ person.initials }}
+                <div
+                  class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
+                >
+                  {{ person.initials }}
+                </div>
+                <span class="text-sm text-g-900">{{ person.name }}</span>
+                <el-button
+                  v-if="editSection === 'officers'"
+                  :icon="'ri:close-line'"
+                  circle
+                  size="small"
+                  @click="removeFromSection('officers', person.id)"
+                />
               </div>
-              <span class="text-sm text-g-900">{{ person.name }}</span>
-              <el-button
-                v-if="editSection === 'officers'"
-                :icon="'ri:close-line'"
-                circle
-                size="small"
-                @click="removeFromSection('officers', person.id)"
-              />
+            </div>
+            <div v-if="editSection === 'officers'" class="mt-3 flex flex-wrap gap-2">
+              <el-select
+                v-model="newOfficerId"
+                :placeholder="$t('system.addMember')"
+                clearable
+                class="!w-56"
+                @change="
+                  (v: string) => {
+                    if (v) {
+                      officerIds.push(v)
+                      newOfficerId = ''
+                    }
+                  }
+                "
+              >
+                <el-option
+                  v-for="p in availablePeople('officers')"
+                  :key="p.id"
+                  :label="p.name"
+                  :value="p.id"
+                />
+              </el-select>
             </div>
           </div>
-          <div v-if="editSection === 'officers'" class="mt-3 flex flex-wrap gap-2">
-            <el-select
-              v-model="newOfficerId"
-              :placeholder="$t('system.addMember')"
-              clearable
-              class="!w-56"
-              @change="
-                (v: string) => {
-                  if (v) {
-                    officerIds.push(v)
-                    newOfficerId = ''
-                  }
-                }
-              "
-            >
-              <el-option
-                v-for="p in availablePeople('officers')"
-                :key="p.id"
-                :label="p.name"
-                :value="p.id"
-              />
-            </el-select>
-          </div>
         </div>
-      </div>
 
-      <!-- Transaction Compliance Review Flow -->
-      <div class="art-card mb-4 overflow-hidden">
-        <div class="p-4 border-b border-[var(--default-border)]">
-          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.txReviewFlow') }}</h3>
-        </div>
-        <div class="p-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div v-for="flow in flows" :key="flow.id" class="tier-card" :class="flow.sevClass">
-              <div class="tier-card-header">
-                <div class="flex items-center gap-1.5">
-                  <span class="sev-dot" :class="flow.sevClass" />
-                  <span class="text-body-lg font-semibold text-g-900">{{ flow.label }}</span>
-                </div>
-                <span class="step-badge" :class="flow.sevClass">
-                  {{ flow.steps.length }}-Step
-                </span>
-              </div>
-              <div class="tier-card-body">
-                <div class="flow-config mb-3">
-                  <div>
-                    <div class="text-caption text-g-400 uppercase tracking-wider">{{
-                      $t('system.timeout')
-                    }}</div>
-                    <div class="text-body-lg font-semibold text-g-800">{{ flow.timeoutLabel }}</div>
+        <!-- Transaction Compliance Review Flow -->
+        <div class="art-card mb-4 overflow-hidden">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <h3 class="text-sm font-semibold text-g-900">{{ $t('system.txReviewFlow') }}</h3>
+          </div>
+          <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div v-for="flow in flows" :key="flow.id" class="tier-card" :class="flow.sevClass">
+                <div class="tier-card-header">
+                  <div class="flex items-center gap-1.5">
+                    <span class="sev-dot" :class="flow.sevClass" />
+                    <span class="text-body-lg font-semibold text-g-900">{{ flow.label }}</span>
                   </div>
-                  <div>
-                    <div class="text-caption text-g-400 uppercase tracking-wider">{{
-                      $t('system.value')
-                    }}</div>
-                    <div class="text-body-lg font-semibold text-g-800">{{ flow.timeoutValue }}</div>
-                  </div>
+                  <span class="step-badge" :class="flow.sevClass">
+                    {{ flow.steps.length }}-Step
+                  </span>
                 </div>
-                <div class="flow-chain">
-                  <div v-for="(step, idx) in flow.steps" :key="idx" class="flow-step">
-                    <div class="flow-step-indicator">
-                      <span class="flow-step-num" :class="flow.stepClass">{{ idx + 1 }}</span>
-                      <div
-                        v-if="idx < flow.steps.length - 1"
-                        class="flow-connector"
-                        :class="flow.sevClass"
-                      />
-                      <div
-                        v-else
-                        class="flow-connector"
-                        :class="flow.sevClass"
-                        style="min-height: 14px"
-                      />
+                <div class="tier-card-body">
+                  <div class="flow-config mb-3">
+                    <div>
+                      <div class="text-caption text-g-400 uppercase tracking-wider">{{
+                        $t('system.timeout')
+                      }}</div>
+                      <div class="text-body-lg font-semibold text-g-800">{{
+                        flow.timeoutLabel
+                      }}</div>
                     </div>
-                    <div class="flow-step-content">
-                      <div class="flex items-center gap-2">
+                    <div>
+                      <div class="text-caption text-g-400 uppercase tracking-wider">{{
+                        $t('system.value')
+                      }}</div>
+                      <div class="text-body-lg font-semibold text-g-800">{{
+                        flow.timeoutValue
+                      }}</div>
+                    </div>
+                  </div>
+                  <div class="flow-chain">
+                    <div v-for="(step, idx) in flow.steps" :key="idx" class="flow-step">
+                      <div class="flow-step-indicator">
+                        <span class="flow-step-num" :class="flow.stepClass">{{ idx + 1 }}</span>
                         <div
-                          class="w-[18px] h-[18px] rounded-full bg-g-200 text-g-700 flex items-center justify-center text-[9px] font-semibold flex-shrink-0"
-                        >
-                          {{ getPerson(step.personId)?.initials }}
-                        </div>
-                        <div class="flex flex-col gap-0.5">
-                          <span class="text-xs font-semibold text-g-900">
-                            {{ getPerson(step.personId)?.name }}
-                          </span>
-                          <span class="text-caption text-g-500">
-                            {{ getPerson(step.personId)?.email }}
-                          </span>
+                          v-if="idx < flow.steps.length - 1"
+                          class="flow-connector"
+                          :class="flow.sevClass"
+                        />
+                        <div
+                          v-else
+                          class="flow-connector"
+                          :class="flow.sevClass"
+                          style="min-height: 14px"
+                        />
+                      </div>
+                      <div class="flow-step-content">
+                        <div class="flex items-center gap-2">
+                          <div
+                            class="w-[18px] h-[18px] rounded-full bg-g-200 text-g-700 flex items-center justify-center text-[9px] font-semibold flex-shrink-0"
+                          >
+                            {{ getPerson(step.personId)?.initials }}
+                          </div>
+                          <div class="flex flex-col gap-0.5">
+                            <span class="text-xs font-semibold text-g-900">
+                              {{ getPerson(step.personId)?.name }}
+                            </span>
+                            <span class="text-caption text-g-500">
+                              {{ getPerson(step.personId)?.email }}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <!-- Resolved terminator -->
-                  <div class="flow-step">
-                    <div class="flow-step-indicator">
-                      <span class="flow-step-num resolved">✓</span>
-                    </div>
-                    <div class="flow-step-content resolved">
-                      <span class="text-xs font-semibold text-success">{{
-                        $t('system.resolved')
-                      }}</span>
+                    <!-- Resolved terminator -->
+                    <div class="flow-step">
+                      <div class="flow-step-indicator">
+                        <span class="flow-step-num resolved">✓</span>
+                      </div>
+                      <div class="flow-step-content resolved">
+                        <span class="text-xs font-semibold text-success">{{
+                          $t('system.resolved')
+                        }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -300,74 +350,74 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Travel Rule Manual Resolution Team -->
-      <div class="art-card mb-4 overflow-hidden">
-        <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-g-900">{{ $t('system.travelRuleTeam') }}</h3>
-          <el-button
-            size="small"
-            text
-            @click="editSection = editSection === 'travelRule' ? null : 'travelRule'"
+        <!-- Travel Rule Manual Resolution Team -->
+        <div class="art-card mb-4 overflow-hidden">
+          <div
+            class="p-4 border-b border-[var(--default-border)] flex items-center justify-between"
           >
-            {{ editSection === 'travelRule' ? $t('system.save') : $t('system.edit') }}
-          </el-button>
-        </div>
-        <div class="p-4">
-          <div class="mb-3 flex flex-wrap gap-2">
-            <el-tag size="small">{{ $t('system.permResolve') }}</el-tag>
-            <el-tag size="small">{{ $t('system.permReject') }}</el-tag>
-          </div>
-          <div class="flex flex-wrap gap-3">
-            <div
-              v-for="person in travelRulePeople"
-              :key="person.id"
-              class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
+            <h3 class="text-sm font-semibold text-g-900">{{ $t('system.travelRuleTeam') }}</h3>
+            <el-button
+              size="small"
+              text
+              @click="editSection = editSection === 'travelRule' ? null : 'travelRule'"
             >
+              {{ editSection === 'travelRule' ? $t('system.save') : $t('system.edit') }}
+            </el-button>
+          </div>
+          <div class="p-4">
+            <div class="mb-3 flex flex-wrap gap-2">
+              <el-tag size="small">{{ $t('system.permResolve') }}</el-tag>
+              <el-tag size="small">{{ $t('system.permReject') }}</el-tag>
+            </div>
+            <div class="flex flex-wrap gap-3">
               <div
-                class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
+                v-for="person in travelRulePeople"
+                :key="person.id"
+                class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
               >
-                {{ person.initials }}
+                <div
+                  class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
+                >
+                  {{ person.initials }}
+                </div>
+                <span class="text-sm text-g-900">{{ person.name }}</span>
+                <el-button
+                  v-if="editSection === 'travelRule'"
+                  :icon="'ri:close-line'"
+                  circle
+                  size="small"
+                  @click="removeFromSection('travelRule', person.id)"
+                />
               </div>
-              <span class="text-sm text-g-900">{{ person.name }}</span>
-              <el-button
-                v-if="editSection === 'travelRule'"
-                :icon="'ri:close-line'"
-                circle
-                size="small"
-                @click="removeFromSection('travelRule', person.id)"
-              />
+            </div>
+            <div v-if="editSection === 'travelRule'" class="mt-3 flex flex-wrap gap-2">
+              <el-select
+                v-model="newTravelRuleId"
+                :placeholder="$t('system.addMember')"
+                clearable
+                class="!w-56"
+                @change="
+                  (v: string) => {
+                    if (v) {
+                      travelRuleIds.push(v)
+                      newTravelRuleId = ''
+                    }
+                  }
+                "
+              >
+                <el-option
+                  v-for="p in availablePeople('travelRule')"
+                  :key="p.id"
+                  :label="p.name"
+                  :value="p.id"
+                />
+              </el-select>
             </div>
           </div>
-          <div v-if="editSection === 'travelRule'" class="mt-3 flex flex-wrap gap-2">
-            <el-select
-              v-model="newTravelRuleId"
-              :placeholder="$t('system.addMember')"
-              clearable
-              class="!w-56"
-              @change="
-                (v: string) => {
-                  if (v) {
-                    travelRuleIds.push(v)
-                    newTravelRuleId = ''
-                  }
-                }
-              "
-            >
-              <el-option
-                v-for="p in availablePeople('travelRule')"
-                :key="p.id"
-                :label="p.name"
-                :value="p.id"
-              />
-            </el-select>
-          </div>
         </div>
-      </div>
+      </template>
     </template>
-
-    <!-- ═══ Invite Member Dialog ═══ -->
     <el-dialog v-model="inviteDialogOpen" :title="$t('system.inviteMember')" width="500px">
       <el-form label-width="80px">
         <el-form-item :label="$t('system.name')">
@@ -431,6 +481,7 @@
     showTransferDialog,
     transferTo,
     inviteForm,
+    loading,
     suspendMember,
     recoverMember,
     inviteMember,

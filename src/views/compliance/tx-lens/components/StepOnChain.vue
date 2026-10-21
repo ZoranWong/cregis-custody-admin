@@ -53,7 +53,7 @@
             tx 哈希等长字段跨 3 列独占一行，其余字段每行 3 个。
           -->
           <div class="grid grid-cols-3 gap-x-4 gap-y-4">
-            <!-- 交易哈希：与其它字段同样占一格（不跨列） -->
+            <!-- 交易哈希：与其它字段同样占一格（不跨列），缩写成一行、悬停看全量 -->
             <div class="flex flex-col gap-0.5">
               <span class="text-label font-semibold text-g-700 uppercase">{{
                 $t('txLens.detail.txHash')
@@ -63,14 +63,18 @@
                 :href="txExplorerUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-xs font-medium font-mono break-all text-tone-info-text hover:underline"
+                class="text-xs font-medium font-mono truncate text-tone-info-text hover:underline"
+                :title="props.data?.txHash ?? undefined"
               >
-                {{ props.data?.txHash }}
+                {{ shortTxHash }}
                 <ArtSvgIcon icon="ri:external-link-line" class="text-icon-xs ml-0.5 align-middle" />
               </a>
-              <span v-else class="text-xs font-medium font-mono break-all text-g-800">{{
-                props.data?.txHash
-              }}</span>
+              <span
+                v-else
+                class="text-xs font-medium font-mono truncate text-g-800"
+                :title="props.data?.txHash ?? undefined"
+                >{{ shortTxHash }}</span
+              >
             </div>
 
             <!-- 执行结果 -->
@@ -185,6 +189,15 @@
   const txExplorerUrl = computed(() =>
     buildTxLink(props.data?.txHash || '', props.data?.network || '')
   )
+
+  /**
+   * 交易哈希缩写：保头尾，保证一格内一行显示（完整值在 title 悬停与浏览器链接里）。
+   * 与 StepCompliance 的地址摘要同款截断风格。
+   */
+  const shortTxHash = computed(() => {
+    const h = props.data?.txHash || ''
+    return h.length > 14 ? `${h.slice(0, 10)}…${h.slice(-8)}` : h || '--'
+  })
 
   // ─────────── 链上查询 ───────────
   const detail = ref<OnChainDetail | null>(null)

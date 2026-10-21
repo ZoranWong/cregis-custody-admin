@@ -3,49 +3,114 @@
 import { apiRequest } from '@/utils/http/request'
 import type {
   PasskeyStatus,
-  PersonalCenterSessionSummary,
   PersonalCenterSummary,
-  PersonalCenterSessionsView,
   PersonalCenterPasskeyRegistrationOptions,
   PersonalCenterTotpSetupMaterial,
   PersonalCenterTotpSetupResult,
   PersonalCenterPasswordChangeResult,
   RecoveryCodesDeliveryBundle,
   RecoveryCodesRefreshResult,
-  SecuritySessionRevokeResult,
-  SessionRiskStatus,
   FallbackSecurityStatus,
   PasskeyStatusState,
   TotpStatusState,
   RecoveryCodesState,
   PasswordFallbackState,
-  SessionRiskTone,
-  PersonalCenterActionEntry,
   PersonalCenterContactSupportEntry
-} from '@/features/system-admin/types'
+} from '@/types/models'
 
-const REVOKE_ALL_OTHERS_SENTINEL = '__all_others__'
-
-// TODO(FND): /v1/auth/security/summary 与 /sessions、/sessions/{id}/revoke 在
-// docs/custody-admin.openapi.yaml 中暂无对应端点，待后端补充后对齐。
-export async function fetchPersonalCenterSummary(): Promise<PersonalCenterSummary> {
-  const raw = (await apiRequest('/v1/auth/security/summary')) as Record<string, unknown>
-  return normalizePersonalCenterSummary(raw)
+/** 设备名：用于 passkey registration complete 的 deviceName 字段 */
+export function resolveDeviceName(): string {
+  const nav = navigator as Navigator & { userAgentData?: { platform?: string } }
+  return nav.userAgentData?.platform || navigator.platform || 'Current device'
 }
 
-export async function fetchPersonalCenterSessions(): Promise<PersonalCenterSessionsView> {
-  const raw = (await apiRequest('/v1/auth/security/sessions')) as Record<string, unknown>
-  return normalizePersonalCenterSessions(raw)
+/*
+ * ⚠️ 后端从未实现以下三个端点（openapi 无条目，实测返回 UNKNOWN_ERROR）：
+ *   /v1/auth/security/summary
+ *   /v1/auth/security/sessions
+ *   /v1/auth/security/sessions/{id}/revoke
+ * 个人中心改为：账号信息走 /system/staff/list（按登录用户 id 过滤），
+ * 状态未知的部分（passkey/TOTP 状态、会话列表）由前端按「未配置」渲染，
+ * 待后端补充状态查询与会话管理接口后再恢复。
+ */
+
+export interface StaffAccountInfo {
+  id: number
+  displayName: string
+  email: string
+  roleCode: string
+  accountStatus: string
 }
 
+/** 查询当前登录员工的信息（/system/staff/list 全量后按 id 过滤） */
+export async function fetchCurrentStaffAccount(userId: number): Promise<StaffAccountInfo | null> {
+  const raw = (await apiRequest('/system/staff/list')) as Array<Record<string, unknown>>
+  const list = Array.isArray(raw) ? raw : []
+  const me = list.find((item) => Number(item.id) === userId)
+  if (!me) return null
+  return {
+    id: Number(me.id),
+    displayName: String(me.display_name || me.username || ''),
+    email: String(me.email || ''),
+    roleCode: String(me.role_code || ''),
+    accountStatus: String(me.account_status || '')
+  }
+}
+
+/**
+ * 个人中心概览（前端拼装，不再依赖已下线的 /v1/auth/security/summary）。
+ * passkey/TOTP/恢复码状态无查询接口，按「未配置」占位，动作类操作成功后就地更新。
+ */
+export function buildPersonalCenterSummary(account: StaffAccountInfo): PersonalCenterSummary {
+  const notReadyPasskey: PasskeyStatus = { state: 'not_configured', summaryLabel: '' }
+  const fallback: FallbackSecurityStatus = {
+    totpState: 'not_configured',
+    recoveryCodesState: 'unavailable',
+    passwordFallbackState: 'available',
+    summaryLabel: ''
+  }
+  return {
+    accountSummary: {
+      displayName: account.displayName,
+      email: account.email,
+      roleLabel: account.roleCode
+    },
+    passkeyStatus: notReadyPasskey,
+    fallbackSecurityStatus: fallback,
+    sessionRiskStatus: { summaryLabel: '', tone: 'neutral' },
+    currentSessionSummary: {
+      sessionId: '',
+      deviceLabel: '',
+      lastActiveAt: '',
+      locationHint: ''
+    },
+    otherSessionSummaries: [],
+    managePasskeyEntry: { destinationOrIntent: '' },
+    manageRecoveryCodesEntry: { destinationOrIntent: '' },
+    manageSessionsEntry: { destinationOrIntent: '' },
+    manageTotpEntry: { destinationOrIntent: '' },
+    changePasswordEntry: { destinationOrIntent: '' },
+    contactSupportEntry: null
+  }
+}
+
+/*
+ * ⚠️ 后端实际返回 camelCase（与 openapi 一致），早期代码按 snake_case 取值，
+ * 导致 creationOptions 为空对象、attemptId 为空串，WebAuthn 直接失败。
+ * 这里统一用 pick()：camelCase 优先，兼容 snake_case。
+ */
 export async function fetchPasskeyRegistrationOptions(): Promise<PersonalCenterPasskeyRegistrationOptions> {
   const raw = (await apiRequest('/v1/auth/passkey/registration/options', {
     method: 'POST',
     body: {}
   })) as Record<string, unknown>
   return {
-    passkeyRegistrationAttemptId: readStr(raw, 'passkey_registration_attempt_id'),
-    creationOptions: readRecord(raw, 'creation_options')
+    passkeyRegistrationAttemptId: pickStr(
+      raw,
+      'passkeyRegistrationAttemptId',
+      'passkey_registration_attempt_id'
+    ),
+    creationOptions: pickRecord(raw, 'creationOptions', 'creation_options')
   }
 }
 
@@ -55,55 +120,58 @@ export async function completePasskeyRegistration(
 ): Promise<PasskeyStatus> {
   const raw = (await apiRequest('/v1/auth/passkey/registration/complete', {
     method: 'POST',
+    // 请求体字段同样以 openapi 为准：camelCase，deviceName 在顶层
     body: {
-      passkey_registration_attempt_id: passkeyRegistrationAttemptId,
-      credential
+      passkeyRegistrationAttemptId,
+      credential,
+      deviceName: resolveDeviceName()
     }
   })) as Record<string, unknown>
   return normalizePasskeyStatus(raw)
 }
 
-export async function bootstrapPersonalCenterTotp(): Promise<PersonalCenterTotpSetupMaterial> {
+export async function bootstrapPersonalCenterTotp(
+  email: string
+): Promise<PersonalCenterTotpSetupMaterial> {
+  // TOTP setup 需要在强认证上下文中携带 mfaToken；普通登录态下后端会拒绝。
   const raw = (await apiRequest('/v1/auth/mfa/settings/totp/setup', {
     method: 'POST',
-    body: {}
+    body: { email }
   })) as Record<string, unknown>
   return {
-    totpSetupId: readStr(raw, 'totp_setup_id'),
-    qrCodeBase64: readStr(raw, 'qr_code_base64'),
-    manualKey: readStr(raw, 'manual_key'),
-    accountName: readStr(raw, 'account_name')
+    totpSetupId: pickStr(raw, 'totpSetupId', 'totp_setup_id'),
+    qrCodeBase64: pickStr(raw, 'qrCodeBase64', 'qr_code_base64'),
+    manualKey: pickStr(raw, 'manualKey', 'manual_key'),
+    accountName: pickStr(raw, 'accountName', 'account_name')
   }
 }
 
 export async function completePersonalCenterTotp(
-  totpSetupId: string,
   code: string
 ): Promise<PersonalCenterTotpSetupResult> {
   const raw = (await apiRequest('/v1/auth/mfa/settings/totp/enable', {
     method: 'POST',
-    body: {
-      totp_setup_id: totpSetupId,
-      code
-    }
+    // 以 openapi MfaTotpCodeRequest 为准：只收 code（mfaToken 属于强认证流程，普通登录态不传）
+    body: { code }
   })) as Record<string, unknown>
   return {
     totpState: 'active',
     recoveryCodesDeliveryBundle: normalizeRecoveryCodesDeliveryBundle(
-      readRecord(raw, 'recovery_codes_delivery_bundle')
+      pickRecord(raw, 'recoveryCodesDeliveryBundle', 'recovery_codes_delivery_bundle')
     ),
     recoveryCodesState: 'available'
   }
 }
 
-export async function refreshRecoveryCodes(): Promise<RecoveryCodesRefreshResult> {
+export async function refreshRecoveryCodes(email: string): Promise<RecoveryCodesRefreshResult> {
   const raw = (await apiRequest('/v1/auth/mfa/settings/totp/recoveryCodes/refresh', {
     method: 'POST',
-    body: {}
+    // openapi MfaSetupTotpRequest：{ mfaToken?, email? }
+    body: { email }
   })) as Record<string, unknown>
   return {
     recoveryCodesDeliveryBundle: normalizeRecoveryCodesDeliveryBundle(
-      readRecord(raw, 'recovery_codes_delivery_bundle')
+      pickRecord(raw, 'recoveryCodesDeliveryBundle', 'recovery_codes_delivery_bundle')
     ),
     recoveryCodesState: 'available'
   }
@@ -113,128 +181,51 @@ export async function changePersonalCenterPassword(
   currentPassword: string,
   nextPassword: string
 ): Promise<PersonalCenterPasswordChangeResult> {
+  // 以 openapi ResetPasswordDto 为准：{ password, oldPassword, code? }
   const raw = (await apiRequest('/system/staff/update/password', {
     method: 'POST',
     body: {
-      current_password: currentPassword,
-      next_password: nextPassword
+      password: nextPassword,
+      oldPassword: currentPassword
     }
   })) as Record<string, unknown>
   return {
-    passwordFallbackState: normalizePasswordFallbackState(readStr(raw, 'password_fallback_state')),
-    summaryLabel: readStr(raw, 'summary_label')
+    passwordFallbackState: normalizePasswordFallbackState(
+      pickStr(raw, 'passwordFallbackState', 'password_fallback_state')
+    ),
+    summaryLabel: pickStr(raw, 'summaryLabel', 'summary_label')
   }
-}
-
-export async function revokeSecuritySession(
-  sessionId: string
-): Promise<SecuritySessionRevokeResult> {
-  const raw = (await apiRequest(
-    `/v1/auth/security/sessions/${encodeURIComponent(sessionId)}/revoke`,
-    { method: 'POST', body: {} }
-  )) as Record<string, unknown>
-  return {
-    revokedSessionId: readStr(raw, 'revoked_session_id'),
-    remainingOtherSessionCount: readNum(raw, 'remaining_other_session_count'),
-    sessionRiskStatus: normalizeSessionRiskStatus(readRecord(raw, 'session_risk_status'))
-  }
-}
-
-export async function revokeAllOtherSecuritySessions(): Promise<SecuritySessionRevokeResult> {
-  return revokeSecuritySession(REVOKE_ALL_OTHERS_SENTINEL)
 }
 
 // ---- 规范化函数 ----
 
-function normalizePersonalCenterSummary(raw: Record<string, unknown>): PersonalCenterSummary {
-  return {
-    accountSummary: {
-      displayName: readStr(readRecord(raw, 'account_summary'), 'display_name'),
-      email: readStr(readRecord(raw, 'account_summary'), 'email'),
-      roleLabel: readStr(readRecord(raw, 'account_summary'), 'role_label')
-    },
-    passkeyStatus: normalizePasskeyStatus(readRecord(raw, 'passkey_status')),
-    fallbackSecurityStatus: normalizeFallbackSecurityStatus(
-      readRecord(raw, 'fallback_security_status')
-    ),
-    sessionRiskStatus: normalizeSessionRiskStatus(readRecord(raw, 'session_risk_status')),
-    currentSessionSummary: normalizeSessionSummary(readRecord(raw, 'current_session_summary')),
-    otherSessionSummaries: readRecordArray(raw, 'other_session_summaries').map(
-      normalizeSessionSummary
-    ),
-    managePasskeyEntry: normalizeActionEntry(readRecord(raw, 'manage_passkey_entry')),
-    manageRecoveryCodesEntry: normalizeActionEntry(readRecord(raw, 'manage_recovery_codes_entry')),
-    manageSessionsEntry: normalizeActionEntry(readRecord(raw, 'manage_sessions_entry')),
-    manageTotpEntry: normalizeActionEntry(readRecord(raw, 'manage_totp_entry')),
-    changePasswordEntry: normalizeActionEntry(readRecord(raw, 'change_password_entry')),
-    contactSupportEntry: normalizeContactSupportEntry(raw.contact_support_entry)
-  }
-}
-
-function normalizePersonalCenterSessions(raw: Record<string, unknown>): PersonalCenterSessionsView {
-  return {
-    currentSessionSummary: normalizeSessionSummary(readRecord(raw, 'current_session_summary')),
-    otherSessionSummaries: readRecordArray(raw, 'other_session_summaries').map(
-      normalizeSessionSummary
-    ),
-    sessionRiskStatus: normalizeSessionRiskStatus(readRecord(raw, 'session_risk_status'))
-  }
-}
-
 function normalizePasskeyStatus(raw: Record<string, unknown>): PasskeyStatus {
   return {
-    state: normalizePasskeyStatusState(readStr(raw, 'state')),
-    summaryLabel: readStr(raw, 'summary_label')
-  }
-}
-
-function normalizeFallbackSecurityStatus(raw: Record<string, unknown>): FallbackSecurityStatus {
-  return {
-    totpState: normalizeTotpStatusState(readStr(raw, 'totp_state')),
-    recoveryCodesState: normalizeRecoveryCodesState(readStr(raw, 'recovery_codes_state')),
-    passwordFallbackState: normalizePasswordFallbackState(readStr(raw, 'password_fallback_state')),
-    summaryLabel: readStr(raw, 'summary_label')
-  }
-}
-
-function normalizeSessionRiskStatus(raw: Record<string, unknown>): SessionRiskStatus {
-  return {
-    summaryLabel: readStr(raw, 'summary_label'),
-    tone: normalizeSessionRiskTone(readStr(raw, 'tone'))
-  }
-}
-
-function normalizeSessionSummary(raw: Record<string, unknown>): PersonalCenterSessionSummary {
-  return {
-    sessionId: readStr(raw, 'session_id'),
-    deviceLabel: readStr(raw, 'device_label'),
-    lastActiveAt: readStr(raw, 'last_active_at'),
-    locationHint: readStr(raw, 'location_hint')
+    state: normalizePasskeyStatusState(pickStr(raw, 'state')),
+    summaryLabel: pickStr(raw, 'summaryLabel', 'summary_label')
   }
 }
 
 function normalizeRecoveryCodesDeliveryBundle(
   raw: Record<string, unknown>
 ): RecoveryCodesDeliveryBundle {
+  const codes = pickStringArray(raw, 'recoveryCodes', 'recovery_codes')
   return {
     deliveryMode: 'display_once',
-    recoveryCodes: readStringArray(raw, 'recovery_codes'),
+    // refreshCodes 接口可能返回空 bundle，此时用空数组占位（UI 显示空列表而不是崩溃）
+    recoveryCodes: codes,
     mustAcknowledgeSaved: true,
-    bundleVersion: readStr(raw, 'bundle_version')
+    bundleVersion: pickStr(raw, 'bundleVersion', 'bundle_version')
   }
 }
 
-function normalizeActionEntry(raw: Record<string, unknown>): PersonalCenterActionEntry {
-  return {
-    destinationOrIntent: readStr(raw, 'destination_or_intent')
-  }
-}
-
-function normalizeContactSupportEntry(raw: unknown): PersonalCenterContactSupportEntry | null {
+export function normalizeContactSupportEntry(
+  raw: unknown
+): PersonalCenterContactSupportEntry | null {
   if (!raw || typeof raw !== 'object') return null
   const record = raw as Record<string, unknown>
   return {
-    destinationOrChannel: readStr(record, 'destination_or_channel')
+    destinationOrChannel: pickStr(record, 'destinationOrChannel', 'destination_or_channel')
   }
 }
 
@@ -242,52 +233,41 @@ function normalizePasskeyStatusState(value: string): PasskeyStatusState {
   return value === 'active' || value === 'requires_attention' ? value : 'not_configured'
 }
 
-function normalizeTotpStatusState(value: string): TotpStatusState {
+export function normalizeTotpStatusState(value: string): TotpStatusState {
   return value === 'active' || value === 'requires_attention' ? value : 'not_configured'
 }
 
-function normalizeRecoveryCodesState(value: string): RecoveryCodesState {
+export function normalizeRecoveryCodesState(value: string): RecoveryCodesState {
   return value === 'available' || value === 'needs_refresh' ? value : 'unavailable'
 }
 
-function normalizePasswordFallbackState(value: string): PasswordFallbackState {
+export function normalizePasswordFallbackState(value: string): PasswordFallbackState {
   return value === 'requires_attention' ? 'requires_attention' : 'available'
-}
-
-function normalizeSessionRiskTone(value: string): SessionRiskTone {
-  return value === 'warning' ? 'warning' : 'neutral'
 }
 
 // ---- 低级读取辅助 ----
 
-function readStr(source: Record<string, unknown>, key: string): string {
-  const value = source[key]
+/** 后端字段命名以 camelCase 为准，同时兼容早期 snake_case 写法 */
+function pickValue(source: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    if (source[key] !== undefined && source[key] !== null) return source[key]
+  }
+  return undefined
+}
+
+function pickStr(source: Record<string, unknown>, ...keys: string[]): string {
+  const value = pickValue(source, keys)
   return typeof value === 'string' ? value : ''
 }
 
-function readNum(source: Record<string, unknown>, key: string): number {
-  const value = source[key]
-  return typeof value === 'number' ? value : Number(value || 0)
-}
-
-function readRecord(source: Record<string, unknown>, key: string): Record<string, unknown> {
-  const value = source[key]
+function pickRecord(source: Record<string, unknown>, ...keys: string[]): Record<string, unknown> {
+  const value = pickValue(source, keys)
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {}
 }
 
-function readRecordArray(source: Record<string, unknown>, key: string): Record<string, unknown>[] {
-  const value = source[key]
-  return Array.isArray(value)
-    ? value.filter(
-        (item): item is Record<string, unknown> =>
-          !!item && typeof item === 'object' && !Array.isArray(item)
-      )
-    : []
-}
-
-function readStringArray(source: Record<string, unknown>, key: string): string[] {
-  const value = source[key]
+function pickStringArray(source: Record<string, unknown>, ...keys: string[]): string[] {
+  const value = pickValue(source, keys)
   return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : []
 }

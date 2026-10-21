@@ -13,26 +13,24 @@
           <div>
             <div class="flex items-center gap-3">
               <h1 class="text-xl font-semibold text-g-900">{{ detail.merchantName }}</h1>
-              <span class="status-badge" :class="headerStatusClass">
-                {{ headerStatusLabel }}
-              </span>
+              <ArtStatusTag :status="stageToneToStatus()" :text="headerStatusLabel" />
             </div>
             <div class="flex items-center gap-4 text-sm text-g-500 mt-1.5">
               <span
                 >{{ $t('merchantDetail.jurisdiction') }}:
-                <strong class="text-g-700">{{ headerJurisdiction }}</strong></span
+                <span class="font-medium text-g-700">{{ headerJurisdiction }}</span></span
               >
               <span
                 >{{ $t('merchantDetail.businessType') }}:
-                <strong class="text-g-700">{{
+                <span class="font-medium text-g-700">{{
                   merchantTypeLabel(detail.merchantType)
-                }}</strong></span
+                }}</span></span
               >
               <span v-if="detail.appliedAt">
                 {{
                   isOnboarded ? $t('merchantDetail.onboardedAt') : $t('merchantDetail.appliedAt')
                 }}:
-                <strong class="text-g-700">{{ formatDateTime(detail.appliedAt) }}</strong>
+                <span class="font-medium text-g-700">{{ formatDateTime(detail.appliedAt) }}</span>
               </span>
             </div>
           </div>
@@ -78,7 +76,7 @@
             <h2 class="text-sm font-semibold text-g-900">
               {{ currentStepTitle }}
             </h2>
-            <span class="status-badge" :class="currentStepBadgeClass">{{ currentStepBadge }}</span>
+            <ArtStatusTag :status="stageToneToStatus()" :text="currentStepBadge" />
           </div>
 
           <!-- ── 当前步骤：继续显示资格筛查问卷（预审进行中 / 已拒绝）── -->
@@ -152,7 +150,7 @@
                   <div v-for="b in detail.beneficiaries || []" :key="b.id" class="summary-card">
                     <div class="summary-card-title">
                       <span class="text-sm font-semibold text-g-900">{{ b.name || '-' }}</span>
-                      <el-tag size="small" :type="info" class="ml-2">{{
+                      <el-tag size="small" type="info" class="ml-2">{{
                         beneficiaryTypeLabel(b.type)
                       }}</el-tag>
                       <span v-if="b.shareSize != null" class="text-xs text-g-500 ml-2">
@@ -350,9 +348,10 @@
                   />
                 </el-select>
                 <div v-else class="summary-card-value">
-                  <span class="status-badge" :class="headerStatusClass">
-                    {{ merchantStatusLabel(detail.merchantStatus) }}
-                  </span>
+                  <ArtStatusTag
+                    :status="stageToneToStatus()"
+                    :text="merchantStatusLabel(detail.merchantStatus)"
+                  />
                 </div>
               </div>
 
@@ -373,9 +372,10 @@
                   />
                 </el-select>
                 <div v-else class="summary-card-value">
-                  <span class="status-badge" :class="riskLevelBadgeClass(complianceForm.riskLevel)">
-                    {{ riskLevelLabel(complianceForm.riskLevel) }}
-                  </span>
+                  <ArtStatusTag
+                    :status="riskLevelTone(complianceForm.riskLevel)"
+                    :text="riskLevelLabel(complianceForm.riskLevel)"
+                  />
                 </div>
               </div>
 
@@ -808,11 +808,11 @@
     return hit ? t(hit.labelKey) : value || '-'
   }
 
-  function riskLevelBadgeClass(value: string): string {
-    if (value === 'LOW') return 'onboarded'
-    if (value === 'MEDIUM') return 'in-review'
-    if (value === 'HIGH') return 'rejected'
-    return ''
+  function riskLevelTone(value: string): 'success' | 'warning' | 'danger' | null {
+    if (value === 'LOW') return 'success'
+    if (value === 'MEDIUM') return 'warning'
+    if (value === 'HIGH') return 'danger'
+    return null
   }
 
   function startComplianceEdit() {
@@ -943,15 +943,18 @@
     return 'pending'
   })
 
-  const headerStatusClass = computed(() => stageToneClass.value)
+  /** 将 stageToneClass 映射为 ArtStatusTag 的 StatusTone */
+  function stageToneToStatus(): 'success' | 'warning' | 'danger' | 'info' | null {
+    const s = stageToneClass.value
+    if (s === 'onboarded') return 'success'
+    if (s === 'rejected') return 'danger'
+    if (s === 'in-review') return 'info'
+    return 'warning'
+  }
 
-  const currentStepBadgeClass = computed(() => stageToneClass.value)
   /**
-   * 页头徽章 = 当前【进行中】的那一步，而非笼统的状态词。
-   * 与进度条中 class 为 active 的步骤始终一致：
-   *   PENDING_SCREENING            → 资格筛查
-   *   DRAFT/SUBMITTED/NEED_SUPPLEMENT → 身份验证
-   *   APPROVED → 已入驻    REJECTED → 已拒绝
+   * 页头徽章文案 = 当前【进行中】的那一步，而非笼统的状态词。
+   * 与进度条中 class 为 active 的步骤始终一致。
    */
   const headerStatusLabel = computed(() => {
     if (isOnboarded.value) return t('merchantDetail.statusOnboarded')
@@ -1316,37 +1319,6 @@
 </script>
 
 <style scoped>
-  /* Status badges */
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1.4;
-    border-radius: 20px;
-  }
-
-  .status-badge.onboarded {
-    color: var(--tone-done-text);
-    background: var(--tone-done-ring-soft);
-  }
-
-  .status-badge.pending {
-    color: var(--tone-progress-text);
-    background: var(--tone-progress-ring-soft);
-  }
-
-  .status-badge.in-review {
-    color: var(--tone-info-text);
-    background: var(--tone-info-ring-soft);
-  }
-
-  .status-badge.rejected {
-    color: var(--tone-error-text);
-    background: var(--tone-error-ring-soft);
-  }
-
   /* Onboarding progress */
   .onboarding-progress {
     padding: 24px 32px 20px;

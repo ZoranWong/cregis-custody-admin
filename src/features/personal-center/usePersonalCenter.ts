@@ -1,78 +1,64 @@
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   bootstrapPersonalCenterTotp,
+  buildPersonalCenterSummary,
   changePersonalCenterPassword,
   completePasskeyRegistration,
   completePersonalCenterTotp,
+  fetchCurrentStaffAccount,
   fetchPasskeyRegistrationOptions,
-  fetchPersonalCenterSessions,
-  fetchPersonalCenterSummary,
-  refreshRecoveryCodes,
-  revokeAllOtherSecuritySessions,
-  revokeSecuritySession
+  refreshRecoveryCodes
 } from '@/api/security'
 import type {
   PersonalCenterPendingAction,
-  PersonalCenterSessionSummary,
   PersonalCenterSummary,
   PersonalCenterTotpSetupMaterial,
   PersonalCenterTotpSetupResult,
   RecoveryCodesDeliveryBundle
-} from '@/features/system-admin/types'
+} from '@/types/models'
+import { useUserStore } from '@/store/modules/user'
 import { runPasskeyRegistration } from '@/utils/webauthn'
 
 const PERSONAL_CENTER_PENDING_ACTION_KEY = 'PERSONAL_CENTER_PENDING_ACTION'
 
+/*
+ * 会话管理已下线：/v1/auth/security/sessions 系列端点后端从未实现，
+ * 相关 UI 与逻辑移除，待接口补充后再加回。
+ */
 export function usePersonalCenter() {
+  const userStore = useUserStore()
   const loading = ref(false)
   const refreshingRecoveryCodes = ref(false)
   const registeringPasskey = ref(false)
-  const refreshingSessions = ref(false)
-  const revokingSessionId = ref('')
   const summary = ref<PersonalCenterSummary | null>(null)
   const recoveryBundle = ref<RecoveryCodesDeliveryBundle | null>(null)
   const totpSetup = ref<PersonalCenterTotpSetupMaterial | null>(null)
+  /** 最近一次操作失败的原因：页面据此弹出提示，避免失败时毫无反馈 */
+  const actionError = ref('')
   const loadError = ref('')
   const passwordChangeSummary = ref('')
-  const activeDialog = ref<
-    'passkey' | 'totp' | 'recovery' | 'password' | 'revoke-single' | 'revoke-all' | null
-  >(null)
-  const revokeTargetSessionId = ref('')
+  const activeDialog = ref<'passkey' | 'totp' | 'recovery' | 'password' | null>(null)
   const pendingAction = ref<PersonalCenterPendingAction | null>(readPendingAction())
   const passkeySupported =
     typeof window !== 'undefined' && !!window.PublicKeyCredential && !!navigator.credentials
-
-  const currentSession = computed(() => summary.value?.currentSessionSummary ?? null)
-  const otherSessions = computed(() => summary.value?.otherSessionSummaries ?? [])
 
   async function load(force = false): Promise<void> {
     if (loading.value && !force) return
     loading.value = true
     loadError.value = ''
     try {
-      summary.value = await fetchPersonalCenterSummary()
+      // 账号信息改走 /system/staff/list（summary 聚合接口已下线）。
+      // 登录时 setSession 写入的 user 形状是 { id, username, email, roles }，
+      // userId/userName 是 store computed 上的旧映射，直接读 id。
+      const userId = Number(userStore.info?.userId ?? (userStore.info as any)?.id)
+      if (!userId) throw new Error('Login session missing user id.')
+      const account = await fetchCurrentStaffAccount(userId)
+      if (!account) throw new Error('Current account not found in staff directory.')
+      summary.value = buildPersonalCenterSummary(account)
     } catch (caught) {
       loadError.value = readMessage(caught, 'Unable to load Personal Center.')
     } finally {
       loading.value = false
-    }
-  }
-
-  async function refreshSessions(): Promise<void> {
-    if (!summary.value || refreshingSessions.value) return
-    refreshingSessions.value = true
-    try {
-      const sessions = await fetchPersonalCenterSessions()
-      summary.value = {
-        ...summary.value,
-        currentSessionSummary: sessions.currentSessionSummary,
-        otherSessionSummaries: sessions.otherSessionSummaries,
-        sessionRiskStatus: sessions.sessionRiskStatus
-      }
-    } catch {
-      /* toast handled elsewhere */
-    } finally {
-      refreshingSessions.value = false
     }
   }
 
@@ -83,6 +69,7 @@ export function usePersonalCenter() {
   async function managePasskey(): Promise<void> {
     if (!passkeySupported || registeringPasskey.value) return
     registeringPasskey.value = true
+    actionError.value = ''
     try {
       const options = await fetchPasskeyRegistrationOptions()
       const credential = await runPasskeyRegistration(
@@ -97,8 +84,8 @@ export function usePersonalCenter() {
         summary.value = { ...summary.value, passkeyStatus }
       }
       activeDialog.value = null
-    } catch {
-      /* toast handled elsewhere */
+    } catch (caught) {
+      actionError.value = describePasskeyError(caught)
     } finally {
       registeringPasskey.value = false
     }
@@ -112,8 +99,9 @@ export function usePersonalCenter() {
     activeDialog.value = 'recovery'
     if (refreshingRecoveryCodes.value) return
     refreshingRecoveryCodes.value = true
+    actionError.value = ''
     try {
-      const result = await refreshRecoveryCodes()
+      const result = await refreshRecoveryCodes(summary.value?.accountSummary.email || '')
       recoveryBundle.value = result.recoveryCodesDeliveryBundle
       if (summary.value) {
         summary.value = {
@@ -125,73 +113,31 @@ export function usePersonalCenter() {
           }
         }
       }
-    } catch {
-      /* toast handled elsewhere */
+    } catch (caught) {
+      actionError.value = readMessage(caught, 'Unable to refresh recovery codes.')
     } finally {
       refreshingRecoveryCodes.value = false
     }
-  }
-
-  function openRevokeSessionDialog(sessionId: string): void {
-    revokeTargetSessionId.value = sessionId
-    activeDialog.value = 'revoke-single'
-  }
-
-  async function revokeSession(session: PersonalCenterSessionSummary): Promise<boolean> {
-    if (!summary.value || !session.sessionId || revokingSessionId.value) return false
-    revokingSessionId.value = session.sessionId
-    try {
-      const result = await revokeSecuritySession(session.sessionId)
-      summary.value = {
-        ...summary.value,
-        otherSessionSummaries: summary.value.otherSessionSummaries.filter(
-          (item) => item.sessionId !== result.revokedSessionId
-        ),
-        sessionRiskStatus: result.sessionRiskStatus
-      }
-      activeDialog.value = null
-      revokeTargetSessionId.value = ''
-      return true
-    } catch {
-      return false
-    } finally {
-      revokingSessionId.value = ''
-    }
-  }
-
-  async function confirmRevokeSession(): Promise<boolean> {
-    const session = summary.value?.otherSessionSummaries.find(
-      (item) => item.sessionId === revokeTargetSessionId.value
-    )
-    if (!session) {
-      revokeTargetSessionId.value = ''
-      activeDialog.value = null
-      return false
-    }
-    return revokeSession(session)
   }
 
   function openPasswordDialog(): void {
     activeDialog.value = 'password'
   }
 
-  function openRevokeAllDialog(): void {
-    activeDialog.value = 'revoke-all'
-  }
-
   async function bootstrapTotpDialog(): Promise<void> {
     activeDialog.value = 'totp'
+    actionError.value = ''
     try {
-      totpSetup.value = await bootstrapPersonalCenterTotp()
-    } catch {
-      /* toast handled elsewhere */
+      totpSetup.value = await bootstrapPersonalCenterTotp(summary.value?.accountSummary.email || '')
+    } catch (caught) {
+      actionError.value = readMessage(caught, 'Unable to start TOTP setup.')
     }
   }
 
   async function completeTotpDialog(code: string): Promise<PersonalCenterTotpSetupResult | null> {
-    if (!totpSetup.value?.totpSetupId) return null
+    actionError.value = ''
     try {
-      const result = await completePersonalCenterTotp(totpSetup.value.totpSetupId, code)
+      const result = await completePersonalCenterTotp(code)
       recoveryBundle.value = result.recoveryCodesDeliveryBundle
       if (summary.value) {
         summary.value = {
@@ -206,7 +152,8 @@ export function usePersonalCenter() {
       }
       activeDialog.value = 'recovery'
       return result
-    } catch {
+    } catch (caught) {
+      actionError.value = readMessage(caught, 'Unable to verify the TOTP code.')
       return null
     }
   }
@@ -216,6 +163,7 @@ export function usePersonalCenter() {
     nextPassword: string
   ): Promise<boolean> {
     activeDialog.value = 'password'
+    actionError.value = ''
     try {
       const result = await changePersonalCenterPassword(currentPassword, nextPassword)
       passwordChangeSummary.value = result.summaryLabel
@@ -231,25 +179,8 @@ export function usePersonalCenter() {
       }
       activeDialog.value = null
       return true
-    } catch {
-      return false
-    }
-  }
-
-  async function revokeAllOthers(): Promise<boolean> {
-    activeDialog.value = 'revoke-all'
-    try {
-      const result = await revokeAllOtherSecuritySessions()
-      if (summary.value) {
-        summary.value = {
-          ...summary.value,
-          otherSessionSummaries: [],
-          sessionRiskStatus: result.sessionRiskStatus
-        }
-      }
-      activeDialog.value = null
-      return true
-    } catch {
+    } catch (caught) {
+      actionError.value = readMessage(caught, 'Unable to change password.')
       return false
     }
   }
@@ -258,7 +189,6 @@ export function usePersonalCenter() {
     const closingDialog = activeDialog.value
     activeDialog.value = null
     totpSetup.value = null
-    revokeTargetSessionId.value = ''
     passwordChangeSummary.value = ''
     if (closingDialog === 'recovery') {
       recoveryBundle.value = null
@@ -284,15 +214,6 @@ export function usePersonalCenter() {
     }
     if (action.kind === 'change_password') {
       activeDialog.value = 'password'
-      return
-    }
-    if (action.kind === 'revoke_all_others') {
-      activeDialog.value = 'revoke-all'
-      return
-    }
-    if (action.kind === 'revoke_session' && action.sessionId) {
-      revokeTargetSessionId.value = action.sessionId
-      activeDialog.value = 'revoke-single'
     }
   }
 
@@ -305,35 +226,43 @@ export function usePersonalCenter() {
     loading,
     refreshingRecoveryCodes,
     registeringPasskey,
-    refreshingSessions,
-    revokingSessionId,
     summary,
-    currentSession,
-    otherSessions,
     recoveryBundle,
     totpSetup,
     loadError,
+    actionError,
     passkeySupported,
     passwordChangeSummary,
     activeDialog,
-    revokeTargetSessionId,
     pendingAction,
     load,
-    refreshSessions,
     openPasskeyDialog,
     managePasskey,
     openRecoveryDialog,
     manageRecoveryCodes,
-    openRevokeSessionDialog,
-    revokeSession,
-    confirmRevokeSession,
     bootstrapTotpDialog,
     completeTotpDialog,
     openPasswordDialog,
     submitPasswordChange,
-    openRevokeAllDialog,
-    revokeAllOthers,
     clearDialogState
+  }
+}
+
+/** WebAuthn 抛出的 DOMException 文案较生硬，转成可读提示 */
+function describePasskeyError(caught: unknown): string {
+  const name = caught instanceof DOMException ? caught.name : ''
+  switch (name) {
+    case 'NotAllowedError':
+      // 用户取消 / 超时 / 该设备已注册过同一账号，浏览器都归到 NotAllowedError
+      return 'Passkey registration was cancelled or not allowed. If this device already has a passkey for this account, remove it in your system settings and try again.'
+    case 'NotSupportedError':
+      return 'This device or browser does not support the required passkey type.'
+    case 'SecurityError':
+      return 'Passkey registration is blocked for this origin (check rp.id / HTTPS).'
+    case 'InvalidStateError':
+      return 'A passkey for this account already exists on this device.'
+    default:
+      return readMessage(caught, 'Passkey registration failed.')
   }
 }
 

@@ -168,7 +168,7 @@
       "shareLinkPending": "分享链接生成功能开发中，当前无法手动创建交付链接",
       "uploadProofPending": "证明文件上传功能开发中，当前无法提交线下交付凭证",
       "rejectPending": "拒绝入金通知功能开发中，当前暂不支持在线拒绝",
-      "manualTraceMockHint": "以下为示例数据（mock），仅作样式参考，非该交易的真实记录",
+      "manualTraceMockHint": "当前展示为示例数据，仅作样式参考",
       "pendingReview": "待合规审查",
       "approve": "批准交易",
       "reject": "拒绝交易",
@@ -271,7 +271,6 @@
       "uploadProof": "上传证明",
       "resolve": "解决",
       "manualTrace": "手动追踪",
-      "manualTraceMockHint": "当前展示为示例数据，仅作样式参考",
       "vaspNotFound": "网络上未找到 VASP",
       "vaspNotFoundDetail": "受益方 VASP 在 Notabene、SYGNA 或其他支持的网络上未找到。自动交付失败。",
       "shareLinkGenerated": "分享链接已生成",
@@ -480,7 +479,8 @@
       "no": "否",
       "confirming": "确认中",
       "finalizedYes": "已终局"
-    }
+    },
+    "filters": "筛选"
   },
   "alerts": {
     "pageTitle": "合规告警",
@@ -773,11 +773,20 @@
   "setting": {
     "menuType": {
       "title": "菜单布局",
-      "list": ["垂直", "水平", "混合", "双列"]
+      "list": [
+        "垂直",
+        "水平",
+        "混合",
+        "双列"
+      ]
     },
     "theme": {
       "title": "主题风格",
-      "list": ["浅色", "深色", "系统"]
+      "list": [
+        "浅色",
+        "深色",
+        "系统"
+      ]
     },
     "menu": {
       "title": "菜单风格"
@@ -787,11 +796,17 @@
     },
     "box": {
       "title": "盒子样式",
-      "list": ["边框", "阴影"]
+      "list": [
+        "边框",
+        "阴影"
+      ]
     },
     "container": {
       "title": "容器宽度",
-      "list": ["铺满", "定宽"]
+      "list": [
+        "铺满",
+        "定宽"
+      ]
     },
     "basics": {
       "title": "基础配置",
@@ -837,8 +852,14 @@
   "notice": {
     "title": "通知",
     "btnRead": "标为已读",
-    "bar": ["通知", "消息", "代办"],
-    "text": ["暂无"],
+    "bar": [
+      "通知",
+      "消息",
+      "代办"
+    ],
+    "text": [
+      "暂无"
+    ],
     "viewAll": "查看全部"
   },
   "worktab": {
@@ -1054,9 +1075,9 @@
       "title": "系统管理",
       "teamManagement": "团队管理",
       "employees": "员工管理",
-      "monitor": "系统监控",
-      "personalCenter": "个人中心"
-    }
+      "monitor": "系统监控"
+    },
+    "personalCenter": "个人中心"
   },
   "table": {
     "form": {

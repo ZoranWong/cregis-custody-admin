@@ -387,6 +387,16 @@ export interface TransactionLensItemView {
   onchain: string
   disposition: string
   reviewResult: string
+  /** 法币金额（接口直接返回，如 AED） */
+  fiatAmount?: string
+  /** 法币币种 */
+  fiatCurrency?: string
+  /** 法币汇率 */
+  fiatRate?: string
+  /** 法币阈值 */
+  fiatThreshold?: string
+  /** 法币是否低于阈值 */
+  fiatBelowThreshold?: boolean
 }
 
 export interface PageTransactionLensItemView {
@@ -561,20 +571,32 @@ export interface ComplianceTabView {
 }
 
 /**
- * 对手方 VASP 身份（/compliance/transactions/{id}/travel-rule 实测结构）
- * 字段与原型 VASP Identity 区一一对应。
+ * 旧版对手方 VASP 身份字段。
+ * 接口现在恒返回 { name: null }，VASP 信息改由 vaspDeclaration 下发。
  */
 export interface VaspIdentityView {
-  /** 机构名（Notabene 目录，可能为 null） */
   name: string | null
-  /** 属地 */
-  jurisdiction: string | null
-  /** 监管状态：regulated / unregulated */
-  regulatoryStatus: string | null
-  /** 是否具备 Travel Rule 能力：yes / no */
-  trCapable: string | null
-  /** VASP DID */
-  did: string | null
+  jurisdiction?: string | null
+  regulatoryStatus?: string | null
+  trCapable?: string | null
+  did?: string | null
+}
+
+/**
+ * 对手方 VASP 声明（接口 vaspDeclaration 实测结构）
+ * declared = 对方申报的身份，discovered = 网络上实际发现的身份。
+ */
+export interface VaspDeclarationView {
+  /** 对方申报的 VASP DID */
+  declaredDid: string | null
+  /** 对方申报的 VASP 名称 */
+  declaredName: string | null
+  /** 网络上发现的 VASP DID */
+  discoveredDid: string | null
+  /** 网络上发现的 VASP 名称，可能为 null */
+  discoveredName: string | null
+  /** 核对结果：MATCHED / MISMATCH 等 */
+  reviewStatus: string | null
 }
 
 export interface TravelRuleTabView {
@@ -582,6 +604,8 @@ export interface TravelRuleTabView {
   notabeneTxId: string | null
   status: string | null
   vaspIdentity: VaspIdentityView | null
+  /** 对手方 VASP 身份声明与核对结果（新版字段，取代 vaspIdentity 的机构信息） */
+  vaspDeclaration?: VaspDeclarationView | null
   ivms101Status: string | null
   /** IVMS101 校验是否通过（新版字段，取代 ivms101Status） */
   ivms101Valid?: boolean | null

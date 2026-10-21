@@ -6,6 +6,7 @@ import { riskRoutes } from './risk'
 import { complianceRoutes } from './compliance'
 import { auditRoutes } from './audit'
 import { systemRoutes } from './system'
+import { personalCenterRoutes } from './personalCenter'
 
 export const routeModules: AppRouteRecord[] = [
   dashboardRoutes,
@@ -14,5 +15,6 @@ export const routeModules: AppRouteRecord[] = [
   riskRoutes,
   complianceRoutes,
   auditRoutes,
-  systemRoutes
+  systemRoutes,
+  personalCenterRoutes
 ]

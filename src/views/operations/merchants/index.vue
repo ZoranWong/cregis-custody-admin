@@ -44,7 +44,7 @@
               </template>
               <el-table-column :label="$t('merchantList.name')" min-width="180">
                 <template #default="{ row }">
-                  <strong class="text-g-900">{{ row.merchantName }}</strong>
+                  <span class="font-medium text-g-800">{{ row.merchantName }}</span>
                 </template>
               </el-table-column>
               <el-table-column :label="$t('merchantList.email')" min-width="180">
@@ -62,9 +62,7 @@
               </el-table-column>
               <el-table-column :label="$t('merchantList.status')" width="120">
                 <template #default="{ row }">
-                  <span class="status-badge" :class="statusClass(row.status)">
-                    {{ statusLabel(row.status) }}
-                  </span>
+                  <ArtStatusTag :status="statusTone(row.status)" :text="statusLabel(row.status)" />
                 </template>
               </el-table-column>
             </el-table>
@@ -130,12 +128,7 @@
           </el-input>
           <div class="flex items-center gap-2 text-xs text-g-500">
             <span>{{ $t('merchantList.sort') }}:</span>
-            <el-select
-              v-model="listFilters.sort"
-              class="!w-40"
-              size="small"
-              @change="handleListFilterChange"
-            >
+            <el-select v-model="listFilters.sort" class="!w-40" @change="handleListFilterChange">
               <el-option :label="$t('merchantList.sortRecent')" value="recent" />
               <el-option :label="$t('merchantList.sortNameAZ')" value="name_asc" />
             </el-select>
@@ -145,9 +138,9 @@
         <!-- Batch Action Bar -->
         <div
           v-if="selectedRows.length > 0"
-          class="flex items-center gap-3 px-4 py-2.5 mb-3 rounded-lg bg-[var(--el-color-primary-light-9)] border border-[var(--el-color-primary-light-5)]"
+          class="flex items-center gap-3 px-4 py-2.5 mb-3 rounded-lg bg-[var(--tone-info-bg)] border border-[var(--tone-info-border)]"
         >
-          <span class="text-xs font-medium text-[var(--theme-text)]">
+          <span class="text-xs font-medium text-[var(--tone-info-text)]">
             {{ selectedRows.length }} {{ $t('merchantList.selected') }}
           </span>
           <div class="flex gap-2 ml-auto">
@@ -177,7 +170,7 @@
               <el-table-column type="selection" width="40" @click.stop />
               <el-table-column :label="$t('merchantList.name')" min-width="180">
                 <template #default="{ row }">
-                  <strong class="text-g-900">{{ row.merchantName }}</strong>
+                  <span class="font-medium text-g-800">{{ row.merchantName }}</span>
                 </template>
               </el-table-column>
               <el-table-column :label="$t('merchantList.type')" min-width="160">
@@ -185,16 +178,15 @@
               </el-table-column>
               <el-table-column :label="$t('merchantList.status')" min-width="120">
                 <template #default="{ row }">
-                  <span class="status-badge" :class="statusClass(row.status)">
-                    {{ statusLabel(row.status) }}
-                  </span>
+                  <ArtStatusTag :status="statusTone(row.status)" :text="statusLabel(row.status)" />
                 </template>
               </el-table-column>
               <el-table-column :label="$t('merchantList.screening')" min-width="120">
                 <template #default="{ row }">
-                  <span class="screening-badge" :class="screeningClass(row as MerchantRecord)">
-                    {{ screeningLabel(row as MerchantRecord) }}
-                  </span>
+                  <ArtStatusTag
+                    :status="screeningTone(row as MerchantRecord)"
+                    :text="screeningLabel(row as MerchantRecord)"
+                  />
                 </template>
               </el-table-column>
               <el-table-column :label="$t('merchantList.updatedAt')" min-width="160">
@@ -331,13 +323,13 @@
     router.push({ name: 'merchant-detail', params: { merchantId: row.code } })
   }
 
-  function statusClass(status: string): string {
+  function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' | null {
     const s = status?.toUpperCase()
-    if (s === 'ACTIVE') return 'onboarded'
-    if (s === 'PENDING') return 'pending'
-    if (s === 'FROZEN') return 'frozen'
-    if (s === 'INACTIVE') return 'offboarded'
-    return ''
+    if (s === 'ACTIVE') return 'success'
+    if (s === 'PENDING') return 'warning'
+    if (s === 'FROZEN') return 'info'
+    if (s === 'INACTIVE') return 'danger'
+    return null
   }
 
   function statusLabel(status: string): string {
@@ -349,11 +341,11 @@
     return status || '-'
   }
 
-  function screeningClass(row: MerchantRecord): string {
+  function screeningTone(row: MerchantRecord): 'success' | 'danger' | null {
     const hasHits =
       row.merchantName?.toLowerCase().includes('node') ||
       row.merchantName?.toLowerCase().includes('block')
-    return hasHits ? 'hits' : 'clear'
+    return hasHits ? 'danger' : 'success'
   }
 
   function screeningLabel(row: MerchantRecord): string {
@@ -364,7 +356,7 @@
       const hits = Math.floor(Math.random() * 3) + 1
       return hits === 1 ? '1 Hit' : `${hits} Hits`
     }
-    return 'CLEAR'
+    return 'Clear'
   }
 
   function formatDateTime(v?: string | null): string {
@@ -378,7 +370,12 @@
       REGULATED_VASP: 'Regulated VASP',
       INTERNAL_SYSTEM: 'Internal System'
     }
-    return map[s] || s || '-'
+    if (map[s]) return map[s]
+    // 未匹配的值转标题大小写：partnership → Partnership
+    return (s || '-')
+      .split('_')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ')
   }
 
   onMounted(() => {
@@ -389,51 +386,5 @@
 <style scoped>
   .merchant-tabs {
     margin-top: 0;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 6px;
-  }
-
-  .status-badge.onboarded {
-    color: var(--tone-done-text);
-    background: var(--el-color-success-light-8);
-  }
-
-  .status-badge.pending {
-    color: var(--el-color-warning-dark-2);
-    background: var(--el-color-warning-light-8);
-  }
-
-  .status-badge.frozen {
-    color: var(--theme-text);
-    background: var(--el-color-primary-light-8);
-  }
-
-  .status-badge.offboarded {
-    color: var(--tone-error-text);
-    background: var(--el-color-danger-light-8);
-  }
-
-  .screening-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 6px;
-  }
-
-  .screening-badge.clear {
-    color: var(--tone-done-text);
-    background: var(--el-color-success-light-8);
-  }
-
-  .screening-badge.hits {
-    color: var(--tone-error-text);
-    background: var(--el-color-danger-light-8);
   }
 </style>

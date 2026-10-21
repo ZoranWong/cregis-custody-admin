@@ -168,7 +168,7 @@
       "shareLinkPending": "Share link generation is coming soon; manual delivery links cannot be created yet",
       "uploadProofPending": "Proof upload is coming soon; offline delivery evidence cannot be submitted yet",
       "rejectPending": "Rejecting inbound notifications is coming soon",
-      "manualTraceMockHint": "The following is sample (mock) data for layout reference only, not actual records of this transaction",
+      "manualTraceMockHint": "The timeline below is sample data for layout reference only",
       "pendingReview": "Pending compliance review",
       "approve": "Approve Transaction",
       "reject": "Reject Transaction",
@@ -271,7 +271,6 @@
       "uploadProof": "Upload Proof",
       "resolve": "Resolve",
       "manualTrace": "Manual Trace",
-      "manualTraceMockHint": "The timeline below is sample data for layout reference only",
       "vaspNotFound": "VASP Not Found on Network",
       "vaspNotFoundDetail": "Beneficiary VASP not found on Notabene, SYGNA, or other supported networks. Automatic delivery failed.",
       "shareLinkGenerated": "Share Link Generated",
@@ -480,7 +479,8 @@
       "no": "No",
       "confirming": "Confirming",
       "finalizedYes": "Finalized"
-    }
+    },
+    "filters": "Filters"
   },
   "alerts": {
     "pageTitle": "Compliance Alerts",
@@ -773,11 +773,20 @@
   "setting": {
     "menuType": {
       "title": "Menu Layout",
-      "list": ["Vertical", "Horizontal", "Mixed", "Dual"]
+      "list": [
+        "Vertical",
+        "Horizontal",
+        "Mixed",
+        "Dual"
+      ]
     },
     "theme": {
       "title": "Theme Style",
-      "list": ["Light", "Dark", "System"]
+      "list": [
+        "Light",
+        "Dark",
+        "System"
+      ]
     },
     "menu": {
       "title": "Menu Style"
@@ -787,11 +796,17 @@
     },
     "box": {
       "title": "Box Style",
-      "list": ["Border", "Shadow"]
+      "list": [
+        "Border",
+        "Shadow"
+      ]
     },
     "container": {
       "title": "Container Width",
-      "list": ["Full", "Boxed"]
+      "list": [
+        "Full",
+        "Boxed"
+      ]
     },
     "basics": {
       "title": "Basic Config",
@@ -837,8 +852,14 @@
   "notice": {
     "title": "Notice",
     "btnRead": "Mark as read",
-    "bar": ["Notice", "Message", "Todo"],
-    "text": ["No"],
+    "bar": [
+      "Notice",
+      "Message",
+      "Todo"
+    ],
+    "text": [
+      "No"
+    ],
     "viewAll": "View all"
   },
   "worktab": {
@@ -1052,9 +1073,9 @@
       "title": "System Admin",
       "teamManagement": "Team Management",
       "employees": "Employee Management",
-      "monitor": "System Monitor",
-      "personalCenter": "Personal Center"
-    }
+      "monitor": "System Monitor"
+    },
+    "personalCenter": "Personal Center"
   },
   "table": {
     "form": {

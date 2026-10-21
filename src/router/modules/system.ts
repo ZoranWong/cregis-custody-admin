@@ -39,18 +39,6 @@ export const systemRoutes: AppRouteRecord = {
         isHide: true,
         activePath: '/system/team'
       }
-    },
-    {
-      path: 'personal-center',
-      name: 'PersonalCenter',
-      component: '/system/personal-center',
-      meta: {
-        title: 'menus.system.personalCenter',
-        icon: 'ri:user-settings-line',
-        keepAlive: false,
-        isHide: true,
-        activePath: '/system/team'
-      }
     }
   ]
 }
