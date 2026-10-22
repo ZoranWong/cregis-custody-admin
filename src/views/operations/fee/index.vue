@@ -52,7 +52,7 @@
       <div v-if="activeTab === 'overview'">
         <!-- Summary Metrics -->
         <ElRow :gutter="20" class="flex mb-5">
-          <ElCol :sm="12" :md="8" v-for="card in summaryCards" :key="card.key">
+          <ElCol :sm="12" :md="6" v-for="card in summaryCards" :key="card.key">
             <div class="art-card relative flex flex-col justify-center h-28 px-5 mb-4">
               <span class="text-g-700 text-sm">{{ $t(card.labelKey) }}</span>
               <span class="text-display font-semibold mt-1 text-g-900">{{ card.value }}</span>
@@ -485,6 +485,7 @@
     fetchFeeOverview,
     fetchFeeRanking,
     fetchMerchantFeeDaily,
+    fetchCreditIncreaseTotal,
     fetchPlatformGasConfigList,
     updatePlatformGasConfig,
     addPlatformGasConfig,
@@ -540,11 +541,18 @@
   const rankingPageSize = ref(10)
 
   /**
+   * 信用额度入账合计（Credit Increase）。
+   *
+   * 原型把该值放在指标卡与趋势图第二根曲线上；后端没有平台级聚合接口，
+   * 由 fetchCreditIncreaseTotal 按日期区间从账单记录求和得到真实值。
+   */
+  const creditIncreaseUsdt = ref<number | null>(null)
+
+  /**
    * 日维度手续费趋势（原型 "Fee Collected & Credit Increase" 图）。
    *
-   * 后端只有手续费一条真实序列 —— 不提供 Credit Increase 与 Compliance 费用拆分，
-   * 因此图中只画 Fee Collected；接口返回页是 paginated 且按日期倒序，
-   * 这里按页取满后翻转成时间正序，避免 X 轴反向。
+   * 手续费一条序列来自 merchantFeeDailyPage（接口按日期倒序返回，反转成时间正序）；
+   * Credit Increase 只有区间总额、没有按日拆分，因此图中只画 Fee Collected。
    */
   const feeDailySeries = ref<Array<{ statDate: string; feeCollectedUsdt: number }>>([])
   const feeTrendXAxis = computed(() => feeDailySeries.value.map((d) => d.statDate.slice(5)))
@@ -573,6 +581,21 @@
     } catch {
       // 趋势图是增强信息，失败时静默降级，不阻塞主数据
       feeDailySeries.value = []
+    }
+  }
+
+  async function loadCreditIncrease(): Promise<void> {
+    if (!dateRange.from || !dateRange.to) {
+      creditIncreaseUsdt.value = null
+      return
+    }
+    try {
+      creditIncreaseUsdt.value = await fetchCreditIncreaseTotal({
+        startDate: dateRange.from,
+        endDate: dateRange.to
+      })
+    } catch {
+      creditIncreaseUsdt.value = null
     }
   }
 
@@ -651,6 +674,14 @@
       value: '$' + formatNumber(overview.value?.feeCollectedUsdt ?? 0)
     },
     {
+      key: 'creditIncrease',
+      labelKey: 'fee.creditIncrease',
+      value:
+        creditIncreaseUsdt.value == null
+          ? '--'
+          : '$' + formatNumber(Number(creditIncreaseUsdt.value.toFixed(2)))
+    },
+    {
       key: 'txCount',
       labelKey: 'fee.totalTxCount',
       value: formatNumber(overview.value?.txCount ?? 0)
@@ -723,7 +754,8 @@
         }),
         loadRankingData(rankingPage.value, rankingPageSize.value),
         fetchPlatformGasConfigList(),
-        loadFeeTrend()
+        loadFeeTrend(),
+        loadCreditIncrease()
       ])
       overview.value = ov
       platformConfig.value = pc

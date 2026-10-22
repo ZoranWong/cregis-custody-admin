@@ -148,3 +148,60 @@ export async function fetchTopUpOverview(query: {
     `/feeCenter/feeMonitorMerchantDailyStat/topUp/overview${toQueryString(query)}`
   )) as TopUpOverviewView
 }
+
+/** 充值账单记录（Credit Increase 数据源）：金额为 USDT base unit（6 位小数） */
+export interface CustomerTopupBillingRecord {
+  id: number
+  amount: string | number
+  coinId: string
+  createTime: string
+  direction: string
+  type: string
+  transferEcode: string
+  remark?: string | null
+  txCount?: number | null
+}
+
+interface CustomerTopupBillingResponse {
+  records: CustomerTopupBillingRecord[]
+  total: number
+  current: number
+  size: number
+}
+
+/**
+ * 平台维度的信用额度入账（Credit Increase）汇总。
+ *
+ * 后端没有提供平台级聚合接口（topUp/overview 必须传 ecode），
+ * 因此按日期区间拉取账单记录（createTime 支持 >= / < 条件）后在前端求和。
+ * 金额单位与 USDT 一致（base unit，1e6）。
+ */
+export async function fetchCreditIncreaseTotal(params: {
+  startDate: string
+  endDate: string
+}): Promise<number> {
+  const endExclusive = (() => {
+    const d = new Date(`${params.endDate}T00:00:00`)
+    d.setDate(d.getDate() + 1)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  })()
+  const result = (await apiRequest<CustomerTopupBillingResponse>(
+    '/billing/getCustomerTopupBilling',
+    {
+      method: 'POST',
+      body: {
+        pageIndex: 1,
+        pageSize: 500,
+        sortFields: 'createTime_d',
+        queryList: [
+          { key: 'createTime', value: params.startDate, oper: '>=', join: 'and' },
+          { key: 'createTime', value: endExclusive, oper: '<', join: 'and' }
+        ]
+      }
+    }
+  )) as CustomerTopupBillingResponse
+  const records = result?.records ?? []
+  const totalBaseUnit = records.reduce((sum, r) => sum + Number(r.amount || 0), 0)
+  return totalBaseUnit / 1_000_000
+}
