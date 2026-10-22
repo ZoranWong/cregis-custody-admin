@@ -60,6 +60,21 @@
           </ElCol>
         </ElRow>
 
+        <!-- Fee Collected Trend（数据来自 merchantFeeDailyPage，按日聚合） -->
+        <div v-if="feeTrendXAxis.length > 0" class="art-card mb-4 overflow-hidden">
+          <div class="p-4 border-b border-[var(--default-border)]">
+            <h3 class="text-base font-semibold text-g-900">{{ $t('fee.feeTrend') }}</h3>
+          </div>
+          <div class="p-4">
+            <ArtLineChart
+              :data="feeTrendData"
+              :xAxisData="feeTrendXAxis"
+              height="260px"
+              :showAreaColor="false"
+            />
+          </div>
+        </div>
+
         <!-- Fee Collection Ranking -->
         <div class="art-card art-table-card overflow-hidden mb-4">
           <div class="p-4 border-b border-[var(--default-border)]">
@@ -415,12 +430,27 @@
                   <span v-else class="text-g-300">—</span>
                 </template>
               </el-table-column>
-              <el-table-column :label="$t('fee.finalFee')" min-width="140">
+              <el-table-column :label="$t('fee.finalFee')" min-width="160">
                 <template #default="{ row }">
-                  <span class="text-sm font-medium text-g-900"
-                    >${{ formatFeeFromRaw(row.finalFeePerTx) }}</span
-                  >
-                  <span class="block text-xs text-g-400">{{
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-g-900"
+                      >${{ formatFeeFromRaw(row.finalFeePerTx) }}</span
+                    >
+                    <!-- 原型「xx% off」徽章：discount 是折扣率，0.85 表示 85 折 → 15% off -->
+                    <span
+                      v-if="discountOffPercent(effectiveDiscount(row)) > 0"
+                      class="text-label font-semibold px-1.5 py-0.5 rounded bg-tone-progress-bg text-tone-progress-text whitespace-nowrap"
+                      >{{
+                        $t('fee.gasFeeDiscount', {
+                          pct: discountOffPercent(effectiveDiscount(row))
+                        })
+                      }}</span
+                    >
+                    <span v-else class="text-label text-tone-muted-text">{{
+                      $t('fee.noDiscount')
+                    }}</span>
+                  </div>
+                  <span class="block text-xs text-tone-muted-text">{{
                     merchantChainCustomState[row.network]?.useCustom
                       ? $t('fee.custom')
                       : $t('fee.platform')
@@ -454,6 +484,7 @@
   import {
     fetchFeeOverview,
     fetchFeeRanking,
+    fetchMerchantFeeDaily,
     fetchPlatformGasConfigList,
     updatePlatformGasConfig,
     addPlatformGasConfig,
@@ -463,6 +494,7 @@
     type FeeRankingQuery
   } from '@/api/operationsFee'
   import { fetchMerchantList, type MerchantListItemView } from '@/api/merchantSearch'
+  import ArtLineChart from '@/components/core/charts/art-line-chart/index.vue'
   import type {
     FeeRankingItemView,
     PlatformGasConfigView,
@@ -506,6 +538,43 @@
   const rankingSearch = ref('')
   const rankingPage = ref(1)
   const rankingPageSize = ref(10)
+
+  /**
+   * 日维度手续费趋势（原型 "Fee Collected & Credit Increase" 图）。
+   *
+   * 后端只有手续费一条真实序列 —— 不提供 Credit Increase 与 Compliance 费用拆分，
+   * 因此图中只画 Fee Collected；接口返回页是 paginated 且按日期倒序，
+   * 这里按页取满后翻转成时间正序，避免 X 轴反向。
+   */
+  const feeDailySeries = ref<Array<{ statDate: string; feeCollectedUsdt: number }>>([])
+  const feeTrendXAxis = computed(() => feeDailySeries.value.map((d) => d.statDate.slice(5)))
+  const feeTrendData = computed(() => [
+    {
+      name: t('fee.feeCollectedShort'),
+      data: feeDailySeries.value.map((d) => Number(d.feeCollectedUsdt.toFixed(2)))
+    }
+  ])
+
+  async function loadFeeTrend(): Promise<void> {
+    if (!dateRange.from || !dateRange.to) {
+      feeDailySeries.value = []
+      return
+    }
+    try {
+      const res = await fetchMerchantFeeDaily({
+        startDate: dateRange.from,
+        endDate: dateRange.to,
+        ecode: '',
+        pageNum: 1,
+        pageSize: 200,
+        ...(selectedNetwork.value ? { network: selectedNetwork.value } : {})
+      })
+      feeDailySeries.value = [...(res.records ?? [])].reverse()
+    } catch {
+      // 趋势图是增强信息，失败时静默降级，不阻塞主数据
+      feeDailySeries.value = []
+    }
+  }
 
   // Platform config
   const platformConfig = ref<PlatformGasConfigView[]>([])
@@ -625,6 +694,16 @@
   function formatDecimalTrimmed(val: number, decimals: number): string {
     return val.toFixed(decimals).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1')
   }
+  /** 当前生效的折扣率：有自定义折扣用自定义，否则用平台折扣 */
+  function effectiveDiscount(row: PlatformGasConfigView): number {
+    const custom = merchantChainCustomState.value[row.network]
+    return custom?.useCustom ? custom.rate : row.platformDiscount
+  }
+  /** 折扣率 → 优惠百分比（0.85 → 15）；四舍五入到整数，0 表示无优惠 */
+  function discountOffPercent(rate: number): number {
+    if (!Number.isFinite(rate) || rate >= 1) return 0
+    return Math.max(0, Math.round((1 - rate) * 100))
+  }
   function getGasDecimalsDivisor(network: string): number {
     const mainCoin = coinStore.getMainCoin(network)
     return Math.pow(10, mainCoin?.decimals ?? 0)
@@ -636,14 +715,15 @@
     loading.value = true
     loadError.value = ''
     try {
-      const [ov, rankResult, pc] = await Promise.all([
+      const [ov, , pc] = await Promise.all([
         fetchFeeOverview({
           startDate: dateRange.from,
           endDate: dateRange.to,
           network: selectedNetwork.value || undefined
         }),
         loadRankingData(rankingPage.value, rankingPageSize.value),
-        fetchPlatformGasConfigList()
+        fetchPlatformGasConfigList(),
+        loadFeeTrend()
       ])
       overview.value = ov
       platformConfig.value = pc

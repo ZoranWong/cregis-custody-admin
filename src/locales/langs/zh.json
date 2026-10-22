@@ -1503,7 +1503,15 @@
     "activitySubmitted": "自动充值",
     "activityProcessing": "处理中",
     "activitySucceeded": "已完成",
-    "activityFailed": "失败"
+    "activityFailed": "失败",
+    "currentConfiguration": "当前配置",
+    "currentBalance": "当前余额",
+    "transfersPerRefill": "转账/充值次数均值",
+    "refillsPerDay": "日均充值次数",
+    "infoTransfersPerRefill": "生命周期均值：账户创建以来的总转账数 ÷ 总充值次数。",
+    "infoRefillsPerDay": "生命周期均值：账户创建以来的总充值次数 ÷ 总天数。",
+    "unavailable": "不可用",
+    "searchAccount": "搜索商户 / 项目 / 账户"
   },
   "fee": {
     "overview": "概览",
@@ -1564,7 +1572,10 @@
     "noMerchantFeeData": "该时间段暂无每日费用数据。",
     "noConsumptionData": "该时间段暂无消耗数据。",
     "noTopUpRecords": "该商户暂无充值记录。",
-    "saveSuccess": "保存成功"
+    "saveSuccess": "保存成功",
+    "feeTrend": "手续费收入趋势",
+    "gasFeeDiscount": "优惠 {pct}%",
+    "noDiscount": "无折扣"
   },
   "risk": {
     "dispositionQueue": "处置队列",

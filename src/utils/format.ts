@@ -191,6 +191,28 @@ export function formatDateRangeValue(range: [Date, Date]): { from: string; to: s
   }
 }
 
+/**
+ * 相对时间（原型 Gas / Fee 列表用 "2 min ago" 风格）。
+ *
+ * 与 formatTime 的区别：formatTime 是绝对时间，用于详情页等需要精确值的位置；
+ * 此处用于「最近活动 / 最近信号」这类强调新旧的列。
+ * 超过 30 天直接回落绝对日期，避免 "45 days ago" 这类无信息量的文案。
+ */
+export function formatRelativeTime(iso: string | null | undefined): string {
+  if (!iso) return '-'
+  const time = new Date(iso).getTime()
+  if (Number.isNaN(time)) return iso
+  const diffMin = Math.floor((Date.now() - time) / 60000)
+  if (diffMin < 1) return 'just now'
+  if (diffMin < 60) return `${diffMin} min ago`
+  const diffHour = Math.floor(diffMin / 60)
+  if (diffHour < 24) return `${diffHour}h ago`
+  const diffDay = Math.floor(diffHour / 24)
+  if (diffDay === 1) return '1 day ago'
+  if (diffDay < 30) return `${diffDay} days ago`
+  return iso.slice(0, 10)
+}
+
 /** 将币种基础单位数值格式化为 Gwei，如 1999000000 wei → "1.999 Gwei" */
 export function formatGasFee(raw: string | number, baseUnitName: string): string {
   const num = typeof raw === 'string' ? Number(raw) : raw

@@ -1501,7 +1501,15 @@
     "activitySubmitted": "Auto supplement",
     "activityProcessing": "Processing",
     "activitySucceeded": "Succeeded",
-    "activityFailed": "Failed"
+    "activityFailed": "Failed",
+    "currentConfiguration": "Current Configuration",
+    "currentBalance": "Current Balance",
+    "transfersPerRefill": "Transfers/Refill Avg.",
+    "refillsPerDay": "Refills/Day Avg.",
+    "infoTransfersPerRefill": "Lifetime average: total transfers divided by total refills since account creation.",
+    "infoRefillsPerDay": "Lifetime average: total refills divided by total days since account creation.",
+    "unavailable": "Unavailable",
+    "searchAccount": "Search merchant / project / account"
   },
   "fee": {
     "overview": "Overview",
@@ -1562,7 +1570,10 @@
     "noMerchantFeeData": "No daily fee data for this period.",
     "noConsumptionData": "No consumption data for this period.",
     "noTopUpRecords": "No top-up records for this merchant yet.",
-    "saveSuccess": "Saved successfully"
+    "saveSuccess": "Saved successfully",
+    "feeTrend": "Fee Collected Trend",
+    "gasFeeDiscount": "{pct}% off",
+    "noDiscount": "No discount"
   },
   "risk": {
     "dispositionQueue": "Disposition Queue",

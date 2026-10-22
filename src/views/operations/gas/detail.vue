@@ -14,72 +14,94 @@
     </template>
 
     <template v-else-if="detail">
-      <!-- Header Card -->
+      <!-- Header Card（原型：标题 + meta 一行，配置项收进 Current Configuration 卡片） -->
       <div class="art-card p-5 mb-4">
-        <div class="flex items-start justify-between mb-4">
-          <div>
-            <h1 class="text-xl font-semibold text-g-900">{{
-              detail.account.merchantName || detail.account.ecode || '-'
-            }}</h1>
-            <p class="text-sm text-g-500 mt-1"
-              >{{ detail.account.network }} · {{ detail.account.coinId }}</p
-            >
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <h1 class="text-xl font-semibold text-g-900 truncate">
+              {{ headerTitle }}
+            </h1>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1.5">
+              <span class="text-tone-muted-text">
+                {{ $t('gas.network') }}:
+                <span class="font-medium text-g-800">{{ detail.account.network }}</span>
+              </span>
+              <span class="text-tone-muted-text">
+                {{ $t('gas.currentBalance') }}:
+                <span class="font-medium text-g-800 tabular-nums">{{
+                  balanceDisplay(
+                    detail.account.balance,
+                    detail.account.coinId,
+                    detail.account.network
+                  )
+                }}</span>
+              </span>
+              <span v-if="detail.account.address" class="text-tone-muted-text">
+                {{ $t('gas.address') }}:
+                <span class="font-mono text-xs text-g-700">{{
+                  compactAddress(detail.account.address)
+                }}</span>
+              </span>
+            </div>
           </div>
-          <!--
-            健康状态 tag 与 Back 按钮并排。
-            高度差（el-tag 24px vs el-button 36px）会让两者视觉错位 ——
-            用 items-center 垂直居中，并让 tag 高度跟齐按钮（32px，
-            el-button text 模式的内边距高度），保持一行内的视觉平衡。
-          -->
-          <div class="flex items-center gap-2">
-            <el-tag :type="healthTagType as any" class="!h-8">{{ healthLabel }}</el-tag>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <ArtStatusTag :status="healthTagType" :text="healthLabel" />
             <ArtBackButton history />
           </div>
         </div>
+      </div>
 
-        <!-- Info Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('gas.balance') }}</div>
-            <div class="text-sm font-medium text-g-900">{{
-              balanceDisplay(detail.account.balance, detail.account.coinId, detail.account.network)
-            }}</div>
-          </div>
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('gas.threshold') }}</div>
-            <div class="text-sm font-medium text-g-900">{{
-              thresholdDisplay(
-                detail.account.threshold,
-                detail.account.coinId,
-                detail.account.network
-              )
-            }}</div>
-          </div>
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('gas.amountPerTopUp') }}</div>
-            <div class="text-sm font-medium text-g-900">{{
-              amountPerTopUpDisplay(
-                detail.account.amountPerTopUp,
-                detail.account.coinId,
-                detail.account.network
-              )
-            }}</div>
-          </div>
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('gas.autoTopUp') }}</div>
-            <div class="text-sm font-medium text-g-900">{{ autoTopUpLabel }}</div>
-          </div>
-          <div>
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('gas.usdtBalance') }}</div>
-            <div class="text-sm font-medium text-g-900">{{
-              usdtBalanceDisplay(detail.account.usdtBalance, detail.account.network)
-            }}</div>
-          </div>
-          <div v-if="detail.account.address">
-            <div class="text-xs text-g-500 mb-0.5">{{ $t('gas.address') }}</div>
-            <div class="text-sm font-medium text-g-900 font-mono">{{
-              compactAddress(detail.account.address)
-            }}</div>
+      <!-- Current Configuration -->
+      <div class="art-card mb-4 overflow-hidden">
+        <div class="p-4 border-b border-[var(--default-border)]">
+          <h2 class="text-sm font-semibold text-g-900">{{ $t('gas.currentConfiguration') }}</h2>
+        </div>
+        <div class="p-4">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div>
+              <div class="text-xs text-tone-muted-text mb-0.5">{{ $t('gas.autoTopUp') }}</div>
+              <div
+                class="text-sm font-medium"
+                :class="autoTopUpEnabled ? 'text-tone-done-text' : 'text-tone-muted-text'"
+                >{{ autoTopUpLabel }}</div
+              >
+            </div>
+            <div>
+              <div class="text-xs text-tone-muted-text mb-0.5">{{ $t('gas.threshold') }}</div>
+              <div class="text-sm font-medium text-g-900 tabular-nums">{{
+                thresholdDisplay(
+                  detail.account.threshold,
+                  detail.account.coinId,
+                  detail.account.network
+                )
+              }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-tone-muted-text mb-0.5">{{ $t('gas.amountPerTopUp') }}</div>
+              <div class="text-sm font-medium text-g-900 tabular-nums">{{
+                amountPerTopUpDisplay(
+                  detail.account.amountPerTopUp,
+                  detail.account.coinId,
+                  detail.account.network
+                )
+              }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-tone-muted-text mb-0.5">{{ $t('gas.usdtBalance') }}</div>
+              <div class="text-sm font-medium text-g-900 tabular-nums">{{
+                usdtBalanceDisplay(detail.account.usdtBalance, detail.account.network)
+              }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-tone-muted-text mb-0.5">{{ $t('gas.balance') }}</div>
+              <div class="text-sm font-medium text-g-900 tabular-nums">{{
+                balanceDisplay(
+                  detail.account.balance,
+                  detail.account.coinId,
+                  detail.account.network
+                )
+              }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -143,7 +165,7 @@
           </el-table-column>
           <el-table-column :label="$t('gas.feeAmount')" width="180">
             <template #default="{ row }">
-              <div>{{ feeDisplay(row.amount, row.coinId, row.network) }}</div>
+              <div>{{ feeDisplay(row.amount, row.coinId) }}</div>
               <div class="text-xs text-g-500"
                 >({{ feeReadable(row.amount, row.coinId, row.network) }} {{ row.coinId }})</div
               >
@@ -250,16 +272,14 @@
           </el-table-column>
           <el-table-column :label="$t('gas.status')" min-width="130">
             <template #default="{ row }"
-              ><el-tag :type="topUpStatusTagType(row.status, row.isStale) as any" size="small">{{
-                gasTopUpStatusLabel(row.status, row.isStale)
-              }}</el-tag></template
-            >
+              ><ArtStatusTag
+                :status="topUpStatusTagType(row.status, row.isStale)"
+                :text="gasTopUpStatusLabel(row.status, row.isStale)"
+            /></template>
           </el-table-column>
           <el-table-column :label="$t('gas.requestAmount')" min-width="180">
             <template #default="{ row }">
-              <div v-if="row.amount">{{
-                feeDisplay(Number(row.amount), row.coinId, row.network)
-              }}</div>
+              <div v-if="row.amount">{{ feeDisplay(Number(row.amount), row.coinId) }}</div>
               <div v-if="row.amount" class="text-xs text-g-500"
                 >({{ feeReadable(Number(row.amount), row.coinId, row.network) }}
                 {{ row.coinId }})</div
@@ -269,7 +289,7 @@
           </el-table-column>
           <el-table-column :label="$t('gas.actualAmount')" min-width="180">
             <template #default="{ row }">
-              <div v-if="row.cost">{{ feeDisplay(Number(row.cost), row.coinId, row.network) }}</div>
+              <div v-if="row.cost">{{ feeDisplay(Number(row.cost), row.coinId) }}</div>
               <div v-if="row.cost" class="text-xs text-g-500"
                 >({{ feeReadable(Number(row.cost), row.coinId, row.network) }}
                 {{ row.coinId }})</div
@@ -450,13 +470,21 @@
   const healthLabel = computed(
     () => detail.value?.account.health?.healthState?.replace(/_/g, ' ') ?? '-'
   )
-  const healthTagType = computed(() => {
+  const healthTagType = computed<'success' | 'warning' | 'danger' | 'info'>(() => {
     const s = detail.value?.account.health?.healthState
     if (s === 'healthy') return 'success'
     if (s === 'low_balance' || s === 'top_up_pending_or_stale' || s === 'unknown') return 'warning'
     if (s === 'top_up_failed' || s === 'missing_account') return 'danger'
     return 'info'
   })
+  /** 原型标题格式：Merchant / Project N（商户名缺失时回退 ecode） */
+  const headerTitle = computed(() => {
+    const a = detail.value?.account
+    if (!a) return '-'
+    const merchant = a.merchantName || a.ecode || '-'
+    return a.projectId != null ? `${merchant} / Project ${a.projectId}` : merchant
+  })
+  const autoTopUpEnabled = computed(() => detail.value?.account.autoTopUpEnabled === true)
   const autoTopUpLabel = computed(() => {
     const v = detail.value?.account.autoTopUpEnabled
     if (v === true) return 'Enabled'
@@ -488,7 +516,7 @@
     const d = getDecimals('USDT', network) || 6
     return formatCoinBalance(raw, d) + ' USDT'
   }
-  function feeDisplay(amount: number, coinId: string, network: string): string {
+  function feeDisplay(amount: number, coinId: string): string {
     return formatGasFee(amount, getBaseUnitName(coinId))
   }
   function feeReadable(amount: number, coinId: string, network: string): string {
@@ -611,7 +639,10 @@
     loadTopUps(overrides)
   }
 
-  function topUpStatusTagType(status: string, isStale: boolean): string {
+  function topUpStatusTagType(
+    status: string,
+    isStale: boolean
+  ): 'success' | 'warning' | 'danger' | 'info' {
     if (isStale || status === 'failed') return 'danger'
     if (status === 'submitted' || status === 'processing') return 'warning'
     if (status === 'succeeded' || status === 'fulfilled_recorded') return 'success'

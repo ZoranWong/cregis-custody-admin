@@ -7,8 +7,6 @@ import type {
   NativeCoinConsumptionView,
   PlatformGasConfigView,
   MerchantGasConfigView,
-  GasCostResponseView,
-  GasTopupRecordResponseView,
   TopUpOverviewView,
   MerchantBillingRecordResponseView
 } from '@/features/ops/fee/types'
@@ -31,7 +29,8 @@ export interface FeeRankingQuery {
 export interface FeeMerchantDailyQuery {
   startDate?: string
   endDate?: string
-  ecode: string
+  /** 留空表示平台维度（全部商户汇总），用于概览趋势图 */
+  ecode?: string
   pageNum?: number
   pageSize?: number
   network?: string

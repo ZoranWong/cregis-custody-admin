@@ -68,19 +68,23 @@
 
   // 缓存计算的最大值，避免重复计算
   const maxValue = computed(() => {
-    if (isMultipleData.value) {
-      const multiData = props.data as LineDataItem[]
-      return multiData.reduce((max, item) => {
-        if (item.data?.length) {
-          const itemMax = Math.max(...item.data)
-          return Math.max(max, itemMax)
-        }
-        return max
-      }, 0)
-    } else {
+    const raw = (() => {
+      if (isMultipleData.value) {
+        const multiData = props.data as LineDataItem[]
+        return multiData.reduce((max, item) => {
+          if (item.data?.length) {
+            const itemMax = Math.max(...item.data)
+            return Math.max(max, itemMax)
+          }
+          return max
+        }, 0)
+      }
       const singleData = props.data as number[]
       return singleData?.length ? Math.max(...singleData) : 0
-    }
+    })()
+    // 全零数据（如某区间没有任何费用）时 ECharts 的 max=0 会让坐标轴退化，
+    // 兜底为 1，保持一条可见的基线。
+    return raw > 0 ? raw : 1
   })
 
   // 初始化动画数据（优化：减少条件判断）

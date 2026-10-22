@@ -55,28 +55,40 @@
         <template #empty>
           <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
         </template>
-        <el-table-column :label="$t('gas.level')" width="80">
+        <el-table-column :label="$t('gas.level')" width="100">
           <template #default="{ row }"
-            ><el-tag :type="severityTagType(row.severity)" size="small">{{
-              severityLabel(row.severity)
-            }}</el-tag></template
-          >
+            ><ArtStatusTag
+              :status="severityTagType(row.severity)"
+              :text="severityLabel(row.severity)"
+          /></template>
         </el-table-column>
         <el-table-column :label="$t('gas.merchant')" min-width="160">
           <template #default="{ row }">
-            <div class="text-sm text-g-900">{{ row.merchantName || '-' }}</div>
-            <div class="text-xs text-g-500">Project {{ row.projectId ?? 'unavailable' }}</div>
+            <div class="text-sm font-medium text-g-800">{{ row.merchantName || '-' }}</div>
+            <div class="text-xs text-tone-muted-text">Project {{ row.projectId ?? '—' }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="reason" :label="$t('gas.issue')" min-width="200" />
         <el-table-column prop="network" :label="$t('gas.network')" width="120" />
-        <el-table-column :label="$t('gas.lastSignal')" width="140">
-          <template #default="{ row }">{{ formatTime(row.lastSignalAt) }}</template>
+        <el-table-column :label="$t('gas.currentBalance')" width="150">
+          <template #default="{ row }">
+            <span v-if="row.currentBalance" class="text-sm tabular-nums text-g-800">{{
+              balanceDisplay(row.currentBalance, row.coinId, row.network)
+            }}</span>
+            <span v-else class="text-xs text-tone-muted-text">{{ $t('gas.unavailable') }}</span>
+          </template>
         </el-table-column>
-        <el-table-column :label="$t('merchantList.action')" width="80">
+        <el-table-column :label="$t('gas.lastSignal')" width="130">
+          <template #default="{ row }"
+            ><span class="text-xs text-tone-muted-text">{{
+              formatRelativeTime(row.lastSignalAt)
+            }}</span></template
+          >
+        </el-table-column>
+        <el-table-column :label="''" width="110" align="right">
           <template #default="{ row }"
             ><ElButton size="small" @click="openDetail(row)">{{
-              $t('merchantList.open')
+              $t('fee.detail')
             }}</ElButton></template
           >
         </el-table-column>
@@ -149,28 +161,35 @@
         <template #empty>
           <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
         </template>
-        <el-table-column :label="$t('gas.time')" width="140">
-          <template #default="{ row }">{{ formatTime(row.occurredAt) }}</template>
+        <el-table-column :label="$t('gas.time')" width="130">
+          <template #default="{ row }"
+            ><span class="text-xs text-tone-muted-text">{{
+              formatRelativeTime(row.occurredAt)
+            }}</span></template
+          >
         </el-table-column>
         <el-table-column :label="$t('gas.merchant')" min-width="160">
           <template #default="{ row }">
-            <div class="text-sm text-g-900">{{ row.merchantName || '-' }}</div>
-            <div class="text-xs text-g-500">Project {{ row.projectId ?? 'unavailable' }}</div>
+            <div class="text-sm font-medium text-g-800">{{ row.merchantName || '-' }}</div>
+            <div class="text-xs text-tone-muted-text">Project {{ row.projectId ?? '—' }}</div>
           </template>
         </el-table-column>
         <el-table-column :label="$t('gas.activity')" min-width="200">
           <template #default="{ row }">{{ activityTypeLabel(row) }}</template>
         </el-table-column>
         <el-table-column prop="network" :label="$t('gas.network')" width="120" />
-        <el-table-column :label="$t('gas.amount')" width="140">
-          <template #default="{ row }">{{ activityAmountDisplay(row) }}</template>
+        <el-table-column :label="$t('gas.amount')" width="150">
+          <template #default="{ row }">
+            <span v-if="row.gasAmount" class="text-sm font-medium tabular-nums text-g-800">{{
+              activityAmountDisplay(row)
+            }}</span>
+            <span v-else class="text-xs text-tone-muted-text">No change</span>
+          </template>
         </el-table-column>
-        <el-table-column :label="$t('gas.result')" width="100">
+        <el-table-column :label="$t('gas.result')" width="110">
           <template #default="{ row }"
-            ><el-tag :type="activityStatusBadgeType(row)" size="small">{{
-              activityStatusLabel(row)
-            }}</el-tag></template
-          >
+            ><ArtStatusTag :status="activityStatusBadgeType(row)" :text="activityStatusLabel(row)"
+          /></template>
         </el-table-column>
       </el-table>
       <div
@@ -200,9 +219,9 @@
           <h3 class="text-base font-semibold text-g-900 mr-4">{{ $t('gas.accounts') }}</h3>
           <el-input
             v-model="acFilterForm.merchantName"
-            :placeholder="$t('gas.searchMerchant')"
+            :placeholder="$t('gas.searchAccount')"
             clearable
-            class="!w-48"
+            class="!w-72"
             @clear="onAcFilterChange"
             @keyup.enter="onAcFilterChange"
           >
@@ -220,28 +239,36 @@
         <template #empty>
           <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
         </template>
-        <el-table-column :label="$t('gas.merchant')" min-width="180">
+        <el-table-column :label="$t('gas.merchant')" min-width="200">
           <template #default="{ row }">
-            <div class="text-sm text-g-900">{{ row.merchantName || row.ecode || '-' }}</div>
-            <div class="text-xs text-g-500" v-if="row.address">{{
+            <div class="text-sm font-medium text-g-800">{{
+              row.merchantName || row.ecode || '-'
+            }}</div>
+            <div class="text-xs text-tone-muted-text font-mono" v-if="row.address">{{
               compactAddress(row.address)
             }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="network" :label="$t('gas.network')" width="120" />
-        <el-table-column :label="$t('gas.balance')" width="160">
-          <template #default="{ row }">{{
-            balanceDisplay(row.balance, row.coinId, row.network)
-          }}</template>
-        </el-table-column>
-        <el-table-column :label="$t('gas.threshold')" width="160">
-          <template #default="{ row }">{{
-            thresholdDisplay(row.threshold, row.coinId, row.network)
-          }}</template>
-        </el-table-column>
-        <el-table-column :label="$t('gas.balanceStatus')" width="100">
+        <el-table-column prop="network" :label="$t('gas.network')" width="140" />
+        <el-table-column :label="$t('gas.currentBalance')" width="160">
           <template #default="{ row }">
-            <div v-if="hasValidThreshold(row)" class="flex items-center gap-1">
+            <span v-if="row.balance" class="text-sm tabular-nums text-g-800">{{
+              balanceDisplay(row.balance, row.coinId, row.network)
+            }}</span>
+            <span v-else class="text-xs text-tone-muted-text">{{ $t('gas.unavailable') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('gas.threshold')" width="150">
+          <template #default="{ row }">
+            <span v-if="row.threshold" class="text-sm tabular-nums text-g-700">{{
+              thresholdDisplay(row.threshold, row.coinId, row.network)
+            }}</span>
+            <span v-else class="text-xs text-tone-muted-text">—</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('gas.balanceStatus')" width="120">
+          <template #default="{ row }">
+            <div v-if="hasValidThreshold(row)" class="flex items-center gap-1.5">
               <svg
                 viewBox="0 0 36 36"
                 width="28"
@@ -269,38 +296,56 @@
                   stroke-dashoffset="22"
                 />
               </svg>
-              <span class="text-xs font-medium" :style="{ color: balanceStatusColor(row) }"
+              <span
+                class="text-xs font-medium tabular-nums"
+                :style="{ color: balanceStatusColor(row) }"
                 >{{ balanceStatusRatio(row) }}x</span
               >
             </div>
-            <div
+            <span
               v-else-if="isZeroBalance(row)"
-              class="flex items-center gap-1 text-tone-error-text"
+              class="inline-flex items-center gap-1 text-xs font-medium text-tone-error-text"
             >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-                />
-              </svg>
-              <span class="text-xs font-medium">{{ $t('gas.insufficientBalance') }}</span>
-            </div>
-            <span v-else class="text-g-400">—</span>
+              <ArtSvgIcon icon="ri:error-warning-line" class="text-icon-xs" />
+              {{ $t('gas.insufficientBalance') }}
+            </span>
+            <span v-else class="text-xs text-tone-muted-text">—</span>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('gas.stats')" width="160">
+        <el-table-column width="170" align="right">
+          <template #header>
+            <span class="inline-flex items-center gap-1">
+              {{ $t('gas.transfersPerRefill') }}
+              <el-tooltip :content="$t('gas.infoTransfersPerRefill')" placement="top">
+                <ArtSvgIcon icon="ri:information-line" class="text-icon-xs text-tone-muted-text" />
+              </el-tooltip>
+            </span>
+          </template>
           <template #default="{ row }">
-            <div class="text-xs text-g-500">
-              <div>{{ row.totalTransfers ?? 0 }} transfers</div>
-              <div>{{ row.totalRefills ?? 0 }} refills</div>
-              <div>{{ (row.transfersPerRefillAvg ?? 0).toFixed(1) }}/day avg transfers</div>
-              <div>{{ (row.refillsPerDayAvg ?? 0).toFixed(1) }}/day avg refills</div>
-            </div>
+            <span class="text-sm tabular-nums text-g-800">{{
+              (row.transfersPerRefillAvg ?? 0).toFixed(1)
+            }}</span>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('merchantList.action')" width="80">
+        <el-table-column width="160" align="right">
+          <template #header>
+            <span class="inline-flex items-center gap-1">
+              {{ $t('gas.refillsPerDay') }}
+              <el-tooltip :content="$t('gas.infoRefillsPerDay')" placement="top">
+                <ArtSvgIcon icon="ri:information-line" class="text-icon-xs text-tone-muted-text" />
+              </el-tooltip>
+            </span>
+          </template>
+          <template #default="{ row }">
+            <span class="text-sm tabular-nums text-g-800">{{
+              (row.refillsPerDayAvg ?? 0).toFixed(1)
+            }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="''" width="110" align="right">
           <template #default="{ row }"
             ><ElButton size="small" @click="openDetail(row)">{{
-              $t('merchantList.open')
+              $t('fee.detail')
             }}</ElButton></template
           >
         </el-table-column>
@@ -332,7 +377,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import { useGasOperations } from '@/features/ops/gas/useGasOperations'
   import { useCoinStore } from '@/store/modules/coins'
-  import { formatCoinBalance, formatTime } from '@/utils/format'
+  import { formatCoinBalance, formatRelativeTime } from '@/utils/format'
   import type { GasHomeActivityView } from '@/features/ops/gas/types'
 
   defineOptions({ name: 'GasOperations' })
@@ -372,7 +417,7 @@
   }
 
   function balanceDisplay(balance: string | null, coinId?: string, network?: string): string {
-    if (!balance) return 'Unavailable'
+    if (!balance) return '-'
     const d = getDecimals(coinId || '', network || '')
     if (!d) return balance
     return formatCoinBalance(balance, d) + ' ' + getUnit(coinId || '', network || '').toUpperCase()
@@ -466,10 +511,10 @@
     if (s === 'degraded' || s === 'unknown') return 'Warning'
     return 'Warning'
   }
-  function severityTagType(s: string) {
-    if (s === 'action_needed') return 'danger' as const
-    if (s === 'degraded' || s === 'unknown') return 'warning' as const
-    return 'info' as const
+  function severityTagType(s: string): 'danger' | 'warning' | 'info' {
+    if (s === 'action_needed') return 'danger'
+    if (s === 'degraded' || s === 'unknown') return 'warning'
+    return 'info'
   }
 
   // --- Activity ---
@@ -495,12 +540,14 @@
     if (s === 'ok') return 'Normal'
     return s?.replace(/_/g, ' ') || 'Signal only'
   }
-  function activityStatusBadgeType(row: GasHomeActivityView) {
+  function activityStatusBadgeType(
+    row: GasHomeActivityView
+  ): 'success' | 'danger' | 'warning' | 'info' {
     const s = row.status
-    if (s === 'succeeded' || s === 'fulfilled_recorded' || s === 'ok') return 'success' as const
-    if (s === 'failed') return 'danger' as const
-    if (s === 'submitted' || s === 'processing') return 'warning' as const
-    return 'info' as const
+    if (s === 'succeeded' || s === 'fulfilled_recorded' || s === 'ok') return 'success'
+    if (s === 'failed') return 'danger'
+    if (s === 'submitted' || s === 'processing') return 'warning'
+    return 'info'
   }
 
   // --- Balance Status (donut) ---
