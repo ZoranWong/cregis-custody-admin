@@ -44,6 +44,8 @@ import type {
   TransactionLensSummaryView,
   ComplianceTabView,
   TravelRuleTabView,
+  TravelRuleAttestationView,
+  TravelRuleAttestationType,
   SignoffTabView,
   DispositionTabView,
   OnChainTabView,
@@ -421,6 +423,127 @@ export async function fetchTransactionTravelRuleTab(orderId: string): Promise<Tr
   return (await apiRequest<TravelRuleTabView>(
     `/compliance/transactions/${encodeURIComponent(orderId)}/travel-rule`
   )) as TravelRuleTabView
+}
+
+/**
+ * 强制放行 VASP 不一致。
+ * POST /compliance/transactions/{orderId}/vasp/confirm
+ */
+export async function confirmVaspMismatch(orderId: string, operator?: string): Promise<void> {
+  await apiRequest<void>(
+    `/compliance/transactions/${encodeURIComponent(orderId)}/vasp/confirm${queryString({ operator })}`,
+    { method: 'POST', body: {} }
+  )
+}
+
+/**
+ * 修正对方 VASP 并重新校验。
+ * POST /compliance/transactions/{orderId}/vasp/revise?vaspDid=&vaspName=&operator=
+ */
+export async function reviseCounterpartyVasp(
+  orderId: string,
+  vaspDid: string,
+  vaspName: string,
+  operator?: string
+): Promise<void> {
+  await apiRequest<void>(
+    `/compliance/transactions/${encodeURIComponent(orderId)}/vasp/revise${queryString({ vaspDid, vaspName, operator })}`,
+    { method: 'POST', body: {} }
+  )
+}
+
+/**
+ * 查询 Travel Rule 线下证据列表
+ * GET /compliance/transactions/{orderId}/travel-rule/attestations
+ */
+export async function fetchTravelRuleAttestations(
+  orderId: string
+): Promise<TravelRuleAttestationView[]> {
+  return (await apiRequest<TravelRuleAttestationView[]>(
+    `/compliance/transactions/${encodeURIComponent(orderId)}/travel-rule/attestations`
+  )) as TravelRuleAttestationView[]
+}
+
+/** 通用文件上传结果 */
+export interface UploadedFileView {
+  fileKey: string
+  fileUrl: string
+  fileName: string
+  contentType: string
+  size: number
+  hash: string
+}
+
+/**
+ * 上传文件（multipart）。
+ * POST /file/upload?bizType=&bizId=
+ */
+export async function uploadFile(
+  file: File,
+  params?: { bizType?: string; bizId?: string }
+): Promise<UploadedFileView> {
+  const form = new FormData()
+  form.append('file', file)
+  return (await apiRequest<UploadedFileView>(
+    `/file/upload${queryString({ bizType: params?.bizType, bizId: params?.bizId })}`,
+    { method: 'POST', body: form }
+  )) as UploadedFileView
+}
+
+/**
+ * 新增 Travel Rule 线下证据（先上传文件再登记）。
+ * POST /compliance/transactions/{orderId}/travel-rule/attestations
+ */
+export async function createTravelRuleAttestation(
+  orderId: string,
+  payload: {
+    fileUrl: string
+    fileName?: string
+    attestationType: TravelRuleAttestationType
+    remark?: string
+  }
+): Promise<TravelRuleAttestationView> {
+  return (await apiRequest<TravelRuleAttestationView>(
+    `/compliance/transactions/${encodeURIComponent(orderId)}/travel-rule/attestations`,
+    { method: 'POST', body: payload }
+  )) as TravelRuleAttestationView
+}
+
+/**
+ * 作废 Travel Rule 线下证据
+ * DELETE /compliance/transactions/{orderId}/travel-rule/attestations/{id}
+ */
+export async function deleteTravelRuleAttestation(orderId: string, id: number): Promise<void> {
+  await apiRequest<void>(
+    `/compliance/transactions/${encodeURIComponent(orderId)}/travel-rule/attestations/${id}`,
+    { method: 'DELETE' }
+  )
+}
+
+/**
+ * 发起 PII 补件请求
+ * POST /compliance/transactions/{orderId}/travel-rule/pii-request
+ */
+export async function requestTravelRulePii(
+  orderId: string,
+  payload: { fields?: string[]; note?: string }
+): Promise<void> {
+  await apiRequest<void>(
+    `/compliance/transactions/${encodeURIComponent(orderId)}/travel-rule/pii-request`,
+    { method: 'POST', body: payload }
+  )
+}
+
+/**
+ * 查询 PII 补件校验结果
+ * GET /compliance/transactions/{orderId}/travel-rule/pii-validation
+ */
+export async function fetchTravelRulePiiValidation(
+  orderId: string
+): Promise<Record<string, unknown> | null> {
+  return (await apiRequest<Record<string, unknown> | null>(
+    `/compliance/transactions/${encodeURIComponent(orderId)}/travel-rule/pii-validation`
+  )) as Record<string, unknown> | null
 }
 
 /**

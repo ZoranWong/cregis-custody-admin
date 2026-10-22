@@ -152,6 +152,36 @@
     "densityCozy": "每行 4 张（宽松）",
     "densityDense": "每行 8 张（紧凑）",
     "detail": {
+      "vaspRevise": "补充 VASP 信息",
+      "vaspForceApprove": "强制通过",
+      "vaspForceApproveConfirm": "对方 VASP 与申报信息不一致。强制通过将忽略该差异继续处理本笔交易，确认继续？",
+      "vaspForceApproveDone": "已强制通过 VASP 不一致",
+      "vaspReviseHint": "修正对方 VASP 的 DID 与名称，保存后系统会重新发起合规校验。",
+      "vaspReviseDone": "VASP 信息已更新，正在重新校验",
+      "vaspDidPlaceholder": "did:web:example.com",
+      "vaspNamePlaceholder": "对方 VASP 法定名称",
+      "vaspName": "VASP 名称",
+      "noDid": "未提供",
+      "vaspMismatchNoVasp": "对方申报了 VASP，但网络上未发现该 VASP，需要人工审核。",
+      "vaspMismatchName": "申报的 VASP 名称与网络发现的对方不一致。",
+      "vaspMismatchDid": "申报的 VASP DID 与网络发现的对方不一致。",
+      "vaspMismatchGeneric": "对方 VASP 与申报信息不一致，需要人工审核。",
+      "uploadProofTitle": "上传取证材料",
+      "uploadProofHint": "上传合规文件、交易确认书或其他证明材料，用于留痕审计。",
+      "evidenceDropHint": "点击上传，或将文件拖拽到此处",
+      "evidenceFileLimit": "支持 PDF、PNG、JPG（单个不超过 10MB）",
+      "evidenceTooLarge": "以下文件超过 10MB：{names}",
+      "evidenceUploaded": "取证材料上传成功，已加入审计记录。",
+      "uploadedProof": "已上传材料",
+      "upload": "上传",
+      "voidEvidence": "作废",
+      "voidEvidenceConfirm": "确定作废「{name}」？作废后将不再作为审计材料。",
+      "voidEvidenceDone": "取证材料已作废",
+      "actionFailed": "操作失败",
+      "cancelTransfer": "取消交易",
+      "cancelReasonHint": "请填写取消原因（可选）。",
+      "cancelReasonPlaceholder": "例如：误发 / 收款方错误 / 客户要求取消",
+      "cancelDone": "交易已取消",
       "title": "交易检查",
       "subtitle": "完整交易历史 — 链上、合规与 Travel Rule。",
       "backToLens": "返回",
@@ -773,20 +803,11 @@
   "setting": {
     "menuType": {
       "title": "菜单布局",
-      "list": [
-        "垂直",
-        "水平",
-        "混合",
-        "双列"
-      ]
+      "list": ["垂直", "水平", "混合", "双列"]
     },
     "theme": {
       "title": "主题风格",
-      "list": [
-        "浅色",
-        "深色",
-        "系统"
-      ]
+      "list": ["浅色", "深色", "系统"]
     },
     "menu": {
       "title": "菜单风格"
@@ -796,17 +817,11 @@
     },
     "box": {
       "title": "盒子样式",
-      "list": [
-        "边框",
-        "阴影"
-      ]
+      "list": ["边框", "阴影"]
     },
     "container": {
       "title": "容器宽度",
-      "list": [
-        "铺满",
-        "定宽"
-      ]
+      "list": ["铺满", "定宽"]
     },
     "basics": {
       "title": "基础配置",
@@ -852,14 +867,8 @@
   "notice": {
     "title": "通知",
     "btnRead": "标为已读",
-    "bar": [
-      "通知",
-      "消息",
-      "代办"
-    ],
-    "text": [
-      "暂无"
-    ],
+    "bar": ["通知", "消息", "代办"],
+    "text": ["暂无"],
     "viewAll": "查看全部"
   },
   "worktab": {

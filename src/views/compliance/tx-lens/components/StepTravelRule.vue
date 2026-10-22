@@ -51,6 +51,21 @@
               ivms101StatusText
             }}</span>
           </div>
+
+          <!--
+            补充 / 修正 VASP 信息是 VASP 模块自身的动作，放回这张卡片内，
+            不混进 Manual Resolution 的取证操作区。核对不一致时附带原因。
+          -->
+          <div class="flex flex-wrap items-center gap-2 mt-3">
+            <el-button size="small" @click="openReviseDialog">
+              <ArtSvgIcon icon="ri:edit-line" class="text-icon-sm mr-1" />{{
+                $t('txLens.detail.vaspRevise')
+              }}
+            </el-button>
+            <span v-if="showVaspMismatchActions" class="text-xs font-medium text-tone-error-text">{{
+              vaspMismatchHint
+            }}</span>
+          </div>
         </div>
       </div>
 
@@ -78,10 +93,15 @@
         </div>
       </div>
 
-      <!-- Operations: Manual Resolution / Network Negotiation -->
-      <div class="art-card mb-4">
+      <!--
+        Operations 区块的显示条件：
+          Manual Resolution   —— 仅出金（我方发起线下取证）
+          Network Negotiation —— 仅当交易真正发到过 Notabene（notabeneTxId 非空）
+        两者都没有时不渲染整块，避免给出无对象的操作入口。
+      -->
+      <div v-if="showManualResolution || showNetworkNegotiation" class="art-card mb-4">
         <div class="p-4">
-          <div class="sub-tab-bar mb-4">
+          <div v-if="showManualResolution && showNetworkNegotiation" class="sub-tab-bar mb-4">
             <button
               class="sub-tab"
               :class="{ active: opsTab === 'manual' }"
@@ -97,9 +117,17 @@
               {{ $t('txLens.detail.networkNegotiation') }}
             </button>
           </div>
+          <!-- 只有一个页签时，直接给出该小节标题，保持信息结构一致 -->
+          <div v-else class="text-sm font-semibold text-g-900 mb-4">
+            {{
+              showManualResolution
+                ? $t('txLens.detail.manualResolution')
+                : $t('txLens.detail.networkNegotiation')
+            }}
+          </div>
 
-          <!-- Manual Resolution -->
-          <div v-show="opsTab === 'manual'">
+          <!-- Manual Resolution（仅出金） -->
+          <div v-show="showManualResolution && (!showNetworkNegotiation || opsTab === 'manual')">
             <div class="text-xs text-g-700 mb-3 leading-relaxed">
               {{ $t('txLens.detail.offNetworkDescription') }}
             </div>
@@ -109,12 +137,42 @@
                   $t('txLens.detail.generateShareLink')
                 }}
               </el-button>
-              <el-button size="small" @click="notifyDev('txLens.detail.uploadProofPending')">
+              <!-- 原型：Upload Proof 打开上传弹框（PDF/PNG/JPG，可多选） -->
+              <el-button size="small" @click="openEvidenceDialog">
                 <ArtSvgIcon icon="ri:upload-line" class="text-icon-sm mr-1" />{{
                   $t('txLens.detail.uploadProof')
                 }}
               </el-button>
             </div>
+
+            <!--
+              第二行：强制通过 + 取消。
+              后端新增 /vasp/confirm（VASP 不一致时强制放行）与 /cancel（取消挂起出金订单）。
+              强制通过仅在核对结果为 MISMATCH 时出现 —— 无不一致时放行没有语义。
+              （「补充 / 修正 VASP 信息」在 VASP Identity 卡片内，不在这里重复）
+            -->
+            <div class="flex gap-3 mb-4 flex-wrap">
+              <el-button
+                v-if="showVaspMismatchActions"
+                type="primary"
+                size="small"
+                :loading="vaspActing"
+                @click="handleVaspConfirm"
+                >{{ $t('txLens.detail.vaspForceApprove') }}</el-button
+              >
+              <el-button
+                v-if="showCancelButton"
+                type="danger"
+                plain
+                size="small"
+                :loading="cancelling"
+                @click="handleCancel"
+                >{{ $t('txLens.detail.cancelTransfer') }}</el-button
+              >
+            </div>
+            <p v-if="showVaspMismatchActions" class="text-xs text-tone-error-text mb-3">
+              {{ vaspMismatchHint }}
+            </p>
             <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-3">
               {{ $t('txLens.detail.manualTrace') }}
             </div>
@@ -144,10 +202,52 @@
                 <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
               </div>
             </div>
+
+            <!-- 已上传的取证材料（原生型：取证按钮产物 = 可追溯文件列表） -->
+            <template v-if="attestations.length">
+              <div class="text-caption font-bold text-g-700 uppercase tracking-wider mt-5 mb-3">
+                {{ $t('txLens.detail.uploadedProof') }}
+              </div>
+              <div class="flex flex-col gap-2">
+                <div
+                  v-for="item in attestations"
+                  :key="item.id"
+                  class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-g-50 border border-[var(--default-border)]"
+                >
+                  <div class="flex items-center gap-2 min-w-0">
+                    <ArtSvgIcon
+                      icon="ri:file-text-line"
+                      class="text-icon-sm text-g-500 flex-shrink-0"
+                    />
+                    <div class="min-w-0">
+                      <a
+                        :href="item.fileUrl"
+                        target="_blank"
+                        rel="noopener"
+                        class="text-xs font-medium text-g-800 hover:text-[var(--el-color-primary)] truncate block"
+                        >{{ item.fileName }}</a
+                      >
+                      <div class="text-[11px] text-tone-muted-text truncate">
+                        {{ attestationTypeLabel(item.type) }} · {{ formatFileSize(item.size) }} ·
+                        {{ item.uploader }} · {{ formatTime(item.uploadedAt) }}
+                      </div>
+                    </div>
+                  </div>
+                  <ElButton
+                    size="small"
+                    type="danger"
+                    text
+                    :loading="deletingEvidenceId === item.id"
+                    @click="handleDeleteEvidence(item)"
+                    >{{ $t('txLens.detail.voidEvidence') }}</ElButton
+                  >
+                </div>
+              </div>
+            </template>
           </div>
 
-          <!-- Network Negotiation -->
-          <div v-show="opsTab === 'network'">
+          <!-- Network Negotiation（仅发往过 Notabene 的交易） -->
+          <div v-show="showNetworkNegotiation && (!showManualResolution || opsTab === 'network')">
             <div class="text-xs text-g-700 mb-3 leading-relaxed">
               {{ $t('txLens.detail.networkLifecycleDescription') }}
             </div>
@@ -184,20 +284,133 @@
         </div>
       </div>
     </template>
+
+    <!-- VASP 修正对话框：填写对方 DID / 名称后重新校验 -->
+    <el-dialog v-model="reviseDialogVisible" :title="$t('txLens.detail.vaspRevise')" width="480px">
+      <p class="text-xs text-g-600 mb-4 leading-relaxed">{{
+        $t('txLens.detail.vaspReviseHint')
+      }}</p>
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="field-label block mb-1">{{ $t('txLens.detail.vaspDid') }}</label>
+          <el-input
+            v-model="reviseForm.vaspDid"
+            :placeholder="$t('txLens.detail.vaspDidPlaceholder')"
+          />
+        </div>
+        <div>
+          <label class="field-label block mb-1">{{ $t('txLens.detail.vaspName') }}</label>
+          <el-input
+            v-model="reviseForm.vaspName"
+            :placeholder="$t('txLens.detail.vaspNamePlaceholder')"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <ElButton @click="reviseDialogVisible = false">{{ $t('common.cancel') }}</ElButton>
+        <ElButton
+          type="primary"
+          :loading="vaspActing"
+          :disabled="!reviseForm.vaspDid.trim() || !reviseForm.vaspName.trim()"
+          @click="submitRevise"
+          >{{ $t('txLens.detail.vaspReviseSubmit') }}</ElButton
+        >
+      </template>
+    </el-dialog>
+
+    <!-- 上传取证材料：对齐原型（拖拽区 + 文件列表 + Cancel/Upload），多选 -->
+    <el-dialog
+      v-model="evidenceDialogVisible"
+      :title="$t('txLens.detail.uploadProofTitle')"
+      width="500px"
+      @closed="resetEvidenceForm"
+    >
+      <p class="text-sm text-g-600 leading-relaxed mb-4">{{
+        $t('txLens.detail.uploadProofHint')
+      }}</p>
+
+      <input
+        ref="evidenceInputRef"
+        type="file"
+        accept=".pdf,.png,.jpg,.jpeg"
+        multiple
+        class="hidden"
+        @change="onEvidenceFilesSelected"
+      />
+      <div
+        class="evidence-dropzone"
+        role="button"
+        tabindex="0"
+        @click="evidenceInputRef?.click()"
+        @keyup.enter="evidenceInputRef?.click()"
+      >
+        <ArtSvgIcon icon="ri:upload-cloud-2-line" class="text-icon-xl text-g-400" />
+        <div class="text-sm text-g-700">{{ $t('txLens.detail.evidenceDropHint') }}</div>
+        <div class="text-xs text-tone-muted-text">{{ $t('txLens.detail.evidenceFileLimit') }}</div>
+      </div>
+
+      <!-- 已选文件列表：每项可单独移除（对齐原型） -->
+      <div v-if="evidenceFiles.length" class="flex flex-col gap-2 mt-4">
+        <div
+          v-for="(item, idx) in evidenceFiles"
+          :key="item.name + idx"
+          class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-g-50 border border-[var(--default-border)]"
+        >
+          <div class="flex items-center gap-2 min-w-0">
+            <ArtSvgIcon icon="ri:file-text-line" class="text-icon-sm text-g-500 flex-shrink-0" />
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-g-800 truncate">{{ item.name }}</div>
+              <div class="text-[11px] text-tone-muted-text">{{ formatFileSize(item.size) }}</div>
+            </div>
+          </div>
+          <el-button size="small" text @click="removeEvidenceFile(idx)">
+            <ArtSvgIcon icon="ri:close-line" class="text-icon-sm" />
+          </el-button>
+        </div>
+      </div>
+
+      <p v-if="evidenceError" class="text-xs text-tone-error-text mt-3">{{ evidenceError }}</p>
+
+      <template #footer>
+        <ElButton @click="closeEvidenceDialog">{{ $t('common.cancel') }}</ElButton>
+        <ElButton
+          type="primary"
+          :loading="uploadingEvidence"
+          :disabled="!evidenceFiles.length"
+          @click="submitEvidence"
+          >{{ $t('txLens.detail.upload') }}</ElButton
+        >
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref, watch } from 'vue'
+  import { computed, onMounted, reactive, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { ElMessage, ElMessageBox } from 'element-plus'
-  import type { TimelineNodeView, TravelRuleTabView } from '@/features/compliance/types'
+  import type {
+    TimelineNodeView,
+    TravelRuleAttestationView,
+    TravelRuleTabView
+  } from '@/features/compliance/types'
   import { toneDotStyle, timelineNodeTone } from '@/features/compliance/txState'
   import { parseIvms101Party } from '@/features/compliance/ivms101'
   import { useCountryStore } from '@/store/modules/country'
+  import { useUserStore } from '@/store/modules/user'
   import { formatTime } from '@/utils/format'
   // rejectInboundNotification 待接口开放后重新引入
-  import { acceptInboundNotification, fetchInboundNotifications } from '@/api/compliance'
+  import {
+    acceptInboundNotification,
+    fetchInboundNotifications,
+    confirmVaspMismatch,
+    reviseCounterpartyVasp,
+    cancelTransaction,
+    fetchTravelRuleAttestations,
+    uploadFile,
+    createTravelRuleAttestation,
+    deleteTravelRuleAttestation
+  } from '@/api/compliance'
 
   const props = defineProps<{
     data: TravelRuleTabView | null
@@ -211,9 +424,283 @@
 
   const { t, locale } = useI18n()
   const countryStore = useCountryStore()
+  const userStore = useUserStore()
   const opsTab = ref('manual')
+  /**
+   * Manual Resolution 只对出金交易展示 —— 对端离线/未响应时由我方发起线下取证；
+   * 入金方向没有「我方发起」的动作，原型同样对入金隐藏该页签。
+   */
+  const showManualResolution = computed(() => props.direction !== 'incoming')
+  /**
+   * 是否发往过 Notabene —— 只看 notabeneTxId。
+   * 不能用 networkTrace 判断：没有真正发到网络时 trace 也可能有本地记录，
+   * 会误给出「等对方 VASP 授权」这类不存在的入口。
+   */
+  const showNetworkNegotiation = computed(() => !!props.data?.notabeneTxId)
   const acting = ref(false)
   const notificationId = ref<number | null>(null)
+
+  // ─── VASP 不一致处置 ───
+  const vaspActing = ref(false)
+  const reviseDialogVisible = ref(false)
+  const reviseForm = reactive({ vaspDid: '', vaspName: '' })
+  /** 取消挂起出金订单（/cancel） */
+  const cancelling = ref(false)
+
+  /** 操作人标识：接口以 query 传入，后端用于审计留痕 */
+  const operator = computed(() => String(userStore.info?.userName || '') || undefined)
+
+  /**
+   * 展示 VASP 处置入口的条件：
+   *   reviewStatus 为 MISMATCH（接口实测取值），或 Travel Rule 阶段本身是 mismatch。
+   * 两者任一命中即展示 —— 前者是 vaspDeclaration 的核对结果，
+   * 后者是交易列表 travelRule 字段的汇总状态，避免其中一个先更新时入口消失。
+   */
+  const vaspReviewStatus = computed(() => (declaration.value?.reviewStatus || '').toUpperCase())
+  const showVaspMismatchActions = computed(() => vaspReviewStatus.value === 'MISMATCH')
+  const vaspMismatchHint = computed(() => {
+    const reason = declaration.value?.reason
+    if (reason === 'no-vasp-pending') return t('txLens.detail.vaspMismatchNoVasp')
+    if (reason === 'name-mismatch') return t('txLens.detail.vaspMismatchName')
+    if (reason === 'did-mismatch') return t('txLens.detail.vaspMismatchDid')
+    return t('txLens.detail.vaspMismatchGeneric')
+  })
+
+  /** 强制放行：二次确认后调用 /vasp/confirm */
+  async function handleVaspConfirm(): Promise<void> {
+    if (!props.orderId) return
+    try {
+      await ElMessageBox.confirm(
+        t('txLens.detail.vaspForceApproveConfirm'),
+        t('txLens.detail.vaspForceApprove'),
+        {
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
+          type: 'warning'
+        }
+      )
+    } catch {
+      return
+    }
+    vaspActing.value = true
+    try {
+      await confirmVaspMismatch(props.orderId, operator.value)
+      ElMessage.success(t('txLens.detail.vaspForceApproveDone'))
+      emit('reviewed')
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : t('txLens.detail.actionFailed'))
+    } finally {
+      vaspActing.value = false
+    }
+  }
+
+  function openReviseDialog(): void {
+    reviseForm.vaspDid = declaration.value?.discoveredDid || declaration.value?.declaredDid || ''
+    reviseForm.vaspName = declaration.value?.discoveredName || declaration.value?.declaredName || ''
+    reviseDialogVisible.value = true
+  }
+
+  async function submitRevise(): Promise<void> {
+    if (!props.orderId) return
+    const did = reviseForm.vaspDid.trim()
+    const name = reviseForm.vaspName.trim()
+    if (!did || !name) return
+    vaspActing.value = true
+    try {
+      await reviseCounterpartyVasp(props.orderId, did, name, operator.value)
+      ElMessage.success(t('txLens.detail.vaspReviseDone'))
+      reviseDialogVisible.value = false
+      emit('reviewed')
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : t('txLens.detail.actionFailed'))
+    } finally {
+      vaspActing.value = false
+    }
+  }
+
+  // ─── 取消挂起出金订单 ───
+  /**
+   * 与入金通知的 Reject 不同：这里调用的是出金侧 /compliance/transactions/{id}/cancel，
+   * 后端语义为「取消挂起出金订单」，因此只在出金交易上展示。
+   */
+  const showCancelButton = computed(() => props.direction !== 'incoming')
+
+  async function handleCancel(): Promise<void> {
+    if (!props.orderId) return
+    let reason = ''
+    try {
+      const input = await ElMessageBox.prompt(
+        t('txLens.detail.cancelReasonHint'),
+        t('txLens.detail.cancelTransfer'),
+        {
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
+          inputPlaceholder: t('txLens.detail.cancelReasonPlaceholder'),
+          type: 'warning'
+        }
+      )
+      reason = String(input.value || '').trim()
+    } catch {
+      return
+    }
+    cancelling.value = true
+    try {
+      await cancelTransaction(props.orderId, reason || undefined)
+      ElMessage.success(t('txLens.detail.cancelDone'))
+      emit('reviewed')
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : t('txLens.detail.actionFailed'))
+    } finally {
+      cancelling.value = false
+    }
+  }
+
+  // ─── 线下取证材料（对齐原型：多文件上传 + 文件列表）───
+  const MAX_EVIDENCE_SIZE = 10 * 1024 * 1024
+
+  const attestations = ref<TravelRuleAttestationView[]>([])
+  const attestationLoading = ref(false)
+  const evidenceDialogVisible = ref(false)
+  const evidenceInputRef = ref<HTMLInputElement | null>(null)
+  const evidenceError = ref('')
+  const uploadingEvidence = ref(false)
+  const deletingEvidenceId = ref<number | null>(null)
+  /** 待上传文件（原型支持多选，逐个上传后统一登记为证据） */
+  const evidenceFiles = ref<File[]>([])
+
+  const ATTESTATION_LABEL_KEYS: Record<string, string> = {
+    TRANSFER_RECEIPT: 'txLens.detail.evidenceType_TRANSFER_RECEIPT',
+    COUNTERPARTY_CONFIRM: 'txLens.detail.evidenceType_COUNTERPARTY_CONFIRM',
+    SELF_DECLARATION: 'txLens.detail.evidenceType_SELF_DECLARATION',
+    EMAIL: 'txLens.detail.evidenceType_EMAIL',
+    OTHER: 'txLens.detail.evidenceType_OTHER'
+  }
+  function attestationTypeLabel(type: string): string {
+    const key = ATTESTATION_LABEL_KEYS[type]
+    return key ? t(key) : type
+  }
+
+  async function loadAttestations(): Promise<void> {
+    if (!props.orderId) return
+    attestationLoading.value = true
+    try {
+      attestations.value = await fetchTravelRuleAttestations(props.orderId)
+    } catch {
+      // 证据列表失败不阻塞主内容，静默降级为空
+      attestations.value = []
+    } finally {
+      attestationLoading.value = false
+    }
+  }
+
+  function openEvidenceDialog(): void {
+    resetEvidenceForm()
+    evidenceDialogVisible.value = true
+  }
+
+  /** 关闭 / 重开弹框都清空已选文件，避免残留上一次的选择 */
+  function resetEvidenceForm(): void {
+    evidenceFiles.value = []
+    evidenceError.value = ''
+    if (evidenceInputRef.value) evidenceInputRef.value.value = ''
+  }
+
+  function closeEvidenceDialog(): void {
+    evidenceDialogVisible.value = false
+  }
+
+  function onEvidenceFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement
+    const picked = Array.from(input.files || [])
+    // 清空 value，允许重复选择同一个文件
+    input.value = ''
+    evidenceError.value = ''
+    const oversized = picked.filter((f) => f.size > MAX_EVIDENCE_SIZE)
+    if (oversized.length) {
+      evidenceError.value = t('txLens.detail.evidenceTooLarge', {
+        names: oversized.map((f) => f.name).join(', ')
+      })
+    }
+    const valid = picked.filter((f) => f.size <= MAX_EVIDENCE_SIZE)
+    // 同名同大小视为重复，避免重复上传
+    const exists = (f: File) =>
+      evidenceFiles.value.some((e) => e.name === f.name && e.size === f.size)
+    evidenceFiles.value = [...evidenceFiles.value, ...valid.filter((f) => !exists(f))]
+  }
+
+  function removeEvidenceFile(index: number): void {
+    evidenceFiles.value = evidenceFiles.value.filter((_, i) => i !== index)
+  }
+
+  /**
+   * 两段式上传：每个文件先 POST /file/upload 拿 fileUrl，
+   * 再以该 URL 登记一条 attestation（后端 CreateRequest 按单文件建模）。
+   */
+  async function submitEvidence(): Promise<void> {
+    if (!props.orderId || !evidenceFiles.value.length) return
+    uploadingEvidence.value = true
+    evidenceError.value = ''
+    const created: TravelRuleAttestationView[] = []
+    try {
+      for (const file of evidenceFiles.value) {
+        const uploaded = await uploadFile(file, {
+          bizType: 'travel_rule_attestation',
+          bizId: props.orderId
+        })
+        const item = await createTravelRuleAttestation(props.orderId, {
+          fileUrl: uploaded.fileUrl,
+          fileName: uploaded.fileName || file.name,
+          // 原型弹框没有类型选择，统一按「其他取证材料」登记
+          attestationType: 'OTHER'
+        })
+        created.push(item)
+      }
+      attestations.value = [...created, ...attestations.value]
+      ElMessage.success(t('txLens.detail.evidenceUploaded'))
+      closeEvidenceDialog()
+    } catch (err) {
+      // 已成功的保留在列表里，失败的部分给出提示，避免用户重复上传
+      if (created.length) attestations.value = [...created, ...attestations.value]
+      evidenceError.value = err instanceof Error ? err.message : t('txLens.detail.actionFailed')
+    } finally {
+      uploadingEvidence.value = false
+    }
+  }
+
+  /** 作废证据（软删除，接口为 DELETE） */
+  async function handleDeleteEvidence(item: TravelRuleAttestationView): Promise<void> {
+    if (!props.orderId) return
+    try {
+      await ElMessageBox.confirm(
+        t('txLens.detail.voidEvidenceConfirm', { name: item.fileName }),
+        t('txLens.detail.voidEvidence'),
+        {
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
+          type: 'warning'
+        }
+      )
+    } catch {
+      return
+    }
+    deletingEvidenceId.value = item.id
+    try {
+      await deleteTravelRuleAttestation(props.orderId, item.id)
+      attestations.value = attestations.value.filter((a) => a.id !== item.id)
+      ElMessage.success(t('txLens.detail.voidEvidenceDone'))
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : t('txLens.detail.actionFailed'))
+    } finally {
+      deletingEvidenceId.value = null
+    }
+  }
+
+  function formatFileSize(bytes: number): string {
+    if (!bytes) return '-'
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  }
 
   /**
    * Resolve / Reject 按钮显示条件：
@@ -241,10 +728,18 @@
    * 是否有 Travel Rule 数据。
    * 注意：vaspIdentity 现在恒为 {name:null}（接口已不下发 VASP 机构信息，
    * 改由 vaspDeclaration 下发），不能再作为判据，改看真正有内容的字段。
+   *
+   * vaspDeclaration 也要看子字段：对端未申报时接口返回
+   * { declaredDid:null, declaredName:null, reviewStatus:'MATCHED' } 这类空壳，
+   * 只判断对象非空会把「没有 TR 信息」误判成有数据。
    */
   const hasTravelRule = computed(() => {
     const d = props.data
     if (!d) return false
+    const decl = d.vaspDeclaration
+    const hasDeclContent =
+      !!decl &&
+      !!(decl.declaredDid || decl.declaredName || decl.discoveredDid || decl.discoveredName)
     return !!(
       d.notabeneTxId ||
       d.status ||
@@ -252,7 +747,8 @@
       typeof d.ivms101Valid === 'boolean' ||
       (d.ivms101Pii && Object.keys(d.ivms101Pii).length > 0) ||
       (d.networkTrace && d.networkTrace.length > 0) ||
-      d.vaspDeclaration
+      (d.attestations && d.attestations.length > 0) ||
+      hasDeclContent
     )
   })
 
@@ -321,6 +817,8 @@
   watch(
     () => [props.data?.status, props.direction, props.orderId] as const,
     async ([status, direction, orderId]) => {
+      // 证据列表随交易切换重新拉取（详情页各步骤共用同一组件实例）
+      if (orderId) await loadAttestations()
       if (
         direction === 'incoming' &&
         orderId &&

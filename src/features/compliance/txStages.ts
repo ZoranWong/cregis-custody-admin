@@ -58,11 +58,17 @@ export function buildStages(tx: StageSource): StageKey[] {
 
 /**
  * 阶段的有效状态值。
- * travelRule 特例：无对手方 did（无 Travel Rule 信息）时统一按 N/A，
+ *
+ * travelRule 特例 1：无对手方 did（无 Travel Rule 信息）时按 N/A，
  * 避免脏数据（tr=pending 但实际无 TR）误导展示。
+ *
+ * travelRule 特例 2：mismatch 必须保留原值。后端把「申报了 VASP 但网络未发现
+ * 对手方」这类需要人工审核的交易标记为 mismatch，而这类交易的 did 恰好为 null
+ * ——若跟着特例 1 一起置成 N/A，异常会被静默吞掉（实测 orderId
+ * O202610222113087512133111808：travelRule=mismatch、did=null）。
  */
 export function stageStateOf(tx: StageSource, key: StageKey): string | null | undefined {
-  if (key === 'travelRule' && !hasTravelRule(tx)) return 'na'
+  if (key === 'travelRule' && !hasTravelRule(tx) && tx.travelRule !== 'mismatch') return 'na'
   const map: Record<StageKey, string | null | undefined> = {
     compliance: tx.compliance,
     travelRule: tx.travelRule,

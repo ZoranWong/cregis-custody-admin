@@ -597,6 +597,8 @@ export interface VaspDeclarationView {
   discoveredName: string | null
   /** 核对结果：MATCHED / MISMATCH 等 */
   reviewStatus: string | null
+  /** 未匹配原因，如 no-vasp-pending（声明了 VASP 但网络未发现对手方） */
+  reason?: string | null
 }
 
 export interface TravelRuleTabView {
@@ -614,6 +616,31 @@ export interface TravelRuleTabView {
   ivms101Pii: Record<string, unknown> | null
   networkTrace: TimelineNodeView[] | null
   manualTrace: TimelineNodeView[] | null
+  /** 线下取证证据列表 */
+  attestations?: TravelRuleAttestationView[] | null
+  /** 是否走线下 Travel Rule（无 Notabene 网络通道时） */
+  offlineTravelRule?: boolean | null
+}
+
+/** Travel Rule 线下证据类型 */
+export type TravelRuleAttestationType =
+  | 'TRANSFER_RECEIPT'
+  | 'COUNTERPARTY_CONFIRM'
+  | 'SELF_DECLARATION'
+  | 'EMAIL'
+  | 'OTHER'
+
+/** Travel Rule 线下证据（GET/POST /travel-rule/attestations） */
+export interface TravelRuleAttestationView {
+  id: number
+  type: TravelRuleAttestationType | string
+  fileName: string
+  fileUrl: string
+  contentType: string
+  size: number
+  remark: string | null
+  uploader: string
+  uploadedAt: string
 }
 
 export interface ApproverView {

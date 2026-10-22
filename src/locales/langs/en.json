@@ -152,6 +152,36 @@
     "densityCozy": "4 per row (comfortable)",
     "densityDense": "8 per row (compact)",
     "detail": {
+      "vaspRevise": "Update VASP info",
+      "vaspForceApprove": "Force approve",
+      "vaspForceApproveConfirm": "The counterparty VASP did not match the declaration. Force approving will proceed with this transaction anyway. Continue?",
+      "vaspForceApproveDone": "VASP mismatch force-approved",
+      "vaspReviseHint": "Correct the counterparty VASP DID and name. The system will re-run the compliance check after saving.",
+      "vaspReviseDone": "VASP info updated, re-checking",
+      "vaspDidPlaceholder": "did:web:example.com",
+      "vaspNamePlaceholder": "Counterparty VASP legal name",
+      "vaspName": "VASP Name",
+      "noDid": "Not provided",
+      "vaspMismatchNoVasp": "VASP declared but not found on the network — manual review required.",
+      "vaspMismatchName": "Declared VASP name does not match the discovered counterparty.",
+      "vaspMismatchDid": "Declared VASP DID does not match the discovered counterparty.",
+      "vaspMismatchGeneric": "Counterparty VASP does not match the declaration — manual review required.",
+      "uploadProofTitle": "Upload Proof Document",
+      "uploadProofHint": "Attach compliance documents, transaction confirmations, or other proof for audit trail.",
+      "evidenceDropHint": "Click to upload or drag and drop",
+      "evidenceFileLimit": "PDF, PNG, JPG (max 10MB each)",
+      "evidenceTooLarge": "File exceeds 10MB: {names}",
+      "evidenceUploaded": "Proof document uploaded successfully. Added to audit trail.",
+      "uploadedProof": "Uploaded Proof",
+      "upload": "Upload",
+      "voidEvidence": "Void",
+      "voidEvidenceConfirm": "Void \"{name}\"? It will no longer be part of the audit trail.",
+      "voidEvidenceDone": "Proof document voided",
+      "actionFailed": "Operation failed",
+      "cancelTransfer": "Cancel Transfer",
+      "cancelReasonHint": "Provide a reason for cancelling this transfer (optional).",
+      "cancelReasonPlaceholder": "e.g. Sent in error / Wrong beneficiary / Customer requested",
+      "cancelDone": "Transfer cancelled",
       "title": "Transaction Inspection",
       "subtitle": "Complete transaction history — on-chain, compliance, and Travel Rule.",
       "backToLens": "Back",
@@ -773,20 +803,11 @@
   "setting": {
     "menuType": {
       "title": "Menu Layout",
-      "list": [
-        "Vertical",
-        "Horizontal",
-        "Mixed",
-        "Dual"
-      ]
+      "list": ["Vertical", "Horizontal", "Mixed", "Dual"]
     },
     "theme": {
       "title": "Theme Style",
-      "list": [
-        "Light",
-        "Dark",
-        "System"
-      ]
+      "list": ["Light", "Dark", "System"]
     },
     "menu": {
       "title": "Menu Style"
@@ -796,17 +817,11 @@
     },
     "box": {
       "title": "Box Style",
-      "list": [
-        "Border",
-        "Shadow"
-      ]
+      "list": ["Border", "Shadow"]
     },
     "container": {
       "title": "Container Width",
-      "list": [
-        "Full",
-        "Boxed"
-      ]
+      "list": ["Full", "Boxed"]
     },
     "basics": {
       "title": "Basic Config",
@@ -852,14 +867,8 @@
   "notice": {
     "title": "Notice",
     "btnRead": "Mark as read",
-    "bar": [
-      "Notice",
-      "Message",
-      "Todo"
-    ],
-    "text": [
-      "No"
-    ],
+    "bar": ["Notice", "Message", "Todo"],
+    "text": ["No"],
     "viewAll": "View all"
   },
   "worktab": {

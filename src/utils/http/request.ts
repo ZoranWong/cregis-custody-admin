@@ -185,10 +185,12 @@ export async function apiRequest<T>(
     throw new ApiError('Login expired, please sign in again.', 401, 401)
   }
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json'
-  }
+  // FormData 必须让浏览器自己带 multipart boundary：
+  // 手动设置 Content-Type 会丢掉 boundary，后端无法解析文件。
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
+  const headers: Record<string, string> = isFormData
+    ? { Accept: 'application/json' }
+    : { 'Content-Type': 'application/json', Accept: 'application/json' }
   if (options.auth !== false) {
     const token = getPersistedToken()
     if (token) headers.Authorization = `Bearer ${token}`
@@ -196,7 +198,12 @@ export async function apiRequest<T>(
   const response = await fetch(`${ADMIN_API_BASE}${path}`, {
     method: options.method || 'GET',
     headers,
-    body: options.body == null ? undefined : JSON.stringify(options.body)
+    body:
+      options.body == null
+        ? undefined
+        : isFormData
+          ? (options.body as FormData)
+          : JSON.stringify(options.body)
   })
   const payload = await parseJson(response)
   const envelope =
