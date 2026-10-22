@@ -47,6 +47,27 @@ export const operationsRoutes: AppRouteRecord = {
         isHide: true,
         activePath: '/operations/fee'
       }
+    },
+    {
+      path: 'cold-storage',
+      name: 'ColdStorageTransfers',
+      component: '/operations/cold-storage',
+      meta: {
+        title: 'menus.operations.coldStorageTransfers',
+        icon: 'ri:lock-2-line',
+        keepAlive: true
+      }
+    },
+    {
+      path: 'cold-storage/:requestId',
+      name: 'cold-storage-detail',
+      component: '/operations/cold-storage/detail',
+      meta: {
+        title: 'menus.operations.coldStorageDetail',
+        icon: 'ri:lock-2-line',
+        isHide: true,
+        activePath: '/operations/cold-storage'
+      }
     }
   ]
 }
