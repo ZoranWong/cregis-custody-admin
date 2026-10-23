@@ -485,7 +485,6 @@
     fetchFeeOverview,
     fetchFeeRanking,
     fetchMerchantFeeDaily,
-    fetchCreditIncreaseTotal,
     fetchPlatformGasConfigList,
     updatePlatformGasConfig,
     addPlatformGasConfig,
@@ -497,6 +496,7 @@
   import { fetchMerchantList, type MerchantListItemView } from '@/api/merchantSearch'
   import ArtLineChart from '@/components/core/charts/art-line-chart/index.vue'
   import type {
+    FeeOverviewView,
     FeeRankingItemView,
     PlatformGasConfigView,
     MerchantGasConfigView
@@ -529,24 +529,12 @@
   const dateRangeValue = ref<[Date, Date] | null>(null)
 
   // Overview
-  const overview = ref<{
-    feeCollectedUsdt: number
-    txCount: number
-    avgFeePerTxUsdt: number
-  } | null>(null)
+  const overview = ref<FeeOverviewView | null>(null)
   const rankingItems = ref<FeeRankingItemView[]>([])
   const rankingPagination = ref({ page: 1, pageSize: 10, totalPages: 0, totalCount: 0 })
   const rankingSearch = ref('')
   const rankingPage = ref(1)
   const rankingPageSize = ref(10)
-
-  /**
-   * 信用额度入账合计（Credit Increase）。
-   *
-   * 原型把该值放在指标卡与趋势图第二根曲线上；后端没有平台级聚合接口，
-   * 由 fetchCreditIncreaseTotal 按日期区间从账单记录求和得到真实值。
-   */
-  const creditIncreaseUsdt = ref<number | null>(null)
 
   /**
    * 日维度手续费趋势（原型 "Fee Collected & Credit Increase" 图）。
@@ -581,21 +569,6 @@
     } catch {
       // 趋势图是增强信息，失败时静默降级，不阻塞主数据
       feeDailySeries.value = []
-    }
-  }
-
-  async function loadCreditIncrease(): Promise<void> {
-    if (!dateRange.from || !dateRange.to) {
-      creditIncreaseUsdt.value = null
-      return
-    }
-    try {
-      creditIncreaseUsdt.value = await fetchCreditIncreaseTotal({
-        startDate: dateRange.from,
-        endDate: dateRange.to
-      })
-    } catch {
-      creditIncreaseUsdt.value = null
     }
   }
 
@@ -677,9 +650,9 @@
       key: 'creditIncrease',
       labelKey: 'fee.creditIncrease',
       value:
-        creditIncreaseUsdt.value == null
+        overview.value?.creditIncreaseUsdt == null
           ? '--'
-          : '$' + formatNumber(Number(creditIncreaseUsdt.value.toFixed(2)))
+          : '$' + formatNumber(Number(overview.value.creditIncreaseUsdt.toFixed(2)))
     },
     {
       key: 'txCount',
@@ -754,8 +727,7 @@
         }),
         loadRankingData(rankingPage.value, rankingPageSize.value),
         fetchPlatformGasConfigList(),
-        loadFeeTrend(),
-        loadCreditIncrease()
+        loadFeeTrend()
       ])
       overview.value = ov
       platformConfig.value = pc

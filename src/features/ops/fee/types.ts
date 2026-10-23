@@ -3,6 +3,8 @@ export interface FeeOverviewView {
   feeCollectedUsdt: number
   txCount: number
   avgFeePerTxUsdt: number
+  /** 信用额度入账合计（后端现直接返回，单位 USDT） */
+  creditIncreaseUsdt?: number
 }
 
 export interface FeeRankingItemView {
