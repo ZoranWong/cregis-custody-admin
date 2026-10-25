@@ -186,12 +186,12 @@
               </div>
             </div>
             <div class="p-4">
-              <ArtKLineChart
-                :data="candles"
-                :colors="['#10b981', '#ef4444']"
+              <ArtBarChart
+                :data="balanceTrendData"
+                :xAxisData="trendLabels"
                 height="260px"
-                :show-data-zoom="candles.length > 20"
-                :is-empty="candles.length === 0"
+                :show-data-zoom="trendLabels.length > 20"
+                :is-empty="trendLabels.length === 0"
               />
             </div>
           </div>
@@ -496,16 +496,8 @@
 
   const trendLabels = computed(() => trend.value.map((point) => point.label))
 
-  /** 原型用蜡烛图表达余额走势：开盘 = 前一点余额，收盘 = 当日余额 */
-  const candles = computed(() =>
-    trend.value.map((point, index) => {
-      const open = index === 0 ? point.balance : trend.value[index - 1]!.balance
-      const close = point.balance
-      const high = Math.max(open, close)
-      const low = Math.min(open, close)
-      return { time: point.label, open, close, high, low }
-    })
-  )
+  /** 余额趋势柱状图：每根柱子对应当日余额值（ArtBarChart 接受 flat number[]） */
+  const balanceTrendData = computed(() => trend.value.map((p) => p.balance))
 
   const fundFlowData = computed(() => [
     { name: t('accounting.inflow'), data: trend.value.map((p) => p.inflow) },

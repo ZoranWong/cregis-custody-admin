@@ -1,17 +1,16 @@
 <!-- Daily Reconciliation — 交易明细表（Reconciled / Pending / 单元明细共用） -->
 <template>
-  <div class="overflow-x-auto">
+  <div :class="card ? 'art-card art-table-card overflow-hidden' : ''">
     <el-table
       :data="rows"
       size="small"
-      style="min-width: 1100px"
       :row-style="linkable ? { cursor: 'pointer' } : undefined"
       @row-click="onRowClick"
     >
       <el-table-column type="index" width="48" :index="1" />
-      <el-table-column :label="$t('dailyReconciliation.treasuryUnit')" width="140">
+      <el-table-column :label="$t('dailyReconciliation.treasuryUnit')" min-width="140">
         <template #default="{ row }">
-          <span class="unit-badge">{{ row.treasuryUnitName }}</span>
+          <span class="text-sm text-g-900">{{ row.treasuryUnitName }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('dailyReconciliation.type')" width="110">
@@ -127,8 +126,10 @@
       showSettledAt?: boolean
       /** 交易行可跳转 Compliance → Transaction Lens 详情 */
       linkable?: boolean
+      /** 是否自带 art-card 容器（页面已有卡片时传 false，避免双边框） */
+      card?: boolean
     }>(),
-    { showBalance: true, showSettledAt: false, linkable: false }
+    { showBalance: true, showSettledAt: false, linkable: false, card: true }
   )
 
   const router = useRouter()
@@ -174,15 +175,3 @@
     return map[status] ?? status
   }
 </script>
-
-<style scoped>
-  .unit-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--tone-info-text);
-    background: var(--tone-info-bg);
-    border-radius: 4px;
-  }
-</style>

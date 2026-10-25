@@ -131,6 +131,7 @@
               <el-table
                 :data="currentDay.units"
                 size="small"
+                highlight-current-row
                 :row-style="{ cursor: 'pointer' }"
                 @row-click="openUnit"
               >
@@ -207,7 +208,7 @@
           </template>
 
           <div class="art-card art-table-card overflow-hidden">
-            <el-table :data="asset.unreconciled" size="small">
+            <el-table :data="asset.unreconciled" size="small" highlight-current-row>
               <el-table-column :label="$t('dailyReconciliation.date')" width="150">
                 <template #default="{ row }">
                   <span class="text-sm font-semibold text-g-900">{{
@@ -288,14 +289,12 @@
             </ElButton>
           </div>
 
-          <div class="art-card overflow-hidden">
-            <ReconciliationTransactionTable
-              :rows="pendingRows"
-              :decimals="asset.decimals"
-              :show-balance="false"
-              linkable
-            />
-          </div>
+          <ReconciliationTransactionTable
+            :rows="pendingRows"
+            :decimals="asset.decimals"
+            :show-balance="false"
+            linkable
+          />
         </el-tab-pane>
       </el-tabs>
     </template>

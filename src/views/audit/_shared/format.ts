@@ -48,6 +48,20 @@ export function formatBaseAmount(
   return value.toFormat()
 }
 
+/** 展示用余额：ETH 等 18 位精度的币最多显示 6 位小数，去除多余尾部 0 */
+export function formatBaseAmountDisplay(
+  raw: string | number | null | undefined,
+  decimals: number
+): string {
+  if (raw === null || raw === undefined || raw === '') return '—'
+  const value = new BigNumber(raw).div(new BigNumber(10).pow(decimals))
+  if (value.isNaN()) return '—'
+  const maxDec = Math.min(6, decimals)
+  const fixed = value.toFixed(maxDec, BigNumber.ROUND_DOWN)
+  const trimmed = fixed.replace(/0+$/, '').replace(/\.$/, '')
+  return new BigNumber(trimmed || '0').toFormat()
+}
+
 /** 2026-10-19 → Oct 19 */
 export function formatShortDate(date: string | null | undefined): string {
   if (!date) return '—'

@@ -62,19 +62,22 @@
       </ElRow>
 
       <!-- Table -->
-      <div class="art-card overflow-hidden">
-        <div
-          class="flex items-center justify-between gap-3 px-5 py-3 border-b border-[var(--default-border)]"
-        >
-          <h3 class="text-base font-semibold text-g-900">
-            {{ $t('dailyReconciliation.allPending') }}
-          </h3>
-          <span class="badge">{{ $t('dailyReconciliation.txCount', { count: rows.length }) }}</span>
+      <div class="art-card art-table-card overflow-hidden">
+        <div class="p-4 border-b border-[var(--default-border)]">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="text-base font-semibold text-g-900">
+              {{ $t('dailyReconciliation.allPending') }}
+            </h3>
+            <span class="text-xs text-g-500">{{
+              $t('dailyReconciliation.txCount', { count: rows.length })
+            }}</span>
+          </div>
         </div>
         <ReconciliationTransactionTable
           :rows="rows"
           :decimals="decimals"
           :show-balance="false"
+          :card="false"
           linkable
         />
       </div>
@@ -162,16 +165,3 @@
     await load()
   })
 </script>
-
-<style scoped>
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--tone-progress-text);
-    background: var(--tone-progress-bg);
-    border-radius: 20px;
-  }
-</style>

@@ -95,28 +95,24 @@
             <span>{{ $t('dailyReconciliation.includedTx') }}</span>
             <span class="tab-count">{{ includedRows.length }}</span>
           </template>
-          <div class="art-card overflow-hidden">
-            <ReconciliationTransactionTable
-              :rows="includedRows"
-              :decimals="asset.decimals"
-              show-settled-at
-              linkable
-            />
-          </div>
+          <ReconciliationTransactionTable
+            :rows="includedRows"
+            :decimals="asset.decimals"
+            show-settled-at
+            linkable
+          />
         </el-tab-pane>
         <el-tab-pane name="backfill">
           <template #label>
             <span>{{ $t('dailyReconciliation.backfillTx') }}</span>
             <span class="tab-count">{{ backfillRows.length }}</span>
           </template>
-          <div class="art-card overflow-hidden">
-            <ReconciliationTransactionTable
-              :rows="backfillRows"
-              :decimals="asset.decimals"
-              show-settled-at
-              linkable
-            />
-          </div>
+          <ReconciliationTransactionTable
+            :rows="backfillRows"
+            :decimals="asset.decimals"
+            show-settled-at
+            linkable
+          />
         </el-tab-pane>
       </el-tabs>
     </template>
