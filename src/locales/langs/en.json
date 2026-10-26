@@ -2038,6 +2038,7 @@
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "merchant": "Merchant",
+    "merchantName": "Merchant Name",
     "asset": "Asset",
     "assetCount": "Asset Count",
     "blocked": "Blocked",

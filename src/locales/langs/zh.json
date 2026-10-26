@@ -2040,6 +2040,7 @@
     "expandAll": "全部展开",
     "collapseAll": "全部收起",
     "merchant": "商户",
+    "merchantName": "商户名称",
     "asset": "资产",
     "assetCount": "资产数",
     "blocked": "阻塞",
