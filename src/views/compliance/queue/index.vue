@@ -31,8 +31,8 @@
         class="!w-40"
         @change="handleFilterChange"
       >
-        <el-option :label="$t('alerts.outgoing')" value="OUTGOING" />
-        <el-option :label="$t('alerts.incoming')" value="INCOMING" />
+        <el-option :label="$t('alerts.outbound')" value="OUTGOING" />
+        <el-option :label="$t('alerts.inbound')" value="INCOMING" />
       </el-select>
       <el-select
         v-model="filters.decision"

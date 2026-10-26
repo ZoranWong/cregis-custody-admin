@@ -36,8 +36,8 @@ export const SEVERITY_DICT: DictItem[] = [
 
 /** 交易方向（ALL = 任意方向：对出入金都生效的独立规则类别） */
 export const DIRECTION_DICT: DictItem[] = [
-  { value: 'OUTGOING', labelKey: 'rules.outgoing' },
-  { value: 'INCOMING', labelKey: 'rules.incoming' },
+  { value: 'OUTGOING', labelKey: 'rules.outbound' },
+  { value: 'INCOMING', labelKey: 'rules.inbound' },
   { value: 'ALL', labelKey: 'rules.allDirections' }
 ]
 

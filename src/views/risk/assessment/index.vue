@@ -22,7 +22,7 @@
           </div>
           <div>
             <span class="text-g-500">Direction:</span>
-            <el-tag type="warning" size="small" class="ml-2">Outgoing</el-tag>
+            <el-tag type="warning" size="small" class="ml-2">{{ $t('common.outbound') }}</el-tag>
           </div>
           <div>
             <span class="text-g-500">Time:</span>
@@ -200,12 +200,11 @@
 </template>
 
 <script setup lang="ts">
-  import { useRoute, useRouter } from 'vue-router'
+  import { useRoute } from 'vue-router'
 
   defineOptions({ name: 'RiskAssessment' })
 
   const route = useRoute()
-  const router = useRouter()
   const transactionId = route.params.id as string
 
   const riskFactors = [

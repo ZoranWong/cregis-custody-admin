@@ -43,8 +43,8 @@
 
     <!-- ═══ Direction Tabs（双向生效规则放最后）═══ -->
     <el-tabs v-model="direction" class="mb-5">
-      <el-tab-pane :label="$t('rules.outgoing')" name="OUTGOING" />
-      <el-tab-pane :label="$t('rules.incoming')" name="INCOMING" />
+      <el-tab-pane :label="$t('rules.outbound')" name="OUTGOING" />
+      <el-tab-pane :label="$t('rules.inbound')" name="INCOMING" />
       <el-tab-pane :label="$t('rules.allDirections')" name="ALL" />
     </el-tabs>
 

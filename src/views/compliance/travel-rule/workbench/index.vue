@@ -61,8 +61,8 @@
             class="!w-36"
             @change="reload"
           >
-            <el-option :label="$t('travelRule.outgoing')" value="outgoing" />
-            <el-option :label="$t('travelRule.incoming')" value="incoming" />
+            <el-option :label="$t('travelRule.outbound')" value="outgoing" />
+            <el-option :label="$t('travelRule.inbound')" value="incoming" />
           </el-select>
           <el-select
             v-model="filters.status"
