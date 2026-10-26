@@ -135,22 +135,6 @@
           </div>
         </div>
 
-        <!-- Batch Action Bar -->
-        <div
-          v-if="selectedRows.length > 0"
-          class="flex items-center gap-3 px-4 py-2.5 mb-3 rounded-lg bg-[var(--tone-info-bg)] border border-[var(--tone-info-border)]"
-        >
-          <span class="text-xs font-medium text-[var(--tone-info-text)]">
-            {{ selectedRows.length }} {{ $t('merchantList.selected') }}
-          </span>
-          <div class="flex gap-2 ml-auto">
-            <el-button size="small" type="primary">{{ $t('merchantList.sendNotice') }}</el-button>
-            <el-button size="small" @click="selectedRows = []">{{
-              $t('merchantList.deselect')
-            }}</el-button>
-          </div>
-        </div>
-
         <!-- List Table -->
         <div class="art-card overflow-hidden">
           <template v-if="listLoading">
@@ -162,12 +146,10 @@
               highlight-current-row
               style="cursor: pointer"
               @row-click="openDetail"
-              @selection-change="handleSelectionChange"
             >
               <template #empty>
                 <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
               </template>
-              <el-table-column type="selection" width="40" @click.stop />
               <el-table-column :label="$t('merchantList.name')" min-width="180">
                 <template #default="{ row }">
                   <span class="font-medium text-g-800">{{ row.merchantName }}</span>
@@ -268,7 +250,6 @@
   // ─── Merchant List (non-PENDING) ───
   const listLoading = ref(false)
   const merchants = ref<MerchantRecord[]>([])
-  const selectedRows = ref<MerchantRecord[]>([])
   const listFilters = reactive({
     status: '',
     screening: '',
@@ -305,10 +286,6 @@
   function handleListSizeChange() {
     listPagination.page = 1
     loadMerchants()
-  }
-
-  function handleSelectionChange(rows: MerchantRecord[]) {
-    selectedRows.value = rows
   }
 
   function handleTabChange(tab: string | number) {
