@@ -629,7 +629,6 @@
       options: [
         { value: 'complete', labelKey: 'txLens.trComplete' },
         { value: 'pending', labelKey: 'txLens.trPending' },
-        { value: 'mismatch', labelKey: 'txLens.trMismatch' },
         { value: 'na', labelKey: 'txLens.trNa' }
       ]
     },
@@ -861,9 +860,9 @@
   .filter-group-options .filter-btn {
     flex-shrink: 1;
     min-width: 0;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /*

@@ -103,21 +103,25 @@
         />
       </div>
 
-      <ElButton type="primary" :disabled="!filters.assetKey" @click="applyFilters">
+      <ElButton type="primary" :disabled="!canApply" @click="applyFilters">
         {{ $t('accounting.apply') }}
       </ElButton>
     </div>
 
-    <!-- 未选择资产：先选择再应用（对齐原型 void 状态） -->
+    <!-- 未就绪：Overview 需要资产；Transactions 还需要财资单元 -->
     <div
-      v-if="!applied.assetKey"
+      v-if="!applied.assetKey || (activeTab === 'transactions' && !applied.treasuryUnitId)"
       class="art-card flex flex-col items-center justify-center py-20 text-center"
     >
       <ArtSvgIcon icon="ri:calculator-line" class="text-5xl text-g-300 mb-4" />
       <div class="text-base font-semibold text-g-700 mb-2">
-        {{ $t('accounting.selectAssetFirst') }}
+        {{
+          applied.assetKey ? $t('accounting.selectUnitFirst') : $t('accounting.selectAssetFirst')
+        }}
       </div>
-      <div class="text-sm text-g-500">{{ $t('accounting.selectAssetHint') }}</div>
+      <div class="text-sm text-g-500">
+        {{ applied.assetKey ? $t('accounting.selectUnitHint') : $t('accounting.selectAssetHint') }}
+      </div>
     </div>
 
     <template v-else>
@@ -129,7 +133,7 @@
       <!-- Load error -->
       <div v-else-if="loadError" class="art-card p-10 text-center">
         <p class="text-tone-error-text mb-4">{{ loadError }}</p>
-        <ElButton type="primary" @click="loadAll">{{ $t('console.refresh') }}</ElButton>
+        <ElButton type="primary" @click="loadActiveTab">{{ $t('console.refresh') }}</ElButton>
       </div>
 
       <template v-else>
@@ -168,29 +172,33 @@
               </div>
               <div class="flex items-center gap-3">
                 <span class="flex items-center gap-1.5 text-xs font-semibold text-g-500">
-                  <span class="legend-dot bg-[var(--tone-done-mark)]" />
-                  {{ $t('accounting.increase') }}
+                  <span class="legend-dot bg-[var(--tone-info-mark)]" />
+                  {{ $t('accounting.availableBalance') }}
                 </span>
                 <span class="flex items-center gap-1.5 text-xs font-semibold text-g-500">
-                  <span class="legend-dot bg-[var(--tone-error-mark)]" />
-                  {{ $t('accounting.decrease') }}
+                  <span class="legend-dot bg-[var(--tone-progress-mark)]" />
+                  {{ $t('accounting.frozenBalance') }}
                 </span>
-                <el-select v-model="granularity" class="!w-28" @change="loadTrend">
-                  <el-option
-                    v-for="g in GRANULARITIES"
-                    :key="g"
-                    :label="$t(`accounting.granularity.${g}`)"
-                    :value="g"
-                  />
-                </el-select>
+                <span class="flex items-center gap-1.5 text-xs font-semibold text-g-500">
+                  <span class="legend-dot bg-[var(--tone-purple-mark)]" />
+                  {{ $t('accounting.holdBalance') }}
+                </span>
               </div>
             </div>
             <div class="p-4">
+              <div v-if="statsError" class="flex items-center gap-3 py-6 text-tone-error-text">
+                <ArtSvgIcon icon="ri:error-warning-line" class="text-icon-lg" />
+                <span class="text-sm">{{ statsError }}</span>
+                <ElButton size="small" @click="loadTrend">{{ $t('console.refresh') }}</ElButton>
+              </div>
               <ArtBarChart
+                v-else
                 :data="balanceTrendData"
                 :xAxisData="trendLabels"
+                :stack="true"
                 height="260px"
                 :show-data-zoom="trendLabels.length > 20"
+                :tooltip-formatter="balanceTooltipFormatter"
                 :is-empty="trendLabels.length === 0"
               />
             </div>
@@ -220,8 +228,9 @@
                 :data="fundFlowData"
                 :xAxisData="trendLabels"
                 :stack="true"
+                bar-width="26%"
+                bar-category-gap="40%"
                 height="240px"
-                :colors="['#10b981', '#ef4444']"
                 :is-empty="trendLabels.length === 0"
               />
             </div>
@@ -232,19 +241,13 @@
         <div v-else>
           <div class="art-card art-table-card overflow-hidden">
             <div class="p-4 border-b border-[var(--default-border)]">
-              <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-3">
                 <h3 class="text-base font-semibold text-g-900">
                   {{ $t('accounting.transactions') }}
-                  <span class="ml-2 text-xs font-normal text-g-500">
-                    {{ txAccountNote || $t('accounting.txHint') }}
-                  </span>
                 </h3>
-                <el-radio-group v-model="txSource" size="small" @change="reloadTransactions">
-                  <el-radio-button value="unit">{{ $t('accounting.sourceUnit') }}</el-radio-button>
-                  <el-radio-button value="account">
-                    {{ $t('accounting.sourceAccount') }}
-                  </el-radio-button>
-                </el-radio-group>
+                <span class="text-xs font-normal text-g-500">
+                  {{ txAccountNote || $t('accounting.txHint') }}
+                </span>
               </div>
             </div>
 
@@ -262,21 +265,21 @@
                     :class="row.direction === 'IN' ? 'text-tone-done-text' : 'text-tone-error-text'"
                   >
                     {{ row.direction === 'IN' ? '+' : '-'
-                    }}{{ formatBaseAmount(row.amount, decimals) }}
+                    }}{{ formatBaseAmount(row.amount, rowDecimals(row)) }}
                   </span>
                 </template>
               </el-table-column>
               <el-table-column :label="$t('accounting.preBalance')" width="150" align="right">
                 <template #default="{ row }">
                   <span class="text-xs tabular-nums text-g-500">{{
-                    formatBaseAmount(row.preBalance, decimals)
+                    formatBaseAmount(row.preBalance, rowDecimals(row))
                   }}</span>
                 </template>
               </el-table-column>
               <el-table-column :label="$t('accounting.postBalance')" width="150" align="right">
                 <template #default="{ row }">
                   <span class="text-xs font-semibold tabular-nums text-g-900">{{
-                    formatBaseAmount(row.postBalance, decimals)
+                    formatBaseAmount(row.postBalance, rowDecimals(row))
                   }}</span>
                 </template>
               </el-table-column>
@@ -300,14 +303,14 @@
                 </template>
               </el-table-column>
               <el-table-column
-                v-if="txSource === 'account'"
+                v-if="txRequestSource === 'account'"
                 :label="$t('accounting.fee')"
                 width="120"
                 align="right"
               >
                 <template #default="{ row }">
                   <span class="text-xs tabular-nums text-g-600">{{
-                    row.fee ? formatBaseAmount(row.fee, decimals) : '—'
+                    row.fee ? formatBaseAmount(row.fee, rowDecimals(row)) : '—'
                   }}</span>
                 </template>
               </el-table-column>
@@ -322,7 +325,15 @@
                 </template>
               </el-table-column>
               <template #empty>
-                <div class="p-10 text-center text-g-500">{{ $t('accounting.noTransactions') }}</div>
+                <div v-if="txError" class="py-10 text-center">
+                  <p class="text-tone-error-text mb-3">{{ txError }}</p>
+                  <ElButton size="small" @click="reloadTransactions">{{
+                    $t('console.refresh')
+                  }}</ElButton>
+                </div>
+                <div v-else class="p-10 text-center text-g-500">
+                  {{ $t('accounting.noTransactions') }}
+                </div>
               </template>
             </el-table>
 
@@ -351,10 +362,11 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, reactive, ref } from 'vue'
+  import { computed, onMounted, reactive, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import BigNumber from 'bignumber.js'
   import { compactHex, formatTime } from '@/utils/format'
+  import { getCssVar } from '@/utils/ui'
   import {
     fetchAccountingRecords,
     fetchDailyBalances,
@@ -380,7 +392,6 @@
   const { t } = useI18n()
   const coinStore = useCoinStore()
 
-  const GRANULARITIES: TrendGranularity[] = ['daily', 'weekly', 'monthly']
   const ACCOUNT_TYPES: Exclude<AccountTypeFilter, ''>[] = ['PRIMARY', 'PAYOUT', 'PAYIN']
   const DATE_TYPE_MAP: Record<TrendGranularity, 1 | 2 | 3> = {
     daily: 1,
@@ -394,10 +405,10 @@
   const merchantLoading = ref(false)
   let merchantDebounce: ReturnType<typeof setTimeout> | null = null
 
+  // 默认选中「本月」，与看板默认展示的最近一个月对齐
   const defaultRange = (() => {
     const end = new Date()
-    const start = new Date(end)
-    start.setDate(start.getDate() - 29)
+    const start = new Date(end.getFullYear(), end.getMonth(), 1)
     const pad = (n: number) => String(n).padStart(2, '0')
     const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
     return [fmt(start), fmt(end)] as [string, string]
@@ -446,9 +457,15 @@
 
   const loading = ref(false)
   const loadError = ref('')
+  /** 趋势接口错误（与整页错误分开，避免一个接口失败导致整页空白） */
+  const statsError = ref('')
+  /** 流水接口错误（账户级接口在 SIT 目前固定 500，需要单独提示而不是静默空表） */
+  const txError = ref('')
 
   // ─── Dashboard data ───
   const stats = ref<AccountStatView[]>([])
+  /** 趋势/汇总换算用的精度（通常等于 decimals，兜底时按接口返回币种反查） */
+  const trendDecimals = ref(0)
   const trend = ref<
     Array<{ statDate: string; label: string; balance: number; inflow: number; outflow: number }>
   >([])
@@ -462,7 +479,7 @@
         { key: 'net', label: t('accounting.netFlow'), value: '—' }
       ]
     }
-    const dec = decimals.value
+    const dec = trendDecimals.value || decimals.value
     // Opening = 区间起点的上一期余额（首个统计点余额 - 首期净流入）；
     // 只有一期数据时退化为「首期余额 - 首期净流量」。
     const first = stats.value[0]!
@@ -496,16 +513,102 @@
 
   const trendLabels = computed(() => trend.value.map((point) => point.label))
 
-  /** 余额趋势柱状图：每根柱子对应当日余额值（ArtBarChart 接受 flat number[]） */
-  const balanceTrendData = computed(() => trend.value.map((p) => p.balance))
+  /**
+   * 余额趋势柱状图：每根柱子对应当日余额值。
+   * 按「相对上一根的涨跌」着色（涨绿 / 跌红），与图例 Increase / Decrease 一致。
+   */
+  /** 读取 CSS 变量为真实色值 —— Canvas 的 addColorStop 不认 var() */
+  function cssColor(name: string, fallback: string): string {
+    return getCssVar(name).trim() || fallback
+  }
 
+  /**
+   * 余额趋势：堆叠柱展示 可用 / 冻结 / 隔离 三类金额（三者之和 = 总余额）。
+   * 逐日原始值由 stats 提供，这里按当前币种精度换算成主币种数值。
+   */
+  const balanceTrendData = computed(() => {
+    const points = stats.value
+    if (!points.length) return []
+    const dec = trendDecimals.value || decimals.value
+    const unit = new BigNumber(10).pow(dec)
+    const toNum = (v: string | number | undefined) => new BigNumber(v || 0).div(unit).toNumber()
+    return [
+      {
+        name: t('accounting.availableBalance'),
+        data: points.map((p) => toNum(p.availableBalance)),
+        color: cssColor('--tone-info-mark', '#3c96ff'),
+        stack: 'balance'
+      },
+      {
+        name: t('accounting.frozenBalance'),
+        data: points.map((p) => toNum(p.freezeBalance)),
+        color: cssColor('--tone-progress-mark', '#bc8733'),
+        stack: 'balance'
+      },
+      {
+        name: t('accounting.holdBalance'),
+        data: points.map((p) => toNum(p.holdBalance)),
+        color: cssColor('--tone-purple-mark', '#a855f7'),
+        stack: 'balance'
+      }
+    ]
+  })
+
+  /** tooltip formatter：三项明细 + 总金额 */
+  const balanceTooltipFormatter = (params: Array<{ dataIndex: number }>): string => {
+    const idx = params[0]?.dataIndex ?? 0
+    const point = stats.value[idx]
+    if (!point) return ''
+    const dec = trendDecimals.value || decimals.value
+    const unit = new BigNumber(10).pow(dec)
+    const fmt = (v: string | number | undefined) => new BigNumber(v || 0).div(unit).toFormat()
+    const rows: Array<[string, string]> = [
+      [t('accounting.availableBalance'), fmt(point.availableBalance)],
+      [t('accounting.frozenBalance'), fmt(point.freezeBalance)],
+      [t('accounting.holdBalance'), fmt(point.holdBalance)]
+    ]
+    const body = rows
+      .map(
+        ([label, value]) =>
+          `<div style="display:flex;justify-content:space-between;gap:16px"><span>${label}</span><b>${value}</b></div>`
+      )
+      .join('')
+    return `<div style="font-weight:600;margin-bottom:4px">${point.statDate}</div>${body}
+      <div style="display:flex;justify-content:space-between;gap:16px;margin-top:4px;padding-top:4px;border-top:1px solid rgba(128,128,128,.35)">
+        <span>${t('accounting.totalBalance')}</span><b>${fmt(point.totalBalance)}</b>
+      </div>`
+  }
+
+  /**
+   * 每日资金流：正负柱状图。
+   * 入金取正值、出金取负值，各自独立 stack，零轴自然居中；
+   * 两个 stack 组之间留一点间距，避免两类柱子贴在一起。
+   */
   const fundFlowData = computed(() => [
-    { name: t('accounting.inflow'), data: trend.value.map((p) => p.inflow) },
-    { name: t('accounting.outflow'), data: trend.value.map((p) => p.outflow) }
+    {
+      name: t('accounting.inflow'),
+      data: trend.value.map((p) => p.inflow),
+      color: cssColor('--tone-done-mark', '#00a578'),
+      stack: 'in'
+    },
+    {
+      name: t('accounting.outflow'),
+      data: trend.value.map((p) => -p.outflow),
+      color: cssColor('--tone-error-mark', '#ff4c4c'),
+      stack: 'out'
+    }
   ])
 
   // ─── Transactions ───
-  const txSource = ref<'unit' | 'account'>('unit')
+  /**
+   * 接口选择完全由筛选条件决定：
+   *   未选 Account → 单元级流水 POST /list/unit
+   *   选了 Account → 账户级流水 POST /list/account（带 cusAccountId）
+   * 页面上不再提供手动切换。
+   */
+  const txSource = computed<'unit' | 'account'>(() => (applied.accountType ? 'account' : 'unit'))
+  /** 本次请求实际落到的接口（账户解析失败时会回退到单元级） */
+  const txRequestSource = ref<'unit' | 'account'>('unit')
   const txRows = ref<Array<AccountingRecordView | FundRecordView>>([])
   const txTotal = ref(0)
   const txPage = ref(1)
@@ -536,6 +639,17 @@
     return value.div(new BigNumber(10).pow(dec)).toFormat()
   }
 
+  /**
+   * 单行金额的精度：优先用该行自己的 coinId + network 查系统币种，
+   * 查不到再退回当前所选资产 —— 避免 appliedAsset 缺失时按 0 精度展示成天数字。
+   */
+  function rowDecimals(row: { coinId?: string; network?: string }): number {
+    const byRow = coinStore.getDecimalsByCoinId(row.coinId, row.network)
+    if (byRow) return byRow
+    if (decimals.value) return decimals.value
+    return coinStore.getDecimalsByCoinId(appliedAsset.value?.coinId, appliedAsset.value?.network)
+  }
+
   function currentAssetParam(): { coinId?: string; network?: string } {
     if (!appliedAsset.value) return {}
     return { coinId: appliedAsset.value.coinId, network: appliedAsset.value.network }
@@ -556,6 +670,7 @@
   async function loadTransactions(): Promise<void> {
     if (!applied.assetKey) return
     txLoading.value = true
+    txError.value = ''
     try {
       const { coinId } = currentAssetParam()
       const base = {
@@ -568,17 +683,18 @@
         endDate: applied.to
       }
       const accountIds = resolveAccountIds()
-      txAccountNote.value =
-        txSource.value === 'account' && accountIds.length > 1
-          ? t('accounting.multiAccountHint', { count: accountIds.length })
-          : ''
-      if (txSource.value === 'account' && accountIds.length > 0) {
+      txAccountNote.value = ''
+      // 选了 Account 筛选但账户列表还没取到：退回单元级接口，避免直接打出空表
+      const useAccountApi = txSource.value === 'account' && accountIds.length > 0
+      if (txSource.value === 'account' && accountIds.length === 0) {
+        txAccountNote.value = t('accounting.accountFallback')
+      } else if (useAccountApi && accountIds.length > 1) {
+        txAccountNote.value = t('accounting.multiAccountHint', { count: accountIds.length })
+      }
+      txRequestSource.value = useAccountApi ? 'account' : 'unit'
+      if (useAccountApi) {
         // 资金流水接口一次只能查一个 cusAccountId；多账户时取第一个，并在表头提示
         const res = await fetchFundRecords({ ...base, cusAccountId: accountIds[0] })
-        txRows.value = res.records
-        txTotal.value = res.total
-      } else if (txSource.value === 'account') {
-        const res = await fetchFundRecords(base)
         txRows.value = res.records
         txTotal.value = res.total
       } else {
@@ -586,9 +702,10 @@
         txRows.value = res.records
         txTotal.value = res.total
       }
-    } catch {
+    } catch (caught) {
       txRows.value = []
       txTotal.value = 0
+      txError.value = caught instanceof Error ? caught.message : 'Unable to load transactions.'
     } finally {
       txLoading.value = false
     }
@@ -656,6 +773,7 @@
 
   async function loadTrend(): Promise<void> {
     if (!appliedAsset.value) return
+    statsError.value = ''
     const { coinId, network } = currentAssetParam()
     const { from, to } = dateBound(true)
     try {
@@ -667,29 +785,49 @@
         startDate: from,
         endDate: to,
         dateType: DATE_TYPE_MAP[granularity.value],
-        number: 90
+        // 后端忽略 start/end，只按 number 返回「最近 N 个点」，这里按所选周期换算条数
+        number: trendPointCount(from, to)
       })
       const list = coinId
         ? (res[coinId] ?? res[coinId.toUpperCase()] ?? [])
         : (Object.values(res)[0] ?? [])
+      // 接口按日期倒序返回（新 → 旧），图表与期初余额计算都要求正序
+      list.sort((a, b) => String(a.statDate).localeCompare(String(b.statDate)))
       stats.value = list
+      // 精度兜底：所选资产解析不到时，用接口返回的 coinId + network 反查系统币种
+      if (!decimals.value && list.length) {
+        trendDecimals.value = coinStore.getDecimalsByCoinId(list[0]!.coinId, network)
+      } else {
+        trendDecimals.value = decimals.value
+      }
       trend.value = list.map((stat) => {
         const inflow = new BigNumber(stat.totalIncome || 0)
         const outflow = new BigNumber(stat.totalOutcome || 0)
         return {
           statDate: stat.statDate,
           balance: new BigNumber(stat.totalBalance || 0)
-            .div(new BigNumber(10).pow(decimals.value))
+            .div(new BigNumber(10).pow(trendDecimals.value))
             .toNumber(),
-          inflow: inflow.div(new BigNumber(10).pow(decimals.value)).toNumber(),
-          outflow: outflow.div(new BigNumber(10).pow(decimals.value)).toNumber(),
+          inflow: inflow.div(new BigNumber(10).pow(trendDecimals.value)).toNumber(),
+          outflow: outflow.div(new BigNumber(10).pow(trendDecimals.value)).toNumber(),
           label: trendLabel(stat.statDate)
         }
       })
-    } catch {
+    } catch (caught) {
       stats.value = []
       trend.value = []
+      statsError.value = caught instanceof Error ? caught.message : 'Unable to load balance trend.'
     }
+  }
+
+  /** 所选周期需要多少个聚合点（后端按 number 取最近 N 个，start/end 不生效） */
+  function trendPointCount(from: string, to: string): number {
+    const start = new Date(`${from}T00:00:00`).getTime()
+    const end = new Date(`${to}T00:00:00`).getTime()
+    if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 30
+    const days = Math.floor((end - start) / 86_400_000) + 1
+    const unitDays = DATE_TYPE_MAP[granularity.value] === 1 ? 1 : 7
+    return Math.max(1, Math.ceil(days / unitDays))
   }
 
   function trendLabel(statDate: string): string {
@@ -702,12 +840,16 @@
     return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   }
 
-  async function loadAll(): Promise<void> {
+  /** 当前 Tab 需要的数据：Overview 只要统计，Transactions 只要流水（按需请求） */
+  async function loadActiveTab(): Promise<void> {
     loading.value = true
     loadError.value = ''
     try {
-      await Promise.all([loadTrend(), loadAccounts()])
-      await loadTransactions()
+      if (activeTab.value === 'overview') {
+        await Promise.all([loadTrend(), loadAccounts()])
+      } else if (applied.treasuryUnitId) {
+        await loadTransactions()
+      }
     } catch (caught) {
       loadError.value = caught instanceof Error ? caught.message : 'Unable to load accounting data.'
     } finally {
@@ -715,8 +857,13 @@
     }
   }
 
+  /** Apply 可用条件：必须选资产；Transactions Tab 还必须选财资单元 */
+  const canApply = computed(
+    () => !!filters.assetKey && (activeTab.value === 'overview' || !!filters.treasuryUnitId)
+  )
+
   async function applyFilters(): Promise<void> {
-    if (!filters.assetKey) return
+    if (!canApply.value) return
     const asset = assetOptions.value.find((a) => a.key === filters.assetKey)
     applied.merchantCode = filters.merchantCode
     applied.treasuryUnitId = filters.treasuryUnitId
@@ -727,8 +874,18 @@
     applied.from = from
     applied.to = to
     txPage.value = 1
-    await loadAll()
+    txRows.value = []
+    txTotal.value = 0
+    await loadActiveTab()
   }
+
+  watch(activeTab, (tab) => {
+    if (!applied.assetKey) return
+    if (tab === 'transactions' && !applied.treasuryUnitId) return
+    // 切 Tab 时只补拉当前 Tab 需要的接口
+    if (tab === 'overview') void loadTrend()
+    else void loadTransactions()
+  })
 
   onMounted(async () => {
     await Promise.all([coinStore.ensureLoaded(), searchMerchants('')])

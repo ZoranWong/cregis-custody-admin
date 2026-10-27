@@ -97,6 +97,12 @@ export interface InteractionProps {
   showLegend?: boolean
   /** 图例位置 */
   legendPosition?: LegendPosition
+  /** 自定义 tooltip formatter（传函数，图表组件无法通过模板序列化） */
+  tooltipFormatter?: (params: any) => string
+  /** 多条柱之间是否留间隙（堆叠图需要 false，并用 barGap 控制间距） */
+  barGap?: string
+  /** 不同 stack 组之间的间距 */
+  barCategoryGap?: string
 }
 
 // 柱状图数据项接口
@@ -105,10 +111,14 @@ export interface BarDataItem {
   name: string
   /** 数据值 */
   data: number[]
+  /** 逐柱颜色（与 data 等长）；用于「涨绿跌红」这类按数值着色的场景 */
+  colors?: string[]
   /** 柱状图宽度 */
   barWidth?: string | number
   /** 堆叠分组名称 */
   stack?: string
+  /** 本系列柱色（堆叠柱各组需要不同颜色） */
+  color?: string
 }
 
 // 柱状图 Props 接口 - 统一柱状图配置

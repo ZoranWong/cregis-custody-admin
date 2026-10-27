@@ -223,11 +223,23 @@
                 v-if="canDecide"
                 class="flex justify-center gap-3 pt-4 border-t border-[var(--default-border)]"
               >
-                <el-button type="success" size="large" :loading="deciding" @click="handleApprove">
-                  {{ $t('merchantDetail.approve') }}
-                </el-button>
-                <el-button size="large" :loading="deciding" @click="showRejectDialog = true">
+                <!-- 与交易详情保持一致：Approve 是唯一主操作，Reject 为次要危险按钮 -->
+                <el-button
+                  type="danger"
+                  plain
+                  :loading="rejecting"
+                  :disabled="approving"
+                  @click="showRejectDialog = true"
+                >
                   {{ $t('merchantDetail.reject') }}
+                </el-button>
+                <el-button
+                  type="primary"
+                  :loading="approving"
+                  :disabled="rejecting"
+                  @click="handleApprove"
+                >
+                  {{ $t('merchantDetail.approve') }}
                 </el-button>
               </div>
             </div>
@@ -667,7 +679,7 @@
       />
       <template #footer>
         <el-button @click="showRejectDialog = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="danger" :loading="deciding" @click="handleReject">
+        <el-button type="danger" :loading="rejecting" @click="handleReject">
           {{ $t('merchantDetail.reject') }}
         </el-button>
       </template>
@@ -705,7 +717,9 @@
   const activeTab = ref('compliance')
   const showRejectDialog = ref(false)
   const rejectReason = ref('')
-  const deciding = ref(false)
+  /** Approve / Reject 各自独立的 loading，避免点一个时两个按钮一起转圈 */
+  const approving = ref(false)
+  const rejecting = ref(false)
 
   // ─── Team Members（企业用户接口）───
   const merchantUsers = ref<AdminMerchantUserVO[]>([])
@@ -1123,7 +1137,7 @@
 
   async function handleApprove() {
     if (!detail.value) return
-    deciding.value = true
+    approving.value = true
     try {
       await approveKybScreening(detail.value.ecode)
       ElMessage.success(t('merchantDetail.approveSuccess'))
@@ -1131,13 +1145,13 @@
     } catch {
       ElMessage.error(t('merchantDetail.approveFailed'))
     } finally {
-      deciding.value = false
+      approving.value = false
     }
   }
 
   async function handleReject() {
     if (!detail.value) return
-    deciding.value = true
+    rejecting.value = true
     try {
       await rejectKybScreening(detail.value.ecode, rejectReason.value || undefined)
       showRejectDialog.value = false
@@ -1146,7 +1160,7 @@
     } catch {
       ElMessage.error(t('merchantDetail.rejectFailed'))
     } finally {
-      deciding.value = false
+      rejecting.value = false
     }
   }
 
@@ -1469,14 +1483,14 @@
   }
 
   .verification-note-icon {
-    margin-top: 2px;
     flex-shrink: 0;
+    margin-top: 2px;
   }
 
   .verification-note-title {
+    margin-bottom: 4px;
     font-size: 13px;
     font-weight: 600;
-    margin-bottom: 4px;
   }
 
   .verification-note-desc {
@@ -1487,9 +1501,9 @@
 
   .verification-contact {
     display: flex;
+    gap: 12px;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
     padding-bottom: 16px;
     margin-bottom: 16px;
     border-bottom: 1px solid var(--default-border);

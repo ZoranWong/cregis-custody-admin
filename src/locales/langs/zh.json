@@ -198,10 +198,9 @@
       "shareLinkPending": "分享链接生成功能开发中，当前无法手动创建交付链接",
       "uploadProofPending": "证明文件上传功能开发中，当前无法提交线下交付凭证",
       "rejectPending": "拒绝入金通知功能开发中，当前暂不支持在线拒绝",
-      "manualTraceMockHint": "当前展示为示例数据，仅作样式参考",
       "pendingReview": "待合规审查",
-      "approve": "批准交易",
-      "reject": "拒绝交易",
+      "approve": "批准",
+      "reject": "拒绝",
       "tabCompliance": "合规审查",
       "tabTravelRule": "旅行规则",
       "tabSignOff": "签批",
@@ -242,8 +241,8 @@
       "ivms101PiiExchange": "IVMS101 PII 交换",
       "valid": "有效 ✓",
       "invalid": "无效 — {count} 个字段缺失",
-      "requestInfo": "+ 请求信息",
-      "requestPiiUpdate": "+ 请求 PII 更新",
+      "requestInfo": "请求信息",
+      "requestPiiUpdate": "请求 PII 更新",
       "requestInfoTitle": "请求信息",
       "questionPlaceholder": "输入你的问题…",
       "addQuestion": "添加问题",
@@ -253,7 +252,6 @@
       "requestInfoPending": "向客户发起补充信息请求的功能开发中，当前暂不能提交问题",
       "requestPiiPending": "请求客户重新提交 PII 的功能开发中，当前暂不能发起请求",
       "fileDownloadPending": "附件下载功能开发中，当前暂不能查看客户上传的文件",
-      "commMockHint": "当前展示为示例数据，仅作样式参考",
       "roundQuestionsRaised": "第 {n} 轮 — 提出问题",
       "roundPiiValidation": "第 {n} 轮 — PII 验证失败",
       "byComplianceTeam": "由: 合规团队",
@@ -308,7 +306,6 @@
       "beneficiaryAuthorized": "受益方已授权",
       "beneficiaryAuthorizedDetail": "受益方 VASP 通过分享链接授权了交易。继续进行链上结算。",
       "networkLifecycleDescription": "Travel Rule 网络（Notabene/SYGNA）上的交易生命周期。对手方可以授权或拒绝 PII 交换。",
-      "cancelTransfer": "取消交易",
       "selectCancellationReason": "选择取消原因...",
       "reasonError": "发送错误",
       "reasonWrongRecipient": "错误受益方",
@@ -444,7 +441,23 @@
       "unregulated": "未监管",
       "entityVasp": "VASP",
       "entityBeneficiary": "受益方",
-      "missingFields": "个字段缺失"
+      "missingFields": "个字段缺失",
+      "vaspDid": "VASP DID",
+      "vaspReviseSubmit": "提交更正",
+      "manualTraceMockHint": "下方时间线为 mock 数据，仅作样式参考。",
+      "commMockHint": "下方内容为 mock 数据，仅作样式参考。",
+      "vaspMismatchContactTitle": "VASP 信息与地址不符",
+      "vaspMismatchContactBody": "对手方 VASP 信息与本笔交易的地址不一致或缺失，请联系客户补全并更正 VASP 信息。",
+      "evidenceType": "证据类型",
+      "evidenceRemark": "取证说明",
+      "evidenceRemarkPlaceholder": "材料来源或说明（选填）",
+      "evidenceTypeTransferReceipt": "转账凭证",
+      "evidenceTypeCounterpartyConfirm": "对手方确认",
+      "evidenceTypeSelfDeclaration": "自我声明",
+      "evidenceTypeEmail": "邮件",
+      "evidenceTypeOther": "其他",
+      "rejectReasonHint": "请填写拒绝该交易的原因（会记录到审计轨迹）。",
+      "rejectDone": "已拒绝交易"
     },
     "soRejected": "已拒绝",
     "stageNoTravelRule": "无 Travel Rule 信息",
@@ -747,7 +760,8 @@
       "Gambling": "赌博",
       "Privacy Wallet": "隐私钱包",
       "match": "匹配",
-      "mismatch": "不匹配"
+      "mismatch": "不匹配",
+      "unknown": "未知"
     },
     "otherDomain": "其他",
     "acceptanceConditions": "接受条件",
@@ -779,9 +793,10 @@
       "high": "高风险"
     },
     "allDirections": "任意方向",
+    "customRuleTag": "暂不生效",
     "customRuleNoticeTitle": "自定义规则暂不生效",
-    "customRuleNoticeBody": "规则可以正常创建与配置，但无法在合规的实际业务流程中生效。",
-    "customRuleTag": "暂不生效"
+    "customRuleNoticeBody": "后端规则引擎仍在开发中，自定义规则暂时无法生效。",
+    "factorAutoNegative": "自动校验：{value}"
   },
   "opsHome": {
     "ticketQueue": "工单队列",
@@ -1392,7 +1407,9 @@
     "never": "从未",
     "screenedAgainst": "已比对 {n} 个名单",
     "rescreenUnavailable": "重新筛查会重新比对企业与受益人的全部名单，该功能接口尚未开放",
-    "reverifyRescreenUnavailable": "重新验证并筛查会重走身份验证（Sumsub）并重新比对名单，该功能接口尚未开放"
+    "reverifyRescreenUnavailable": "重新验证并筛查会重走身份验证（Sumsub）并重新比对名单，该功能接口尚未开放",
+    "editSuccess": "商户合规信息已更新",
+    "editFailed": "商户合规信息更新失败"
   },
   "merchantType": {
     "NON_FINANCIAL_CORPORATE": "非金融企业",
@@ -1929,7 +1946,8 @@
     "serviceName": "服务名称",
     "healthStatus": "健康状态",
     "latency": "延迟",
-    "serviceStatus": "服务状态"
+    "serviceStatus": "服务状态",
+    "rolesMockNotice": "角色管理后端接口仍在开发中，本标签页使用 mock 数据，角色调整不会被保存。"
   },
   "dashboard": {
     "aboutProject": "关于项目",
@@ -2030,12 +2048,11 @@
       "failed": "失败",
       "aborted": "已中止"
     },
-    "apiPending": "冷存储转账后端接口尚未提供，本页目前使用本地示例数据。"
+    "apiPending": "冷存储转账后端接口尚未提供，本页目前使用本地 mock 数据。"
   },
   "dailyReconciliation": {
     "pageTitle": "日终对账",
     "pageSubtitle": "商户级对账总览，展开后可查看各资产明细。",
-    "apiPending": "日终对账后端接口尚未提供，本页目前使用本地示例数据。",
     "searchMerchants": "搜索商户...",
     "expandAll": "全部展开",
     "collapseAll": "全部收起",
@@ -2100,7 +2117,8 @@
     "createdAt": "创建时间",
     "settledAt": "结算时间",
     "statusLabel": "状态",
-    "noTransactions": "暂无交易。"
+    "noTransactions": "暂无交易。",
+    "apiPending": "日终对账后端接口尚未提供，本页目前使用本地 mock 数据。"
   },
   "accounting": {
     "pageTitle": "账务管理",
@@ -2158,6 +2176,13 @@
     "fee": "手续费",
     "orderId": "订单号",
     "createdAt": "创建时间",
-    "noTransactions": "所选周期内没有账务流水。"
+    "noTransactions": "所选周期内没有账务流水。",
+    "availableBalance": "可用余额",
+    "frozenBalance": "冻结余额",
+    "holdBalance": "隔离余额",
+    "totalBalance": "总余额",
+    "accountFallback": "账户列表暂不可用，已回退为单元级流水",
+    "selectUnitFirst": "请选择财资单元",
+    "selectUnitHint": "资金流水按财资单元查询，请在筛选条件中选择后点击 Apply。"
   }
 }

@@ -281,7 +281,7 @@
                   cy="18"
                   r="14"
                   fill="none"
-                  stroke="var(--ink-100)"
+                  stroke="var(--default-border)"
                   stroke-width="3"
                 />
                 <circle

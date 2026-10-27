@@ -198,10 +198,9 @@
       "shareLinkPending": "Share link generation is coming soon; manual delivery links cannot be created yet",
       "uploadProofPending": "Proof upload is coming soon; offline delivery evidence cannot be submitted yet",
       "rejectPending": "Rejecting inbound notifications is coming soon",
-      "manualTraceMockHint": "The timeline below is sample data for layout reference only",
       "pendingReview": "Pending compliance review",
-      "approve": "Approve Transaction",
-      "reject": "Reject Transaction",
+      "approve": "Approve",
+      "reject": "Reject",
       "tabCompliance": "Compliance",
       "tabTravelRule": "Travel Rule",
       "tabSignOff": "Sign-off",
@@ -242,8 +241,8 @@
       "ivms101PiiExchange": "IVMS101 PII Exchange",
       "valid": "Valid ✓",
       "invalid": "Invalid — {count} Missing Fields",
-      "requestInfo": "+ Request Information",
-      "requestPiiUpdate": "+ Request PII Update",
+      "requestInfo": "Request Information",
+      "requestPiiUpdate": "Request PII Update",
       "requestInfoTitle": "Request Information",
       "questionPlaceholder": "Enter your question...",
       "addQuestion": "Add Question",
@@ -253,7 +252,6 @@
       "requestInfoPending": "Requesting additional information from the customer is coming soon; questions cannot be submitted yet",
       "requestPiiPending": "Requesting PII resubmission is coming soon; requests cannot be sent yet",
       "fileDownloadPending": "Attachment download is coming soon; customer-uploaded files cannot be viewed yet",
-      "commMockHint": "The content below is sample data for layout reference only",
       "roundQuestionsRaised": "Round {n} — Questions Raised",
       "roundPiiValidation": "Round {n} — PII Validation Failed",
       "byComplianceTeam": "By: Compliance Team",
@@ -308,7 +306,6 @@
       "beneficiaryAuthorized": "Beneficiary Authorized",
       "beneficiaryAuthorizedDetail": "Beneficiary VASP authorized the transfer via share link. Proceeding to on-chain settlement.",
       "networkLifecycleDescription": "Transfer lifecycle on the Travel Rule network (Notabene/SYGNA). Counterparty can authorize or reject the PII exchange.",
-      "cancelTransfer": "Cancel Transfer",
       "selectCancellationReason": "Select cancellation reason...",
       "reasonError": "Sent in error",
       "reasonWrongRecipient": "Wrong beneficiary",
@@ -444,7 +441,23 @@
       "unregulated": "Unregulated",
       "entityVasp": "VASP",
       "entityBeneficiary": "Beneficiary",
-      "missingFields": "Missing Fields"
+      "missingFields": "Missing Fields",
+      "vaspDid": "VASP DID",
+      "vaspReviseSubmit": "Submit correction",
+      "manualTraceMockHint": "The timeline below is mock data for layout reference only.",
+      "commMockHint": "The content below is mock data for layout reference only.",
+      "vaspMismatchContactTitle": "VASP information does not match the address",
+      "vaspMismatchContactBody": "The counterparty VASP details are inconsistent with, or missing for, this transfer. Please contact the customer to complete or correct the VASP information.",
+      "evidenceType": "Evidence type",
+      "evidenceRemark": "Remark",
+      "evidenceRemarkPlaceholder": "Material source or note (optional)",
+      "evidenceTypeTransferReceipt": "Transfer receipt",
+      "evidenceTypeCounterpartyConfirm": "Counterparty confirmation",
+      "evidenceTypeSelfDeclaration": "Self declaration",
+      "evidenceTypeEmail": "Email",
+      "evidenceTypeOther": "Other",
+      "rejectReasonHint": "Provide a reason for rejecting this transfer (recorded in the audit trail).",
+      "rejectDone": "Transfer rejected"
     },
     "soRejected": "Rejected",
     "stageNoTravelRule": "No Travel Rule",
@@ -747,7 +760,8 @@
       "Gambling": "Gambling",
       "Privacy Wallet": "Privacy Wallet",
       "match": "Match",
-      "mismatch": "Mismatch"
+      "mismatch": "Mismatch",
+      "unknown": "Unknown"
     },
     "otherDomain": "Other",
     "acceptanceConditions": "Acceptance Conditions",
@@ -779,9 +793,10 @@
       "high": "High"
     },
     "allDirections": "Any Direction",
+    "customRuleTag": "Not Enforced",
     "customRuleNoticeTitle": "Custom rules are not enforced",
-    "customRuleNoticeBody": "Rules can be created and configured, but they do not take effect in the actual compliance workflow.",
-    "customRuleTag": "Not Enforced"
+    "customRuleNoticeBody": "The backend rule engine is still in development, so custom rules cannot take effect yet.",
+    "factorAutoNegative": "Auto-checked: {value}"
   },
   "opsHome": {
     "ticketQueue": "Ticket Queue",
@@ -1390,7 +1405,9 @@
     "never": "Never",
     "screenedAgainst": "Checked against {n} lists",
     "rescreenUnavailable": "Re-screen re-checks the company and all beneficiaries against every watchlist. This feature is not yet available.",
-    "reverifyRescreenUnavailable": "Re-verify & re-screen restarts identity verification (Sumsub) and re-checks watchlists. This feature is not yet available."
+    "reverifyRescreenUnavailable": "Re-verify & re-screen restarts identity verification (Sumsub) and re-checks watchlists. This feature is not yet available.",
+    "editSuccess": "Merchant compliance info updated",
+    "editFailed": "Failed to update merchant compliance info"
   },
   "merchantType": {
     "NON_FINANCIAL_CORPORATE": "Non-financial corporate",
@@ -1927,7 +1944,8 @@
     "serviceName": "Service Name",
     "healthStatus": "Health",
     "latency": "Latency",
-    "serviceStatus": "Service Status"
+    "serviceStatus": "Service Status",
+    "rolesMockNotice": "Backend role management is still in development. This tab uses mock data, and role changes will not be saved."
   },
   "dashboard": {
     "aboutProject": "About Project",
@@ -2028,12 +2046,11 @@
       "failed": "Failed",
       "aborted": "Aborted"
     },
-    "apiPending": "Backend endpoints for cold storage transfers are not available yet; this page runs on local sample data."
+    "apiPending": "Backend endpoints for cold storage transfers are not available yet; this page runs on local mock data."
   },
   "dailyReconciliation": {
     "pageTitle": "Daily Reconciliation",
     "pageSubtitle": "Merchant-level reconciliation overview. Expand to view asset details.",
-    "apiPending": "Backend endpoints for daily reconciliation are not available yet; this page runs on local sample data.",
     "searchMerchants": "Search merchants...",
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
@@ -2098,7 +2115,8 @@
     "createdAt": "Created At",
     "settledAt": "Settled At",
     "statusLabel": "Status",
-    "noTransactions": "No transactions."
+    "noTransactions": "No transactions.",
+    "apiPending": "Backend endpoints for daily reconciliation are not available yet; this page runs on local mock data."
   },
   "accounting": {
     "pageTitle": "Accounting",
@@ -2156,6 +2174,13 @@
     "fee": "Fee",
     "orderId": "Order ID",
     "createdAt": "Created At",
-    "noTransactions": "No ledger entries in this period."
+    "noTransactions": "No ledger entries in this period.",
+    "availableBalance": "Available",
+    "frozenBalance": "Frozen",
+    "holdBalance": "Hold",
+    "totalBalance": "Total Balance",
+    "accountFallback": "Account list unavailable, showing unit-level records",
+    "selectUnitFirst": "Select a treasury unit",
+    "selectUnitHint": "Transactions are queried per treasury unit. Pick one in the filter and click Apply."
   }
 }

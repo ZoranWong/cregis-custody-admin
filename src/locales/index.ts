@@ -86,9 +86,9 @@ const getDefaultLanguage = (): LanguageEnum => {
     console.warn('[i18n] 从系统存储获取语言设置失败:', error)
   }
 
-  // 返回默认语言
-  console.debug('[i18n] 使用默认语言:', LanguageEnum.ZH)
-  return LanguageEnum.ZH
+  // 返回默认语言：系统默认英文（用户显式切换过语言时才走上面的存储分支）
+  console.debug('[i18n] 使用默认语言:', LanguageEnum.EN)
+  return LanguageEnum.EN
 }
 
 /**
@@ -98,7 +98,8 @@ const i18nOptions: I18nOptions = {
   locale: getDefaultLanguage(),
   legacy: false,
   globalInjection: true,
-  fallbackLocale: LanguageEnum.ZH,
+  // 系统默认英文：缺失 key 时回退到英文，避免中文串进英文界面
+  fallbackLocale: LanguageEnum.EN,
   messages
 }
 

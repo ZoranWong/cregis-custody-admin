@@ -16,23 +16,11 @@
       编辑模式：仅非内置规则显示（isBuiltIn 加载后自动隐藏）。
       后端合规流程尚未接入自定义规则引擎 —— 用户应知道「能存但不生效」。
     -->
-    <div
+    <ArtMockNotice
       v-if="!isBuiltIn"
-      class="flex items-start gap-2 p-3 mb-4 bg-tone-progress-bg border border-[var(--tone-progress-border)] rounded-lg"
-    >
-      <ArtSvgIcon
-        icon="ri:alert-line"
-        class="text-tone-progress-text text-icon-md mt-0.5 flex-shrink-0"
-      />
-      <div class="min-w-0">
-        <div class="text-body font-semibold text-g-900">
-          {{ $t('rules.customRuleNoticeTitle') }}
-        </div>
-        <div class="text-body text-g-700 mt-0.5 leading-relaxed">
-          {{ $t('rules.customRuleNoticeBody') }}
-        </div>
-      </div>
-    </div>
+      :title="$t('rules.customRuleNoticeTitle')"
+      :description="$t('rules.customRuleNoticeBody')"
+    />
 
     <!-- Rule Form Card -->
     <div class="art-card mb-4">
@@ -207,6 +195,10 @@
                   {{ opt }}
                 </el-checkbox>
               </div>
+              <!-- 否定值因子：不提供取值选择，展示系统自动采用的校验值 -->
+              <span v-else-if="negativeOptionLabel(factor.key)" class="factor-auto-hint ml-auto">
+                {{ $t('rules.factorAutoNegative', { value: negativeOptionLabel(factor.key) }) }}
+              </span>
               <span v-else class="factor-options-hint">{{
                 factor.supported ? getFactorOptionsDisplay(factor.key) : t('rules.factorPending')
               }}</span>
@@ -247,6 +239,8 @@
     SEVERITY_DICT,
     DIRECTION_DICT,
     factorByKey,
+    NEGATIVE_OPTION,
+    isNegativeOnlyFactor,
     factorLabel as factorLabelOf,
     stageLabel as stageLabelOf
   } from '@/features/compliance/dictionaries'
@@ -350,7 +344,8 @@
       domains[domainKey].push({
         key: factor.factorCode,
         label: factorLabel(factor),
-        type: factorType(factor),
+        // 否定值因子：只勾选因子，取值自动填（见 toggleFactor）
+        type: isNegativeOnlyFactor(factor.factorCode) ? 'negative' : factorType(factor),
         hint: factorHint(factor),
         supported: factor.enabled,
         options: factorOptions(factor)
@@ -368,9 +363,10 @@
   function toggleFactor(factorKey: string) {
     if (activeFactors.value[factorKey]) {
       delete activeFactors.value[factorKey]
-    } else {
-      activeFactors.value[factorKey] = []
+      return
     }
+    // 否定值因子：勾选后自动带上否定值，用户无需（也不应）再选具体枚举
+    activeFactors.value[factorKey] = NEGATIVE_OPTION[factorKey] ? [NEGATIVE_OPTION[factorKey]!] : []
   }
 
   function toggleFactorOption(factorKey: string, option: string) {
@@ -406,6 +402,14 @@
     } else {
       activeFactors.value[factorKey] = [value]
     }
+  }
+
+  /** 否定值因子的自动取值标签；非否定值因子返回空串 */
+  function negativeOptionLabel(factorKey: string): string {
+    const negative = NEGATIVE_OPTION[factorKey]
+    if (!negative) return ''
+    const translated = t(`rules.factorOptions.${negative}`)
+    return translated.startsWith('rules.factorOptions.') ? negative : translated
   }
 
   function getFactorOptionsDisplay(factorKey: string): string {
@@ -647,5 +651,11 @@
 
   .min-amount-input :deep(.el-input__inner) {
     text-align: left;
+  }
+
+  /* 否定值因子的自动取值提示：比普通选项提示更轻，避免误以为是可选值 */
+  .factor-auto-hint {
+    font-size: var(--font-size-body);
+    color: var(--tone-muted-text);
   }
 </style>

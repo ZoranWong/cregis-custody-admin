@@ -49,6 +49,7 @@
  * @author Art Design Pro Team
  */
 
+import i18n, { $t } from '@/locales'
 import { echarts, type EChartsOption } from '@/plugins/echarts'
 import { storeToRefs } from 'pinia'
 import { useSettingStore } from '@/store/modules/setting'
@@ -468,7 +469,11 @@ export function useChart(options: UseChartOptions = {}) {
         background: transparent;
         z-index: 10;
       `
-      emptyStateDiv.innerHTML = `<span>暂无数据</span>`
+      // 文案走全局 $t（common.noData）—— 这里不在 setup 顶层，不能用 useI18n
+      emptyStateDiv.textContent = ''
+      const span = document.createElement('span')
+      span.textContent = $t('common.noData')
+      emptyStateDiv.appendChild(span)
 
       // 确保父容器有相对定位
       if (
@@ -694,6 +699,16 @@ export function useChartComponent<T extends BaseChartProps>(options: UseChartCom
       const stopHandle = watch(watchSources, updateChart, { deep: true })
       stopHandles.push(stopHandle)
     }
+
+    // 监听语言变化：空状态是命令式 DOM，需手动重建文案
+    const localeStopHandle = watch(
+      () => String(i18n.global.locale),
+      () => {
+        emptyStateManager.remove()
+        if (isEmpty.value) updateChart()
+      }
+    )
+    stopHandles.push(localeStopHandle)
 
     // 监听主题变化
     const themeStopHandle = watch(isDark, () => {

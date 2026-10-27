@@ -38,7 +38,9 @@ export const COMPLIANCE_DICT: TxStateItem[] = [
 export const TRAVEL_RULE_DICT: TxStateItem[] = [
   { value: 'complete', labelKey: 'txLens.trComplete' },
   { value: 'pending', labelKey: 'txLens.trPending' },
-  { value: 'mismatch', labelKey: 'txLens.trMismatch' },
+  // mismatch（VASP 信息与地址不符）对外统一显示为 Pending：
+  // 「不一致」是待客户补全的数据问题，不是已完成的核验结论
+  { value: 'mismatch', labelKey: 'txLens.trPending' },
   NA_ITEM
 ]
 

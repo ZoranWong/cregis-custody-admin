@@ -26,11 +26,7 @@
       </div>
 
       <!-- 后端接口未就绪提示 -->
-      <div
-        class="mb-4 px-4 py-2.5 rounded-lg text-xs leading-relaxed bg-tone-progress-bg text-tone-progress-text border border-[var(--tone-progress-border)]"
-      >
-        {{ $t('dailyReconciliation.apiPending') }}
-      </div>
+      <ArtMockNotice :description="$t('dailyReconciliation.apiPending')" />
 
       <!-- Asset / Merchant Header -->
       <div class="art-card p-5 mb-4 flex flex-wrap items-center justify-between gap-4">

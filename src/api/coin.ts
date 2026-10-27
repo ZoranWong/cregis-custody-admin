@@ -13,6 +13,8 @@ export interface CoinOnChainView {
   network: string
   appendix: string
   withdrawingFee: string
+  /** 0 = 正常，1 = 已删除（后端会返回软删除记录） */
+  isDeleted?: number
 }
 
 export async function fetchCoinList(): Promise<CoinOnChainView[]> {

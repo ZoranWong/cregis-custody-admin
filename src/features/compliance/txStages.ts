@@ -68,7 +68,7 @@ export function buildStages(tx: StageSource): StageKey[] {
  * O202610222113087512133111808：travelRule=mismatch、did=null）。
  */
 export function stageStateOf(tx: StageSource, key: StageKey): string | null | undefined {
-  if (key === 'travelRule' && !hasTravelRule(tx) && tx.travelRule !== 'mismatch') return 'na'
+  //   if (key === 'travelRule' && !hasTravelRule(tx) && tx.travelRule !== 'mismatch') return 'na'
   const map: Record<StageKey, string | null | undefined> = {
     compliance: tx.compliance,
     travelRule: tx.travelRule,

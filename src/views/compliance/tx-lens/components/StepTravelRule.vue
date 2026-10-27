@@ -41,7 +41,9 @@
               </div>
             </div>
           </div>
+          <!-- 没有 IVMS101 数据（ivms101Valid 为空）时，交换状态行无意义，不展示 -->
           <div
+            v-if="hasIvms101Data"
             class="flex items-center justify-between px-3 py-2.5 bg-g-100 border border-[var(--default-border)] rounded-md"
           >
             <span class="text-xs font-semibold text-g-600">{{
@@ -53,38 +55,42 @@
           </div>
 
           <!--
-            补充 / 修正 VASP 信息是 VASP 模块自身的动作，放回这张卡片内，
-            不混进 Manual Resolution 的取证操作区。核对不一致时附带原因。
+            VASP 核对不一致（MISMATCH）时：
+              · 不提供「补充 VASP 信息」—— 该字段应由客户申报，运营侧改不了；
+              · 改为提示运营联系客户补全 / 更正数据，并附带不一致的具体原因。
+            核对一致时仍保留「补充 VASP 信息」入口。
           -->
-          <div class="flex flex-wrap items-center gap-2 mt-3">
+          <div v-if="showVaspMismatchActions" class="vasp-mismatch-notice mt-3">
+            <ArtSvgIcon icon="ri:alert-line" class="text-icon-md mt-0.5 flex-shrink-0" />
+            <div class="min-w-0">
+              <div class="text-sm font-semibold">{{
+                $t('txLens.detail.vaspMismatchContactTitle')
+              }}</div>
+              <div class="text-xs mt-0.5 leading-relaxed">
+                {{ $t('txLens.detail.vaspMismatchContactBody') }}
+              </div>
+              <div class="text-xs mt-1 font-medium">{{ vaspMismatchHint }}</div>
+            </div>
+          </div>
+          <div v-else class="flex flex-wrap items-center gap-2 mt-3">
             <el-button size="small" @click="openReviseDialog">
               <ArtSvgIcon icon="ri:edit-line" class="text-icon-sm mr-1" />{{
                 $t('txLens.detail.vaspRevise')
               }}
             </el-button>
-            <span v-if="showVaspMismatchActions" class="text-xs font-medium text-tone-error-text">{{
-              vaspMismatchHint
-            }}</span>
           </div>
         </div>
       </div>
 
-      <!-- IVMS101 PII Details（对齐原型：双列语义化字段） -->
-      <div class="art-card mb-4">
+      <!-- IVMS101 PII Details：接口没有 PII 数据时整张卡片不渲染 -->
+      <div v-if="piiFields.length" class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
           <span class="text-sm font-semibold text-g-900">{{
             $t('txLens.detail.ivms101PiiDetails')
           }}</span>
         </div>
         <div class="p-4">
-          <div
-            v-if="!piiFields.length"
-            class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
-          >
-            <ArtSvgIcon icon="ri:information-line" class="text-tone-info-text text-icon-md" />
-            <span class="text-sm text-g-700">{{ $t('txLens.detail.noIvms101Pii') }}</span>
-          </div>
-          <div v-else class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-2 gap-3">
             <div v-for="field in piiFields" :key="field.label" class="pii-field">
               <div class="pii-field-label">{{ field.label }}</div>
               <div class="pii-field-value">{{ field.value || '--' }}</div>
@@ -176,13 +182,12 @@
             <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-3">
               {{ $t('txLens.detail.manualTrace') }}
             </div>
-            <!-- 接口无数据时展示原型 mock（带提示条）：仅样式参考 -->
-            <div
-              v-if="manualTraceIsMock"
-              class="flex items-center gap-2 px-3 py-2 mb-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
-            >
-              <ArtSvgIcon icon="ri:information-line" class="text-tone-info-text flex-shrink-0" />
-              <span class="text-xs text-g-700">{{ $t('txLens.detail.manualTraceMockHint') }}</span>
+            <!-- 接口无数据时展示原型 mock（提示条样式与 rules detail 一致：琥珀 + alert 图标） -->
+            <div v-if="manualTraceIsMock" class="mock-inline-notice mb-3">
+              <ArtSvgIcon icon="ri:alert-line" class="text-icon-md mt-0.5 flex-shrink-0" />
+              <span class="text-xs leading-relaxed">{{
+                $t('txLens.detail.manualTraceMockHint')
+              }}</span>
             </div>
             <div
               v-if="!manualTrace.length"
@@ -329,6 +334,36 @@
         $t('txLens.detail.uploadProofHint')
       }}</p>
 
+      <!-- 与 POST /travel-rule/attestations 的 CreateRequest.attestationType 对齐 -->
+      <div class="flex flex-col gap-1 mb-4">
+        <label class="text-xs font-semibold text-g-700">{{
+          $t('txLens.detail.evidenceType')
+        }}</label>
+        <el-select v-model="evidenceType" class="!w-64">
+          <el-option
+            v-for="opt in EVIDENCE_TYPES"
+            :key="opt.value"
+            :label="$t(opt.labelKey)"
+            :value="opt.value"
+          />
+        </el-select>
+      </div>
+
+      <!-- CreateRequest.remark：取证说明 / 材料来源 -->
+      <div class="flex flex-col gap-1 mb-4">
+        <label class="text-xs font-semibold text-g-700">{{
+          $t('txLens.detail.evidenceRemark')
+        }}</label>
+        <el-input
+          v-model="evidenceRemark"
+          type="textarea"
+          :rows="2"
+          maxlength="200"
+          show-word-limit
+          :placeholder="$t('txLens.detail.evidenceRemarkPlaceholder')"
+        />
+      </div>
+
       <input
         ref="evidenceInputRef"
         type="file"
@@ -337,15 +372,23 @@
         class="hidden"
         @change="onEvidenceFilesSelected"
       />
+      <!-- 上传区：可点击选择，也可直接拖拽文件进来；有明确的可见边界与聚焦态 -->
       <div
         class="evidence-dropzone"
+        :class="{ 'is-dragging': draggingEvidence }"
         role="button"
         tabindex="0"
+        :aria-label="$t('txLens.detail.evidenceDropHint')"
         @click="evidenceInputRef?.click()"
         @keyup.enter="evidenceInputRef?.click()"
+        @keyup.space.prevent="evidenceInputRef?.click()"
+        @dragover.prevent="draggingEvidence = true"
+        @dragenter.prevent="draggingEvidence = true"
+        @dragleave.prevent="draggingEvidence = false"
+        @drop.prevent="onEvidenceDrop"
       >
-        <ArtSvgIcon icon="ri:upload-cloud-2-line" class="text-icon-xl text-g-400" />
-        <div class="text-sm text-g-700">{{ $t('txLens.detail.evidenceDropHint') }}</div>
+        <ArtSvgIcon icon="ri:upload-cloud-2-line" class="text-icon-xl text-tone-muted-text" />
+        <div class="text-sm font-medium text-g-800">{{ $t('txLens.detail.evidenceDropHint') }}</div>
         <div class="text-xs text-tone-muted-text">{{ $t('txLens.detail.evidenceFileLimit') }}</div>
       </div>
 
@@ -391,6 +434,7 @@
   import { ElMessage, ElMessageBox } from 'element-plus'
   import type {
     TimelineNodeView,
+    TravelRuleAttestationType,
     TravelRuleAttestationView,
     TravelRuleTabView
   } from '@/features/compliance/types'
@@ -405,7 +449,7 @@
     fetchInboundNotifications,
     confirmVaspMismatch,
     reviseCounterpartyVasp,
-    cancelTransaction,
+    rejectTransaction,
     fetchTravelRuleAttestations,
     uploadFile,
     createTravelRuleAttestation,
@@ -518,19 +562,21 @@
     }
   }
 
-  // ─── 取消挂起出金订单 ───
-  /**
-   * 与入金通知的 Reject 不同：这里调用的是出金侧 /compliance/transactions/{id}/cancel，
-   * 后端语义为「取消挂起出金订单」，因此只在出金交易上展示。
-   */
+  // ─── Manual Resolution：Cancel transfer ───
+  /** 仅出金（我方发起的线下取证）才有「取消 / 拒绝」入口 */
   const showCancelButton = computed(() => props.direction !== 'incoming')
 
+  /**
+   * Manual Resolution 的 Cancel transfer 调用「拒绝交易」接口：
+   * POST /compliance/transactions/{orderId}/reject?note=...
+   * 原因写入 note，随审计轨迹留痕。
+   */
   async function handleCancel(): Promise<void> {
     if (!props.orderId) return
     let reason = ''
     try {
       const input = await ElMessageBox.prompt(
-        t('txLens.detail.cancelReasonHint'),
+        t('txLens.detail.rejectReasonHint'),
         t('txLens.detail.cancelTransfer'),
         {
           confirmButtonText: t('common.confirm'),
@@ -545,8 +591,8 @@
     }
     cancelling.value = true
     try {
-      await cancelTransaction(props.orderId, reason || undefined)
-      ElMessage.success(t('txLens.detail.cancelDone'))
+      await rejectTransaction(props.orderId, { note: reason || undefined })
+      ElMessage.success(t('txLens.detail.rejectDone'))
       emit('reviewed')
     } catch (err) {
       ElMessage.error(err instanceof Error ? err.message : t('txLens.detail.actionFailed'))
@@ -564,6 +610,19 @@
   const evidenceInputRef = ref<HTMLInputElement | null>(null)
   const evidenceError = ref('')
   const uploadingEvidence = ref(false)
+  /** 拖拽悬停中（用于高亮上传区） */
+  const draggingEvidence = ref(false)
+  /** 证据类型（CreateRequest.attestationType，必选） */
+  const evidenceType = ref<TravelRuleAttestationType>('OTHER')
+  /** 取证说明 / 材料来源（CreateRequest.remark） */
+  const evidenceRemark = ref('')
+  const EVIDENCE_TYPES: Array<{ value: TravelRuleAttestationType; labelKey: string }> = [
+    { value: 'TRANSFER_RECEIPT', labelKey: 'txLens.detail.evidenceTypeTransferReceipt' },
+    { value: 'COUNTERPARTY_CONFIRM', labelKey: 'txLens.detail.evidenceTypeCounterpartyConfirm' },
+    { value: 'SELF_DECLARATION', labelKey: 'txLens.detail.evidenceTypeSelfDeclaration' },
+    { value: 'EMAIL', labelKey: 'txLens.detail.evidenceTypeEmail' },
+    { value: 'OTHER', labelKey: 'txLens.detail.evidenceTypeOther' }
+  ]
   const deletingEvidenceId = ref<number | null>(null)
   /** 待上传文件（原型支持多选，逐个上传后统一登记为证据） */
   const evidenceFiles = ref<File[]>([])
@@ -601,6 +660,9 @@
   /** 关闭 / 重开弹框都清空已选文件，避免残留上一次的选择 */
   function resetEvidenceForm(): void {
     evidenceFiles.value = []
+    draggingEvidence.value = false
+    evidenceType.value = 'OTHER'
+    evidenceRemark.value = ''
     evidenceError.value = ''
     if (evidenceInputRef.value) evidenceInputRef.value.value = ''
   }
@@ -609,11 +671,8 @@
     evidenceDialogVisible.value = false
   }
 
-  function onEvidenceFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement
-    const picked = Array.from(input.files || [])
-    // 清空 value，允许重复选择同一个文件
-    input.value = ''
+  /** 点击选择与拖拽共用：校验大小、去重后加入待上传列表 */
+  function addEvidenceFiles(picked: File[]): void {
     evidenceError.value = ''
     const oversized = picked.filter((f) => f.size > MAX_EVIDENCE_SIZE)
     if (oversized.length) {
@@ -626,6 +685,19 @@
     const exists = (f: File) =>
       evidenceFiles.value.some((e) => e.name === f.name && e.size === f.size)
     evidenceFiles.value = [...evidenceFiles.value, ...valid.filter((f) => !exists(f))]
+  }
+
+  function onEvidenceFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement
+    const picked = Array.from(input.files || [])
+    // 清空 value，允许重复选择同一个文件
+    input.value = ''
+    addEvidenceFiles(picked)
+  }
+
+  function onEvidenceDrop(event: DragEvent): void {
+    draggingEvidence.value = false
+    addEvidenceFiles(Array.from(event.dataTransfer?.files || []))
   }
 
   function removeEvidenceFile(index: number): void {
@@ -650,8 +722,8 @@
         const item = await createTravelRuleAttestation(props.orderId, {
           fileUrl: uploaded.fileUrl,
           fileName: uploaded.fileName || file.name,
-          // 原型弹框没有类型选择，统一按「其他取证材料」登记
-          attestationType: 'OTHER'
+          attestationType: evidenceType.value,
+          remark: evidenceRemark.value.trim() || undefined
         })
         created.push(item)
       }
@@ -783,6 +855,11 @@
   // 接口未下发监管状态 / TR 能力，保持为空即不渲染
   const vaspRegulatory = computed(() => null as string | null)
   const vaspTrCapable = computed(() => null as string | null)
+
+  /** 接口是否下发过 IVMS101 数据（布尔校验结果或旧版字符串状态） */
+  const hasIvms101Data = computed(
+    () => typeof props.data?.ivms101Valid === 'boolean' || !!props.data?.ivms101Status
+  )
 
   /** IVMS101 PII 交换状态：优先 ivms101Valid，兼容旧版 ivms101Status */
   const ivms101StatusText = computed(() => {
@@ -1086,4 +1163,58 @@
   }
 
   /* 圆点颜色由 toneDotStyle 内联注入 */
+
+  /* 上传区：虚线边框给出明确的点击/拖拽目标 */
+  .evidence-dropzone {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    min-height: 132px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--tone-neutral-bg);
+    border: 1px dashed var(--default-border);
+    border-radius: 8px;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+  }
+
+  .evidence-dropzone:hover,
+  .evidence-dropzone:focus-visible {
+    background: var(--tone-info-bg);
+    border-color: var(--tone-info-border);
+  }
+
+  .evidence-dropzone.is-dragging {
+    background: var(--tone-info-bg);
+    border-color: var(--tone-info-mark);
+  }
+
+  /* VASP 信息不一致提示：沿用全站警示条样式（琥珀 + alert 图标） */
+  .vasp-mismatch-notice {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 12px;
+    color: var(--tone-progress-text);
+    background: var(--tone-progress-bg);
+    border: 1px solid var(--tone-progress-border);
+    border-radius: 8px;
+  }
+
+  /* mock 提示条：与 compliance/rules/detail 的提示样式一致（琥珀 + alert 图标） */
+  .mock-inline-notice {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 12px;
+    color: var(--tone-progress-text);
+    background: var(--tone-progress-bg);
+    border: 1px solid var(--tone-progress-border);
+    border-radius: 8px;
+  }
 </style>

@@ -1,5 +1,5 @@
 // v2 store — 币种元数据（参考 v1 src/stores/coins.ts）
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { fetchCoinList, type CoinOnChainView } from '@/api/coin'
 
@@ -15,7 +15,9 @@ export const useCoinStore = defineStore(
       loading.value = true
       try {
         const data = await fetchCoinList()
-        // 防御：确保赋值的是数组（后端可能包裹在 MessageResult 中）
+        // 防御：确保赋值的是数组（后端可能包裹在 MessageResult 中）。
+        // 注意：这里保留软删除记录 —— 历史流水/余额仍可能引用它们（如 SIT 上的 ETH），
+        // 过滤掉会导致精度查不到、金额被当成 0 精度展示。需要「可选币种」时用 activeList。
         list.value = Array.isArray(data) ? data : []
         loaded.value = true
       } catch {
@@ -25,6 +27,9 @@ export const useCoinStore = defineStore(
         loading.value = false
       }
     }
+
+    /** 未软删除的币种（选择器 / 资产行展示用） */
+    const activeList = computed(() => list.value.filter((c) => c.isDeleted !== 1))
 
     function getCoin(coinId: string, network: string): CoinOnChainView | undefined {
       return list.value.find(
@@ -99,6 +104,7 @@ export const useCoinStore = defineStore(
 
     return {
       list,
+      activeList,
       loaded,
       loading,
       ensureLoaded,

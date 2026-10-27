@@ -18,11 +18,7 @@
     </div>
 
     <!-- 后端接口未就绪提示：避免把示例数据误当成真实请求 -->
-    <div
-      class="mb-4 px-4 py-2.5 rounded-lg text-xs leading-relaxed bg-tone-progress-bg text-tone-progress-text border border-[var(--tone-progress-border)]"
-    >
-      {{ $t('coldStorage.apiPending') }}
-    </div>
+    <ArtMockNotice :description="$t('coldStorage.apiPending')" />
 
     <!-- Filter Bar -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -256,11 +252,11 @@
 <style scoped>
   .merchant-avatar {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     width: 28px;
     height: 28px;
-    flex-shrink: 0;
     font-size: 11px;
     font-weight: 700;
     color: #fff;

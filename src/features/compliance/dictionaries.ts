@@ -302,6 +302,29 @@ export function operatorSymbol(value: string): string {
 /** 冒号类运算符（冒号前不留空格，其余运算符两侧留空格） */
 const COLON_OPERATORS = new Set([':', '≠'])
 
+/**
+ * 枚举型因子的「否定值」。
+ *
+ * 业务语义：规则只在这些字段【不满足正常值】时触发（例如 VASP 未注册、PII 无效、
+ * 受益方姓名不匹配）。因此编辑器只让用户勾选因子本身，取值由系统自动填否定值，
+ * 不再让用户在一堆枚举里挑 —— 选「Registered」再去挂起交易没有业务意义。
+ *
+ * 未收录的枚举型因子（如 counter_type / 筛查标签）仍保持多选，因为它们的多个取值
+ * 都是真实业务风险，不存在唯一的「否定值」。
+ */
+export const NEGATIVE_OPTION: Record<string, string> = {
+  vasp_status: 'unregulated',
+  vasp_regulatory: 'unverified',
+  tr_capable: 'no',
+  ivms101_valid: 'invalid',
+  beneficiary_name_match: 'mismatch'
+}
+
+/** 该因子是否「只按否定值校验」 */
+export function isNegativeOnlyFactor(key: string): boolean {
+  return key in NEGATIVE_OPTION
+}
+
 export function factorByKey(value: string): FactorOption | undefined {
   return FACTOR_CATALOG.find((f) => f.key === value)
 }
@@ -312,7 +335,8 @@ export function factorByKey(value: string): FactorOption | undefined {
 // 统一走这里，避免各组件各写一套 map。组件只调用下方导出的
 // *Label / *Tag 函数并传入 t，不再自行维护映射。
 
-export type Translate = (key: string) => string
+/** i18n 翻译函数；第二个参数用于探测 key 是否存在（见 factorOptionLabel） */
+export type Translate = (key: string, named?: Record<string, unknown>) => string
 
 /** 枚举 → 可读标签：按字典查 i18n key，缺失时回退原值（空值显示 '--'） */
 function labelOf(
@@ -364,11 +388,21 @@ export function factorLabel(
   return fallback || value
 }
 
-/** 因子取值 → 标签；非字典 key（自由输入 / 复合值）原样返回 */
+/**
+ * 因子取值 → 标签；非字典 key（自由输入 / 复合值）原样返回。
+ *
+ * 注意：不能直接拿 t(key) 的返回值判断是否存在 —— 配置了 fallbackLocale 时，
+ * en 缺失会回退到 zh 并命中，结果是「中文混进英文界面」外加一条 intlify 警告。
+ * 这里用 named 参数探测：vue-i18n 对带具名参数的 key 不会走 fallbackLocale，
+ * 缺失时直接返回 key 本身，判断可靠且不会污染渲染。
+ */
 export function factorOptionLabel(value: string, t: Translate): string {
   if (value.includes(' — ')) return value
-  const translated = t(`rules.factorOptions.${value}`)
-  return translated.startsWith('rules.factorOptions.') ? value : translated
+  const key = `rules.factorOptions.${value}`
+  const probe = t(key, { named: {} })
+  if (!probe || probe === key || probe.startsWith('rules.factorOptions.')) return value
+  // 命中字典时再取一次纯文本（不带参数），避免出现字面量 {}
+  return t(key)
 }
 
 /** el-tag type 取值（唯一来源：txState，避免两处同名异构各写一份） */

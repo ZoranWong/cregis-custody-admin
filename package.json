@@ -19,7 +19,8 @@
     "commit": "git-cz",
     "clean:dev": "tsx scripts/clean-dev.ts",
     "build:beta": "VITE_BASE_URL='custody-admin' VITE_ADMIN_API_BASE=/CRM vite build && ssh root@8.210.46.143 'rm -rf /web/custody-web/cregis-custody-admin/*' && scp -r ./dist/* root@8.210.46.143:/web/custody-web/cregis-custody-admin/",
-    "build:test": "VITE_BASE_URL='custody-admin' VITE_ADMIN_API_BASE=/CRM vite build && ssh root@8.217.54.115 'rm -rf /web/vaulink/cregis-custody-admin/*' && scp -r ./dist/* root@8.217.54.115:/web/vaulink/cregis-custody-admin/"
+    "build:test": "VITE_BASE_URL='custody-admin' VITE_ADMIN_API_BASE=/CRM vite build && ssh root@8.217.54.115 'rm -rf /web/vaulink/cregis-custody-admin/*' && scp -r ./dist/* root@8.217.54.115:/web/vaulink/cregis-custody-admin/",
+    "check:tokens": "tsx scripts/check-css-tokens.ts"
   },
   "config": {
     "commitizen": {

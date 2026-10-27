@@ -12,11 +12,7 @@
     </div>
 
     <!-- 后端接口未就绪提示 -->
-    <div
-      class="mb-4 px-4 py-2.5 rounded-lg text-xs leading-relaxed bg-tone-progress-bg text-tone-progress-text border border-[var(--tone-progress-border)]"
-    >
-      {{ $t('dailyReconciliation.apiPending') }}
-    </div>
+    <ArtMockNotice :description="$t('dailyReconciliation.apiPending')" />
 
     <!-- Merchant Search -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -63,7 +59,7 @@
         </template>
 
         <!-- 普通列 -->
-        <el-table-column :label="$t('dailyReconciliation.merchantName')" min-width="240">
+        <el-table-column :label="$t('dailyReconciliation.merchantName')" min-width="200">
           <template #default="{ row }">
             <div class="merchant-cell">
               <div class="merchant-icon" :style="avatarStyle(row.code)">
@@ -74,13 +70,13 @@
           </template>
         </el-table-column>
 
-        <el-table-column :label="$t('dailyReconciliation.assetCount')" width="150">
+        <el-table-column :label="$t('dailyReconciliation.assetCount')" min-width="130">
           <template #default="{ row }">
             <span class="stat-value">{{ row.assetCount }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column :label="$t('dailyReconciliation.blocked')" width="140">
+        <el-table-column :label="$t('dailyReconciliation.blocked')" min-width="120">
           <template #default="{ row }">
             <span class="stat-value" :class="{ exceptions: row.blockedAssets > 0 }">
               {{ row.blockedAssets }}
@@ -88,7 +84,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column :label="$t('dailyReconciliation.maxUnreconciledDays')" width="220">
+        <el-table-column :label="$t('dailyReconciliation.maxUnreconciledDays')" min-width="180">
           <template #default="{ row }">
             <span class="stat-value" :class="stalenessClass(row.maxUnreconciledDays)">
               {{ row.maxUnreconciledDays }}
@@ -96,7 +92,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column :label="$t('dailyReconciliation.totalUnreconciledDays')" width="220">
+        <el-table-column :label="$t('dailyReconciliation.totalUnreconciledDays')" min-width="180">
           <template #default="{ row }">
             <span class="stat-value" :class="{ exceptions: row.totalUnreconciledDays > 0 }">
               {{ row.totalUnreconciledDays }}
@@ -108,69 +104,97 @@
         <el-table-column type="expand" width="48">
           <template #default="{ row }">
             <div class="asset-panel">
-              <table class="asset-table">
-                <colgroup>
-                  <col />
-                  <col class="num-col" />
-                  <col class="num-col" />
-                  <col class="date-col" />
-                  <col class="days-col" />
-                  <col class="chevron-col" />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th>{{ $t('dailyReconciliation.asset') }}</th>
-                    <th>{{ $t('dailyReconciliation.treasuryUnits') }}</th>
-                    <th>{{ $t('dailyReconciliation.lastClosedBalance') }}</th>
-                    <th>{{ $t('dailyReconciliation.lastClosedDate') }}</th>
-                    <th>{{ $t('dailyReconciliation.unreconciledDays') }}</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="asset in row.assets"
-                    :key="`${asset.coinId}-${asset.network}`"
-                    class="asset-row"
-                    @click="openAsset(row, asset)"
-                  >
-                    <td>
-                      <div class="asset-cell">
-                        <div class="asset-icon" :style="iconStyle(asset.coinId)">
-                          {{ coinColor(asset.coinId).symbol }}
-                        </div>
-                        <div class="asset-info">
-                          <span class="asset-name">{{ asset.coinId }}</span>
-                          <span class="asset-network">{{ networkLabel(asset.network) }}</span>
-                        </div>
+              <el-table
+                :data="row.assets"
+                class="asset-table"
+                row-key="coinId"
+                size="small"
+                @row-click="(asset: ReconciliationAssetRowView) => openAsset(row, asset)"
+              >
+                <el-table-column
+                  :label="$t('dailyReconciliation.asset')"
+                  min-width="220"
+                  class-name="asset-name-col"
+                >
+                  <template #default="{ row: asset }">
+                    <div class="asset-cell">
+                      <img
+                        v-if="iconOf(asset) && !iconFailed(asset)"
+                        class="asset-icon-img"
+                        :src="iconOf(asset)!"
+                        :alt="asset.coinId"
+                        loading="lazy"
+                        @error="markIconFailed(asset)"
+                      />
+                      <div v-else class="asset-icon" :style="fallbackStyle(asset.coinId)">
+                        {{ asset.coinId.slice(0, 1).toUpperCase() }}
                       </div>
-                    </td>
-                    <td>{{ asset.treasuryUnitCount }}</td>
-                    <td class="balance-cell">
-                      {{ formatBaseAmountDisplay(asset.lastClosedBalance, asset.decimals) }}
-                    </td>
-                    <td>{{ formatShortDate(asset.lastClosedDate) }}</td>
-                    <td>
-                      <span class="staleness-cell" :class="stalenessClass(asset.unreconciledDays)">
-                        {{ asset.unreconciledDays }}
-                      </span>
-                    </td>
-                    <td class="chevron-col">
-                      <svg
-                        class="chevron-icon"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path d="M9 18l6-6-6-6" />
-                      </svg>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      <div class="asset-info">
+                        <span class="asset-name">{{ asset.coinId }}</span>
+                        <span class="asset-network">{{ networkLabel(asset.network) }}</span>
+                      </div>
+                    </div>
+                  </template>
+                </el-table-column>
+
+                <el-table-column
+                  :label="$t('dailyReconciliation.treasuryUnits')"
+                  width="160"
+                  align="left"
+                >
+                  <template #default="{ row: asset }">{{ asset.treasuryUnitCount }}</template>
+                </el-table-column>
+
+                <el-table-column
+                  :label="$t('dailyReconciliation.lastClosedBalance')"
+                  width="220"
+                  align="left"
+                >
+                  <template #default="{ row: asset }">
+                    <span class="balance-cell">{{
+                      formatBaseAmountDisplay(asset.lastClosedBalance, asset.decimals)
+                    }}</span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column
+                  :label="$t('dailyReconciliation.lastClosedDate')"
+                  width="170"
+                  align="left"
+                >
+                  <template #default="{ row: asset }">{{
+                    formatShortDate(asset.lastClosedDate)
+                  }}</template>
+                </el-table-column>
+
+                <el-table-column
+                  :label="$t('dailyReconciliation.unreconciledDays')"
+                  width="180"
+                  align="left"
+                >
+                  <template #default="{ row: asset }">
+                    <span class="staleness-cell" :class="stalenessClass(asset.unreconciledDays)">
+                      {{ asset.unreconciledDays }}
+                    </span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column width="48" align="center">
+                  <template #default>
+                    <svg
+                      class="chevron-icon"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </template>
+                </el-table-column>
+              </el-table>
             </div>
           </template>
         </el-table-column>
@@ -180,16 +204,23 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref, watch } from 'vue'
+  import { computed, onMounted, reactive, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import type { TableInstance } from 'element-plus'
   import { fetchReconciliationOverview } from '@/features/audit/reconciliation/mock'
+  import {
+    assetRollup,
+    assetsFromCoinList,
+    coinFallbackStyle,
+    coinIconMap,
+    coinKey
+  } from '@/features/audit/reconciliation/coins'
   import type {
     ReconciliationAssetRowView,
     ReconciliationMerchantRowView
   } from '@/features/audit/reconciliation/types'
+  import { useCoinStore } from '@/store/modules/coins'
   import {
-    coinColor,
     formatBaseAmountDisplay,
     formatShortDate,
     networkLabel
@@ -198,6 +229,7 @@
   defineOptions({ name: 'DailyReconciliation' })
 
   const router = useRouter()
+  const coinStore = useCoinStore()
 
   const merchants = ref<ReconciliationMerchantRowView[]>([])
   /** 与表格展开状态保持同步，仅用于驱动「全部展开 / 收起」按钮文案 */
@@ -206,6 +238,8 @@
   const keyword = ref('')
   const loading = ref(false)
   const loadError = ref('')
+  /** 加载失败的图标，回退为字母角标 */
+  const failedIcons = reactive(new Set<string>())
 
   const filteredMerchants = computed(() => {
     const q = keyword.value.trim().toLowerCase()
@@ -238,8 +272,15 @@
     loading.value = true
     loadError.value = ''
     try {
-      const overview = await fetchReconciliationOverview()
-      merchants.value = overview.merchants
+      const [overview] = await Promise.all([
+        fetchReconciliationOverview(),
+        coinStore.ensureLoaded()
+      ])
+      merchants.value = overview.merchants.map((m) => {
+        const assets = assetsFromCoinList(coinStore.list, m.assets)
+        // 商户汇总随资产行重算，避免与子表展示的数量/天数不一致
+        return { ...m, assets, ...assetRollup(assets) }
+      })
       expanded.value = new Set()
     } catch (caught) {
       merchants.value = []
@@ -248,6 +289,26 @@
     } finally {
       loading.value = false
     }
+  }
+
+  /** 系统币种图标：coinId@network → 图标地址 */
+  const COIN_ICONS = computed(() => coinIconMap(coinStore.list))
+
+  function iconOf(asset: ReconciliationAssetRowView): string | undefined {
+    return COIN_ICONS.value.get(coinKey(asset.coinId, asset.network))
+  }
+
+  function iconFailed(asset: ReconciliationAssetRowView): boolean {
+    return failedIcons.has(coinKey(asset.coinId, asset.network))
+  }
+
+  function markIconFailed(asset: ReconciliationAssetRowView): void {
+    failedIcons.add(coinKey(asset.coinId, asset.network))
+  }
+
+  /** 图标缺失/加载失败时的字母角标配色 */
+  function fallbackStyle(coinId: string): Record<string, string> {
+    return coinFallbackStyle(coinId)
   }
 
   /** 点击整行展开/收起；行内资产明细的点击不会冒泡到这里 */
@@ -282,11 +343,6 @@
     if (days === 0) return 'fresh'
     if (days <= 2) return 'stale'
     return 'very-stale'
-  }
-
-  function iconStyle(coinId: string): Record<string, string> {
-    const c = coinColor(coinId)
-    return { background: c.bg, color: c.color }
   }
 
   const AVATAR_GRADIENTS = [
@@ -332,21 +388,21 @@
   .merchant-name {
     font-size: 14px;
     font-weight: 600;
-    color: var(--theme-text, var(--g-900));
+    color: var(--tone-strong-text);
   }
 
   .stat-value {
     font-size: 13px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    color: var(--theme-text, var(--g-900));
+    color: var(--tone-strong-text);
   }
 
   .stat-value.exceptions {
     color: var(--tone-progress-text);
   }
 
-  /* ========== 展开行：资产明细（tier 2） ========== */
+  /* ========== 展开行：资产明细（tier 2，ElTable） ========== */
   :deep(.el-table__expanded-cell) {
     padding: 0 !important;
     background: var(--tone-neutral-bg);
@@ -357,70 +413,44 @@
     background: var(--tone-neutral-bg);
   }
 
+  /* 子表：表头与主表同一视觉语言 */
   .asset-table {
-    width: 100%;
+    --el-table-border-color: var(--default-border);
+    --el-table-bg-color: var(--default-box-color);
+    --el-table-tr-bg-color: var(--default-box-color);
+    --el-table-header-bg-color: var(--tone-neutral-bg);
+    --el-table-row-hover-bg-color: var(--tone-neutral-bg);
+    --el-table-text-color: var(--tone-secondary-text);
+    --el-table-header-text-color: var(--tone-muted-text);
 
-    /* 固定布局：列宽不随资产名称/金额长度变化 */
-    table-layout: fixed;
-    border-collapse: collapse;
-    background: var(--theme-surface, #fff);
+    width: 100%;
+    font-size: var(--font-size-body);
   }
 
-  .asset-table th {
+  /* 资产列与主表商户名对齐（展开列占 48px） */
+  .asset-table :deep(.asset-name-col .cell) {
+    padding-left: 62px;
+  }
+
+  .asset-table :deep(th.el-table__cell) {
     padding: 8px 14px;
-    font-size: 10px;
+    font-size: var(--font-size-label);
     font-weight: 600;
-    color: var(--tone-muted-text);
-    text-align: left;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    white-space: nowrap;
-    background: var(--tone-neutral-bg);
-    border-top: 1px solid var(--default-border);
-    border-bottom: 1px solid var(--default-border);
   }
 
-  .asset-table th:first-child {
-    padding-left: 62px;
-  }
-
-  .asset-table td {
+  .asset-table :deep(td.el-table__cell) {
     padding: 12px 14px;
     vertical-align: middle;
-    border-bottom: 1px solid var(--default-border);
   }
 
-  .asset-table td:first-child {
-    padding-left: 62px;
+  .asset-table :deep(.el-table__row) {
+    cursor: pointer;
   }
 
-  .asset-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-
-  .asset-table col.num-col {
-    width: 160px;
-  }
-
-  .asset-table col.date-col {
-    width: 150px;
-  }
-
-  .asset-table col.days-col {
-    width: 170px;
-  }
-
-  .asset-table col.chevron-col {
-    width: 48px;
-  }
-
-  .num-col,
   .balance-cell {
     font-variant-numeric: tabular-nums;
-  }
-
-  .chevron-col {
-    text-align: center;
   }
 
   /* 展开列：箭头居中，展开后旋转 90° */
@@ -438,17 +468,8 @@
     width: 16px;
     height: 16px;
     margin: 0 auto;
-    color: var(--ink-400);
+    color: var(--tone-muted-text);
     vertical-align: middle;
-  }
-
-  .asset-row {
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .asset-row:hover td {
-    background: var(--tone-neutral-bg);
   }
 
   .asset-cell {
@@ -469,6 +490,15 @@
     border-radius: 50%;
   }
 
+  /* 系统币种图标：与字母角标同尺寸，避免两种状态切换时行高跳动 */
+  .asset-icon-img {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    border-radius: 50%;
+  }
+
   .asset-info {
     display: flex;
     flex-direction: column;
@@ -477,7 +507,7 @@
   .asset-name {
     font-size: 13px;
     font-weight: 600;
-    color: var(--theme-text, var(--g-900));
+    color: var(--tone-strong-text);
   }
 
   .asset-network {
@@ -485,14 +515,9 @@
     color: var(--tone-muted-text);
   }
 
-  .balance-cell {
-    font-weight: 600;
-    color: var(--theme-text, var(--g-900));
-  }
-
   .chevron-icon {
     display: inline-block;
-    color: var(--ink-400);
+    color: var(--tone-muted-text);
     vertical-align: middle;
   }
 

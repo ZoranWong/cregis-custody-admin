@@ -63,23 +63,11 @@
         </div>
         <div class="p-4">
           <!-- 自定义规则说明条：可配置但业务上不生效（后端流程未接入） -->
-          <div
+          <ArtMockNotice
             v-if="!currentRule.builtIn"
-            class="flex items-start gap-2 p-3 mb-5 bg-tone-progress-bg border border-[var(--tone-progress-border)] rounded-lg"
-          >
-            <ArtSvgIcon
-              icon="ri:alert-line"
-              class="text-tone-progress-text text-icon-md mt-0.5 flex-shrink-0"
-            />
-            <div class="min-w-0">
-              <div class="text-body font-semibold text-g-900">
-                {{ $t('rules.customRuleNoticeTitle') }}
-              </div>
-              <div class="text-body text-g-700 mt-0.5 leading-relaxed">
-                {{ $t('rules.customRuleNoticeBody') }}
-              </div>
-            </div>
-          </div>
+            :title="$t('rules.customRuleNoticeTitle')"
+            :description="$t('rules.customRuleNoticeBody')"
+          />
           <!-- Description -->
           <div class="mb-5">
             <label class="text-xs font-semibold text-g-700 block mb-1">{{

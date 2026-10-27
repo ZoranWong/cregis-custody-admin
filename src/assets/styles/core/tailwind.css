@@ -75,6 +75,7 @@
   --tone-error-mark: #ff4c4c; /* 3.14:1 */
   --tone-info-text: #1d4ed8; /* 6.70:1 · 原型 accent-700，注意非 --el-color-primary(3.00:1) */
   --tone-info-mark: #3c96ff; /* 3.03:1 */
+  --tone-strong-text: #323251; /* 12.28:1 · 标题与核心数据（与 --art-gray-900 同值） */
   --tone-neutral-text: #475569; /* 7.58:1 · 原型 ink-600，替代 g-600(3.62:1) */
   --tone-neutral-mark: #94a3b8; /* 3.10:1 */
   --tone-purple-text: #6b21a8; /* 8.72:1 · 复核结果 FN 专用色相 */
@@ -94,6 +95,28 @@
   /* 描边：与 el-tag 的几何保持一致（el-tag 自带 1px 边框，颜色需与语义匹配） */
   --tone-inbound-border: #86efac;
   --tone-outbound-border: #93c5fd;
+
+  /* ==================== 币种角标 ====================
+   *
+   * 币种图标/角标的底色与文字色。此前写死在 views/audit/_shared/format.ts 里，
+   * 12px 字母实测仅 3.32:1（浅）/ 2.63:1（暗），且暗色下仍是浅色底。
+   * 此处分色相定义，暗色段单独一套；文字一律取 700 级（浅）/ 300-400 级（暗）。
+   */
+  --coin-usdt-bg: #ecfdf5;
+  --coin-usdt-text: #047857;
+  --coin-usdc-bg: #eff6ff;
+  --coin-usdc-text: #1d4ed8;
+  --coin-btc-bg: #fff7ed;
+  --coin-btc-text: #c2410c;
+  --coin-eth-bg: #eef2ff;
+  --coin-eth-text: #4338ca;
+  --coin-sol-bg: #faf5ff;
+  --coin-sol-text: #7e22ce;
+  --coin-trx-bg: #fef2f2;
+  --coin-trx-text: #b91c1c;
+  --coin-default-bg: var(--tone-neutral-bg);
+  --coin-default-text: var(--tone-secondary-text);
+
   /* 语义描边（与出入金同强度，供 el-tag 统一使用）。
      EP 默认用 light-8（80% 向白混合）过淡，与出入金 tag 的可见描边不一致。 */
   --tone-done-border: #86efac;
@@ -186,7 +209,7 @@
    *   次级  订单号、字段说明、辅助信息  7.07:1
    *   主要  g-900 标题与核心数据
    */
-  --tone-muted-text: #64748b; /* 与原型 ink-500 同值 */
+  --tone-muted-text: #5f6d84; /* 5.24:1 白底 · 4.88:1 中性底(#f5f7fa) — 原 #64748b 在中性底仅 4.43:1 */
   --tone-secondary-text: #4d5875;
 
   /* ==================== Elevation ==================== */
@@ -297,6 +320,21 @@
   /* Text Hierarchy (Dark) —— 深底上需提亮，且不用 g-500(在深底仅约 2.3:1) */
   --tone-muted-text: #94a3b8;
   --tone-secondary-text: #ababba;
+  --tone-strong-text: #e3e3e8; /* 14.13:1 · 与暗色 --art-gray-900 同值 */
+
+  /* 币种角标（暗色）：低透明度色晕底 + 300 级文字，深底上 ≥7:1 */
+  --coin-usdt-bg: rgb(52 211 153 / 14%);
+  --coin-usdt-text: #6ee7b7;
+  --coin-usdc-bg: rgb(96 165 250 / 16%);
+  --coin-usdc-text: #93c5fd;
+  --coin-btc-bg: rgb(251 146 60 / 16%);
+  --coin-btc-text: #fdba74;
+  --coin-eth-bg: rgb(129 140 248 / 16%);
+  --coin-eth-text: #a5b4fc;
+  --coin-sol-bg: rgb(192 132 252 / 16%);
+  --coin-sol-text: #d8b4fe;
+  --coin-trx-bg: rgb(248 113 113 / 16%);
+  --coin-trx-text: #fca5a5;
 
   /* Elevation —— 暗色下纯黑阴影会消失，改用高不透明度深阴影 */
   --art-shadow-hover: 0 2px 8px rgb(0 0 0 / 32%);

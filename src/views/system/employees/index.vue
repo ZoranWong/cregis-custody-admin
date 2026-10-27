@@ -103,6 +103,9 @@
 
     <!-- ═══════ Roles Tab ═══════ -->
     <template v-if="currentTab === 'roles'">
+      <!-- 后端接口未就绪提示 -->
+      <ArtMockNotice :description="$t('system.rolesMockNotice')" />
+
       <template v-if="loading">
         <!-- System Administrators skeleton -->
         <div class="art-card mb-4 overflow-hidden">
@@ -425,14 +428,6 @@
         </el-form-item>
         <el-form-item :label="$t('system.email')">
           <el-input v-model="inviteForm.email" type="email" placeholder="Enter work email" />
-        </el-form-item>
-        <el-form-item :label="$t('system.role')">
-          <el-select v-model="inviteForm.role" class="w-full">
-            <el-option label="System Administrator" value="SYSTEM_ADMIN" />
-            <el-option label="Compliance Officer" value="COMPLIANCE" />
-            <el-option label="Operations" value="OPERATIONS" />
-            <el-option label="Risk Reviewer" value="RISK" />
-          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>

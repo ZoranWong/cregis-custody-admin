@@ -178,88 +178,100 @@
     position: relative;
     display: inline-flex;
   }
+
   .merchant-search__input {
     width: 100%;
-    padding: 7px 36px 7px 12px;
-    border: 1px solid var(--ink-200);
-    border-radius: 7px;
-    font-size: 13px;
-    font-family: inherit;
-    color: var(--ink-700);
-    background: #fff;
     min-height: 32px;
+    padding: 7px 36px 7px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--tone-secondary-text);
+    background: var(--default-box-color);
+    border: 1px solid var(--default-border);
+    border-radius: 7px;
   }
+
   .merchant-search__input:focus {
-    border-color: var(--accent-600);
+    border-color: var(--theme-text);
     outline: none;
-    box-shadow: 0 0 0 3px var(--accent-100);
+    box-shadow: 0 0 0 3px var(--tone-info-ring-soft);
   }
+
   .merchant-search__chevron {
     position: absolute;
-    right: 10px;
     top: 50%;
-    transform: translateY(-50%);
+    right: 10px;
     width: 16px;
     height: 16px;
-    color: var(--ink-400);
+    color: var(--tone-muted-text);
     pointer-events: none;
+    transform: translateY(-50%);
   }
+
   .merchant-search__dropdown {
     position: absolute;
     top: calc(100% + 4px);
     left: 0;
-    min-width: 100%;
+    z-index: 100;
     width: max-content;
+    min-width: 100%;
     max-width: 320px;
     max-height: 240px;
     overflow-y: auto;
-    background: #fff;
-    border: 1px solid var(--ink-200);
+    background: var(--default-box-color);
+    border: 1px solid var(--default-border);
     border-radius: 8px;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-    z-index: 100;
+    box-shadow: 0 10px 24px rgb(15 23 42 / 12%);
   }
+
   .merchant-search__row {
     display: flex;
+    gap: 10px;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
     padding: 10px 14px;
     cursor: pointer;
-    border-bottom: 1px solid var(--ink-50);
+    border-bottom: 1px solid var(--default-border);
     transition: background 0.15s;
   }
+
   .merchant-search__row:hover {
-    background: var(--accent-50);
+    background: var(--tone-neutral-bg);
   }
+
   .merchant-search__row:last-child {
     border-bottom: none;
   }
+
   .merchant-search__name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--ink-950);
+    color: var(--tone-strong-text);
   }
+
   .merchant-search__empty {
     padding: 12px 14px;
     font-size: 12px;
-    color: var(--ink-500);
+    color: var(--tone-muted-text);
     text-align: center;
     cursor: default;
   }
+
   .merchant-search__empty:hover {
     background: transparent;
   }
+
   .merchant-search__more {
     padding: 10px 14px;
     font-size: 12px;
     font-weight: 500;
-    color: var(--accent-600);
+    color: var(--theme-text);
     text-align: center;
     cursor: pointer;
-    border-top: 1px solid var(--ink-50);
+    border-top: 1px solid var(--default-border);
   }
+
   .merchant-search__more:hover {
-    background: var(--accent-50);
+    background: var(--tone-neutral-bg);
   }
 </style>

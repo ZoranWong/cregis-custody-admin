@@ -17,21 +17,21 @@ export function networkLabel(network: string): string {
   return NETWORK_LABELS[network.toLowerCase()] ?? network
 }
 
-/** 原型资产图标配色：底色 + 文字色 */
+/** 原型资产图标配色：底色 + 文字色（取值定义在 tailwind.css，明暗各一套） */
 const COIN_COLORS: Record<string, { bg: string; color: string; symbol: string }> = {
-  USDT: { bg: '#d1fae5', color: '#059669', symbol: 'T' },
-  USDC: { bg: '#dbeafe', color: '#2563eb', symbol: 'C' },
-  BTC: { bg: '#fed7aa', color: '#ea580c', symbol: 'B' },
-  ETH: { bg: '#e0e7ff', color: '#4f46e5', symbol: 'E' },
-  SOL: { bg: '#f3e8ff', color: '#9333ea', symbol: 'S' },
-  TRX: { bg: '#fee2e2', color: '#dc2626', symbol: 'X' }
+  USDT: { bg: 'var(--coin-usdt-bg)', color: 'var(--coin-usdt-text)', symbol: 'T' },
+  USDC: { bg: 'var(--coin-usdc-bg)', color: 'var(--coin-usdc-text)', symbol: 'C' },
+  BTC: { bg: 'var(--coin-btc-bg)', color: 'var(--coin-btc-text)', symbol: 'B' },
+  ETH: { bg: 'var(--coin-eth-bg)', color: 'var(--coin-eth-text)', symbol: 'E' },
+  SOL: { bg: 'var(--coin-sol-bg)', color: 'var(--coin-sol-text)', symbol: 'S' },
+  TRX: { bg: 'var(--coin-trx-bg)', color: 'var(--coin-trx-text)', symbol: 'X' }
 }
 
 export function coinColor(coinId: string): { bg: string; color: string; symbol: string } {
   return (
     COIN_COLORS[coinId.toUpperCase()] ?? {
-      bg: '#f3f4f6',
-      color: '#475569',
+      bg: 'var(--coin-default-bg)',
+      color: 'var(--coin-default-text)',
       symbol: coinId.slice(0, 1).toUpperCase()
     }
   )

@@ -365,18 +365,20 @@
   .badge-tag {
     flex-shrink: 0;
     padding: 2px 8px;
-    border-radius: 5px;
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
+    border-radius: 5px;
   }
+
   .badge-tag.primary {
-    background: var(--accent-50, #eff6ff);
-    color: var(--accent-700, #1d4ed8);
+    color: var(--tone-info-text);
+    background: var(--tone-info-bg);
   }
+
   .badge-tag.fallback {
-    background: var(--g-50, #f9fafb);
-    color: var(--g-700, #374151);
+    color: var(--tone-secondary-text);
+    background: var(--tone-neutral-bg);
   }
 
   .cred-row {
@@ -384,22 +386,23 @@
     align-items: center;
     justify-content: space-between;
     padding: 6px 10px;
-    border-radius: 8px;
-    background: var(--g-50, #f9fafb);
     margin-bottom: 4px;
+    background: var(--tone-neutral-bg);
+    border-radius: 8px;
   }
 
   .governance-notice {
     max-width: 640px;
     padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    background: var(--warning-50, #fffbeb);
     font-size: 12px;
-    color: var(--warning-700, #b45309);
     line-height: 1.5;
+    color: var(--tone-progress-text);
+    background: var(--tone-progress-bg);
+    border: 1px solid rgb(245 158 11 / 20%);
+    border-radius: 8px;
   }
+
   .governance-notice strong {
-    color: var(--warning-800, #92400e);
+    color: var(--tone-progress-text);
   }
 </style>

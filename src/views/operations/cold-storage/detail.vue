@@ -510,55 +510,55 @@
 
 <style scoped>
   .detail-label {
+    margin-bottom: 2px;
     font-size: var(--font-size-label);
     font-weight: 600;
     color: var(--tone-muted-text);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    margin-bottom: 2px;
   }
 
   .detail-value {
     font-size: var(--font-size-body-lg);
     font-weight: 500;
-    color: var(--g-900);
+    color: var(--tone-strong-text);
   }
 
   .detail-value.mono {
+    padding: 6px 10px;
     font-family: var(--font-family-mono, ui-monospace, monospace);
     font-size: var(--font-size-body);
     word-break: break-all;
-    padding: 6px 10px;
-    background: var(--g-50, #f9fafb);
+    background: var(--tone-neutral-bg);
     border-radius: 4px;
   }
 
   .approver-avatar {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     width: 28px;
     height: 28px;
-    flex-shrink: 0;
     font-size: 10px;
     font-weight: 700;
-    border-radius: 50%;
-    background: var(--g-100, #f3f4f6);
     color: var(--tone-muted-text);
+    background: var(--tone-neutral-bg);
+    border-radius: 50%;
   }
 
   .approver-avatar.approved {
-    background: var(--tone-done-bg);
     color: var(--tone-done-text);
+    background: var(--tone-done-bg);
   }
 
   .workflow-step {
     display: flex;
     gap: 16px;
     padding: 16px;
+    background: var(--tone-neutral-bg);
     border: 1px solid var(--default-border);
     border-radius: 8px;
-    background: var(--g-50, #f9fafb);
     transition:
       background 0.15s,
       border-color 0.15s;
@@ -575,43 +575,43 @@
 
   .step-indicator {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     width: 32px;
     height: 32px;
-    flex-shrink: 0;
     font-size: 13px;
     font-weight: 700;
-    border-radius: 50%;
-    background: var(--g-200, #e5e7eb);
     color: var(--tone-muted-text);
+    background: var(--default-border);
+    border-radius: 50%;
   }
 
   .workflow-step.active .step-indicator {
-    background: var(--el-color-primary);
     color: #fff;
+    background: var(--el-color-primary);
   }
 
   .workflow-step.completed .step-indicator {
-    background: var(--tone-done-mark);
     color: #fff;
+    background: var(--tone-done-mark);
   }
 
   .file-info {
     display: inline-flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
     padding: 8px 12px;
     font-size: var(--font-size-body);
-    color: var(--g-700);
+    color: var(--tone-secondary-text);
     background: var(--default-box-color);
     border: 1px solid var(--default-border);
     border-radius: 6px;
   }
 
   .abort-note {
-    margin-top: 12px;
     padding: 10px 12px;
+    margin-top: 12px;
     font-size: var(--font-size-body);
     color: var(--tone-error-text);
     background: var(--tone-error-bg);

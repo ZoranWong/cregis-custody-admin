@@ -66,7 +66,8 @@ export function useTeamManagement() {
   const inviteDialogOpen = ref(false)
   const showTransferDialog = ref(false)
   const transferTo = ref('')
-  const inviteForm = ref({ name: '', email: '', role: '' })
+  /** 邀请成员：角色固定为 admin，不再让运营选择 */
+  const inviteForm = ref({ name: '', email: '' })
 
   const owner = computed(() => allMembers.value.find((m) => m.owner))
   const regularMembers = computed(() => allMembers.value.filter((m) => !m.owner))
@@ -117,12 +118,13 @@ export function useTeamManagement() {
     }
   }
 
-  async function inviteMember(data: { name: string; email: string; role: string }): Promise<void> {
+  async function inviteMember(data: { name: string; email: string }): Promise<void> {
     try {
       await createEmployee({
         displayName: data.name,
         email: data.email,
-        initialRoleCode: data.role || 'SYSTEM_STAFF',
+        // 邀请统一按 admin 角色创建（产品要求，不再提供角色选择）
+        initialRoleCode: 'admin',
         authorizedDomainIds: ['operations'],
         defaultEntryId: 'operations'
       })
@@ -147,7 +149,7 @@ export function useTeamManagement() {
   }
 
   function openInviteDialog(): void {
-    inviteForm.value = { name: '', email: '', role: '' }
+    inviteForm.value = { name: '', email: '' }
     inviteDialogOpen.value = true
   }
 

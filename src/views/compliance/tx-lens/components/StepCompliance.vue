@@ -19,7 +19,7 @@
       <!-- Rules Triggered -->
       <div class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-          <span class="text-sm font-semibold text-g-900">{{
+          <span class="text-title font-semibold text-g-900">{{
             $t('txLens.detail.rulesTriggered')
           }}</span>
           <span class="text-xs font-semibold text-g-500">
@@ -30,14 +30,14 @@
         <div class="p-4 flex flex-col gap-2">
           <div
             v-if="rulesTriggered.length === 0"
-            class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-success-light-9)] border border-[var(--el-color-success-light-5)] rounded-lg"
+            class="flex items-center gap-2 px-4 py-3 bg-tone-done-bg border border-[var(--tone-done-border)] rounded-lg"
           >
-            <ArtSvgIcon icon="ri:checkbox-circle-line" class="text-success text-base" />
+            <ArtSvgIcon icon="ri:checkbox-circle-line" class="text-tone-done-text text-base" />
             <div>
-              <div class="text-sm font-medium text-success">{{
+              <div class="text-body-lg font-medium text-tone-done-text">{{
                 $t('txLens.detail.noRulesTriggered')
               }}</div>
-              <div class="text-xs text-g-500 mt-0.5">{{
+              <div class="text-body-lg text-g-500 mt-0.5">{{
                 $t('txLens.detail.noRulesTriggeredHint')
               }}</div>
             </div>
@@ -50,7 +50,7 @@
             <!-- 规则名 + 严重级别 + 跳转规则详情 -->
             <div class="flex items-start justify-between gap-2">
               <div class="flex items-center gap-2 flex-wrap min-w-0">
-                <span class="text-sm font-semibold text-g-900">{{ rule.ruleName }}</span>
+                <span class="text-title font-semibold text-g-900">{{ rule.ruleName }}</span>
                 <el-tag
                   v-if="rule.severity"
                   :type="severityTag(rule.severity)"
@@ -63,6 +63,7 @@
               <el-button
                 v-if="rule.id != null"
                 text
+                type="primary"
                 size="small"
                 class="flex-shrink-0 !px-1"
                 @click="openRule(rule.id)"
@@ -76,7 +77,7 @@
               <span
                 v-for="(cond, ci) in rule.conditions"
                 :key="ci"
-                class="px-2 py-0.5 bg-g-50 border border-[var(--default-border)] rounded text-[11px] text-g-700"
+                class="px-2 py-0.5 bg-g-50 border border-[var(--default-border)] rounded text-label text-g-700"
               >
                 {{ conditionLabel(cond) }}
               </span>
@@ -88,14 +89,14 @@
       <!-- Customer Due Diligence -->
       <div class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
-          <span class="text-sm font-semibold text-g-900">{{ $t('txLens.detail.cdd') }}</span>
+          <span class="text-title font-semibold text-g-900">{{ $t('txLens.detail.cdd') }}</span>
         </div>
         <div class="p-4 grid grid-cols-2 gap-2">
           <div v-if="cddItems.length === 0" class="text-xs text-g-400">--</div>
           <div
             v-for="item in cddItems"
             :key="item.label"
-            class="flex items-center gap-1.5 text-xs"
+            class="flex items-center gap-1.5 text-body-lg"
             :class="item.available === false ? 'text-g-400' : 'text-g-700'"
           >
             <!-- available=false：后端无数据源，展示占位而非 ✗ -->
@@ -115,7 +116,7 @@
       <!-- Screening Results -->
       <div class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
-          <span class="text-sm font-semibold text-g-900">{{
+          <span class="text-title font-semibold text-g-900">{{
             $t('txLens.detail.screeningResults')
           }}</span>
         </div>
@@ -124,15 +125,15 @@
             v-if="!hasScreening"
             class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
           >
-            <ArtSvgIcon icon="ri:information-line" class="text-[var(--el-color-info)] text-base" />
-            <span class="text-sm text-g-700">{{ $t('txLens.detail.noScreeningResult') }}</span>
+            <ArtSvgIcon icon="ri:information-line" class="text-tone-info-text text-base" />
+            <span class="text-body-lg text-g-700">{{ $t('txLens.detail.noScreeningResult') }}</span>
           </div>
           <template v-else>
             <!-- Entity Screening：VASP / Beneficiary 两行（对齐原型）
                  subject 为空不显示该行；result 为 NA 时展示 Clear -->
             <div v-if="entityRows.length" class="mb-4">
               <div
-                class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-[var(--default-border)]"
+                class="text-label font-bold text-g-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-[var(--default-border)]"
                 >{{ $t('txLens.detail.entityScreening') }}</div
               >
               <div
@@ -140,7 +141,7 @@
                 :key="row.labelKey"
                 class="flex items-center justify-between gap-2 py-1.5"
               >
-                <span class="text-xs font-medium text-g-800 truncate">
+                <span class="text-body-lg font-medium text-g-800 truncate">
                   {{ $t(row.labelKey) }}<template v-if="row.subject"> — {{ row.subject }}</template>
                 </span>
                 <el-tag :type="screeningTagType(row.result)" size="small" effect="plain">{{
@@ -150,7 +151,7 @@
             </div>
             <div>
               <div
-                class="text-[11px] font-bold text-g-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-[var(--default-border)]"
+                class="text-label font-bold text-g-500 uppercase tracking-wider mb-2 pb-1.5 border-b border-[var(--default-border)]"
                 >{{ $t('txLens.detail.onChainScreening') }}</div
               >
               <!-- 出金：双方地址 + 地址级风险等级（KYA） -->
@@ -161,7 +162,7 @@
                   class="py-1.5 border-b border-[var(--default-border)] last:border-b-0"
                 >
                   <div class="flex items-center justify-between gap-2 mb-1">
-                    <span class="text-[10px] font-semibold text-g-500 uppercase">{{
+                    <span class="text-label font-semibold text-g-500 uppercase">{{
                       $t('txLens.detail.originatorAddress')
                     }}</span>
                     <el-tag
@@ -171,11 +172,11 @@
                       >{{ levelLabel(item.originatorLevel) }}</el-tag
                     >
                   </div>
-                  <div class="text-xs text-g-700 font-mono break-all">{{
+                  <div class="text-body-lg text-g-700 font-mono break-all">{{
                     item.originatorAddresses?.join(', ') || '--'
                   }}</div>
                   <div class="flex items-center justify-between gap-2 mb-1 mt-2.5">
-                    <span class="text-[10px] font-semibold text-g-500 uppercase">{{
+                    <span class="text-label font-semibold text-g-500 uppercase">{{
                       $t('txLens.detail.beneficiaryAddress')
                     }}</span>
                     <el-tag
@@ -185,7 +186,7 @@
                       >{{ levelLabel(item.beneficiaryLevel) }}</el-tag
                     >
                   </div>
-                  <div class="text-xs text-g-700 font-mono break-all">{{
+                  <div class="text-body-lg text-g-700 font-mono break-all">{{
                     item.beneficiaryAddresses?.join(', ') || '--'
                   }}</div>
                 </div>
@@ -198,7 +199,7 @@
                   class="py-1.5 border-b border-[var(--default-border)] last:border-b-0"
                 >
                   <div class="flex items-center justify-between gap-2 mb-1">
-                    <span class="text-[10px] font-semibold text-g-500 uppercase">{{
+                    <span class="text-label font-semibold text-g-500 uppercase">{{
                       $t('txLens.detail.txHashLabel')
                     }}</span>
                     <!-- 入金展示 result（NA/UNKNOWN/LOW 统一为 Clear），不展示 txLevel -->
@@ -210,13 +211,17 @@
                       {{ screeningLabel(normalizeResult(item.result)) }}
                     </el-tag>
                   </div>
-                  <div class="text-xs text-g-700 font-mono break-all">{{ item.txId || '--' }}</div>
-                  <div class="text-[11px] text-g-400 font-mono truncate mt-0.5">
+                  <div class="text-body-lg text-g-700 font-mono break-all">{{
+                    item.txId || '--'
+                  }}</div>
+                  <div class="text-body text-g-400 font-mono truncate mt-0.5">
                     {{ txAddressSummary(item) }}
                   </div>
                 </div>
               </template>
-              <div v-if="onChainScreening.length === 0" class="text-xs text-g-400 py-1.5">--</div>
+              <div v-if="onChainScreening.length === 0" class="text-body-lg text-g-400 py-1.5"
+                >--</div
+              >
             </div>
           </template>
         </div>
@@ -225,7 +230,7 @@
       <!-- Travel Rule（对齐原型：VASP Identity 多字段 + IVMS101 PII Exchange 状态） -->
       <div v-if="hasTravelRule" class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
-          <span class="text-sm font-semibold text-g-900">{{
+          <span class="text-title font-semibold text-g-900">{{
             $t('txLens.detail.travelRuleCompliance')
           }}</span>
         </div>
@@ -252,10 +257,11 @@
         <span class="text-xs text-g-600">{{ $t('txLens.detail.pendingReviewHint') }}</span>
         <div class="flex gap-2 flex-shrink-0">
           <!-- 两个按钮各自独立 loading，避免点一个时另一个也转圈 -->
-          <el-button type="danger" :loading="rejecting" @click="emit('reject')">{{
+          <!-- 统一按钮层级：通过是唯一主操作（primary），拒绝为次要危险（danger + plain） -->
+          <el-button type="danger" plain :loading="rejecting" @click="emit('reject')">{{
             $t('txLens.detail.reject')
           }}</el-button>
-          <el-button type="success" :loading="approving" @click="emit('approve')">{{
+          <el-button type="primary" :loading="approving" @click="emit('approve')">{{
             $t('txLens.detail.approve')
           }}</el-button>
         </div>
@@ -266,36 +272,38 @@
     <div v-show="activeTab === 'communication'">
       <div class="art-card mb-4">
         <div class="p-4">
-          <!-- mock 提示：接口无数据源，内容仅样式参考 -->
-          <div
-            class="flex items-center gap-2 px-4 py-3 mb-4 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
-          >
-            <ArtSvgIcon icon="ri:information-line" class="text-[var(--el-color-info)] text-base" />
-            <span class="text-sm text-g-700">{{ $t('txLens.detail.commMockHint') }}</span>
+          <!-- mock 提示：接口无数据源，内容仅样式参考（样式与 rules detail 一致） -->
+          <div class="mock-inline-notice mb-4">
+            <ArtSvgIcon icon="ri:alert-line" class="text-icon-md mt-0.5 flex-shrink-0" />
+            <span class="text-body-lg leading-relaxed">{{ $t('txLens.detail.commMockHint') }}</span>
           </div>
 
           <!-- 操作按钮（对齐原型右上角）：弹框交互可用，提交时提示开发中 -->
           <div class="flex justify-end gap-2 mb-4">
-            <el-button size="small" @click="openRequestInfo">{{
-              $t('txLens.detail.requestInfo')
-            }}</el-button>
-            <el-button size="small" @click="openRequestPii">{{
-              $t('txLens.detail.requestPiiUpdate')
-            }}</el-button>
+            <el-button size="small" @click="openRequestInfo">
+              <ArtSvgIcon icon="ri:question-line" class="text-icon-sm mr-1" />{{
+                $t('txLens.detail.requestInfo')
+              }}
+            </el-button>
+            <el-button size="small" @click="openRequestPii">
+              <ArtSvgIcon icon="ri:user-follow-line" class="text-icon-sm mr-1" />{{
+                $t('txLens.detail.requestPiiUpdate')
+              }}
+            </el-button>
           </div>
 
           <!-- 问答轮次（mock 数据，新→旧） -->
           <div v-for="round in commRounds" :key="round.n" class="question-round">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-[13px] font-semibold text-g-900">{{
+              <span class="text-body-lg font-semibold text-g-900">{{
                 $t('txLens.detail.roundQuestionsRaised', { n: round.n })
               }}</span>
-              <span class="text-[11px] text-g-400">{{ round.time }}</span>
+              <span class="text-body text-g-400">{{ round.time }}</span>
             </div>
-            <div class="text-[11px] text-g-500 mb-1.5">{{
+            <div class="text-body text-g-500 mb-1.5">{{
               $t('txLens.detail.byComplianceTeam')
             }}</div>
-            <div class="text-xs text-g-600 mb-2.5">
+            <div class="text-body-lg text-g-600 mb-2.5">
               {{
                 round.n === 1
                   ? $t('txLens.detail.complianceReviewed')
@@ -304,13 +312,13 @@
             </div>
             <div v-for="qa in round.qas" :key="qa.q" class="mb-2.5">
               <div class="flex gap-1.5 mb-1">
-                <span class="text-[11px] font-bold text-[var(--el-color-primary)] flex-shrink-0"
+                <span class="text-label font-bold text-[var(--el-color-primary)] flex-shrink-0"
                   >Q{{ qa.idx }}</span
                 >
-                <span class="text-xs text-g-800">{{ qa.q }}</span>
+                <span class="text-body-lg text-g-800">{{ qa.q }}</span>
               </div>
               <div class="pl-5">
-                <div class="text-[10px] font-semibold uppercase text-g-400 mb-0.5">
+                <div class="text-label font-semibold uppercase text-g-400 mb-0.5">
                   {{ $t('txLens.detail.answer') }}
                 </div>
                 <!-- 文件型回答：文件名可点（原型为下载语义），下载功能未实现 -->
@@ -323,11 +331,11 @@
                   <ArtSvgIcon icon="ri:file-text-line" class="text-icon-sm" />
                   {{ qa.a }}
                 </button>
-                <div v-else class="text-xs text-g-700 leading-relaxed">{{ qa.a }}</div>
+                <div v-else class="text-body-lg text-g-700 leading-relaxed">{{ qa.a }}</div>
               </div>
             </div>
             <div
-              class="text-[11px] text-g-400 mt-2 pt-1.5 border-t border-dashed border-[var(--el-border-color-light)]"
+              class="text-body text-g-400 mt-2 pt-1.5 border-t border-dashed border-[var(--el-border-color-light)]"
             >
               {{ $t('txLens.detail.responseSubmitted') }}: {{ round.respondedAt }}
             </div>
@@ -340,7 +348,7 @@
     <div v-show="activeTab === 'timeline'">
       <div class="art-card mb-4">
         <div class="p-4 border-b border-[var(--default-border)]">
-          <span class="text-sm font-semibold text-g-900">{{
+          <span class="text-title font-semibold text-g-900">{{
             $t('txLens.detail.compTimeline')
           }}</span>
         </div>
@@ -349,15 +357,17 @@
             v-if="timeline.length === 0"
             class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
           >
-            <ArtSvgIcon icon="ri:information-line" class="text-[var(--el-color-info)] text-base" />
-            <span class="text-sm text-g-700">{{ $t('txLens.detail.noTimeline') }}</span>
+            <ArtSvgIcon icon="ri:information-line" class="text-tone-info-text text-base" />
+            <span class="text-body-lg text-g-700">{{ $t('txLens.detail.noTimeline') }}</span>
           </div>
           <div v-else class="timeline-chain">
             <div v-for="node in timeline" :key="node.label + node.time" class="timeline-node">
               <div class="timeline-dot" :style="toneDotStyle(timelineNodeTone(node))" />
-              <div class="text-sm font-semibold text-g-800">{{ timelineLabel(node.label) }}</div>
-              <div class="text-xs text-g-600 mt-0.5">{{ timelineDetail(node.detail) }}</div>
-              <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
+              <div class="text-body-lg font-semibold text-g-800">{{
+                timelineLabel(node.label)
+              }}</div>
+              <div class="text-body-lg text-g-600 mt-0.5">{{ timelineDetail(node.detail) }}</div>
+              <div class="text-body text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
             </div>
           </div>
         </div>
@@ -409,7 +419,7 @@
       :close-on-click-modal="true"
       append-to-body
     >
-      <div class="text-xs text-g-600 mb-3">
+      <div class="text-body-lg text-g-600 mb-3">
         {{ $t('txLens.detail.piiFieldsRequireResubmission') }}
       </div>
       <div class="flex flex-col gap-2">
@@ -418,7 +428,7 @@
           :key="f"
           class="flex items-center justify-between px-3 py-2 bg-[var(--el-fill-color-light)] rounded-md"
         >
-          <span class="text-sm text-g-800">{{ f }}</span>
+          <span class="text-body-lg text-g-800">{{ f }}</span>
           <el-tag type="danger" size="small" effect="light">{{
             $t('txLens.detail.piiMissing')
           }}</el-tag>
@@ -879,4 +889,16 @@
   }
 
   /* 圆点颜色由 toneDotStyle 内联注入 */
+
+  /* mock 提示条：与 compliance/rules/detail 的提示样式一致（琥珀 + alert 图标） */
+  .mock-inline-notice {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 12px;
+    color: var(--tone-progress-text);
+    background: var(--tone-progress-bg);
+    border: 1px solid var(--tone-progress-border);
+    border-radius: 8px;
+  }
 </style>
