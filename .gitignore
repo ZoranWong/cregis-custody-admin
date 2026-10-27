@@ -8,6 +8,9 @@ dist-ssr
 
 ./node_modules
 
+# Playwright 登录态（含真实 token，勿提交）
+auth.json
+
 # Auto-generated files
 src/types/import/auto-imports.d.ts
 src/types/import/components.d.ts
