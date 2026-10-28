@@ -54,7 +54,7 @@
               </el-table-column>
               <el-table-column :label="$t('merchantList.code')" min-width="120">
                 <template #default="{ row }">
-                  <span class="font-mono text-xs">{{ row.code || '-' }}</span>
+                  <span class="text-xs">{{ row.code || '-' }}</span>
                 </template>
               </el-table-column>
               <el-table-column :label="$t('merchantList.appliedAt')" min-width="160">
