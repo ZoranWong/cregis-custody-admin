@@ -289,6 +289,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { formatCoinBalance, formatRelativeTime, formatTime, compactHex } from '@/utils/format'
+  import { goBack } from '@/utils/navigation/back'
   import {
     fetchColdStorageTransfer,
     buildInstructionFile,
@@ -402,7 +403,8 @@
   }
 
   function backToList(): void {
-    router.push({ name: 'ColdStorageTransfers' })
+    // 有历史就回上一页（保留列表筛选）；直接打开详情时回落到列表
+    goBack(router, 'ColdStorageTransfers')
   }
 
   /**

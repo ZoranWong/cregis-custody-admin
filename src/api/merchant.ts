@@ -1,4 +1,5 @@
 import { apiRequest } from '@/utils/http/request'
+import { MerchantStatus } from '@/enums/merchantEnum'
 
 // ─── Types ───
 
@@ -7,7 +8,10 @@ export interface MerchantRecord {
   code: string
   merchantName: string
   email: string
-  status: 'ACTIVE' | 'INACTIVE' | 'PENDING' | string
+  /** 商户状态：PENDING 为入驻申请，其余为已入驻商户 */
+  status: MerchantStatus | string
+  /** KYB 阶段：入驻申请列表展示的状态即该字段（PENDING_SCREENING / DRAFT / SUBMITTED / APPROVED / REJECTED ...） */
+  kybStatus?: string | null
   createTime: string
   updateTime: string
   creatorId: number
@@ -33,6 +37,19 @@ export interface MerchantQuery {
   pageNum?: number
   pageSize?: number
   status?: string
+  /** `status` 的比较方式，默认 `=`；传 `!=` 用于「排除某状态」 */
+  statusOper?: '=' | '!='
+  /** 第二个 status 条件（与 `status` 同时生效，均为 `=`） */
+  statusSecondary?: string
+  /** 商户名模糊搜索（merchantName like %value%） */
+  merchantName?: string
+  /**
+   * 商户名「非空」条件。默认所有商户列表查询都会带上
+   * `merchantName != ''`：接口把 NULL 与 '' 都当空值，传 '' 能同时排除两者
+   * （传 null 会被当成去掉该条件，返回 0 条）。
+   */
+  merchantNameNonNull?: boolean
+  /** @deprecated 用 `merchantName`；保留仅为兼容旧的列表 composable */
   keyword?: string
   sort?: 'createTime_desc' | 'updateTime_desc' | 'merchantName_asc'
 }
@@ -75,15 +92,33 @@ export async function fetchMerchantDetail(merchantId: number | string): Promise<
 
 function buildQueryList(
   query: MerchantQuery
-): Array<{ key: string; oper: '=' | ':'; value: string; join: 'and' }> {
-  const queryList: Array<{ key: string; oper: '=' | ':'; value: string; join: 'and' }> = []
+): Array<{ key: string; oper: '=' | '!=' | ':'; value: string; join: 'and' }> {
+  const queryList: Array<{ key: string; oper: '=' | '!=' | ':'; value: string; join: 'and' }> = []
 
   if (query.status) {
-    queryList.push({ key: 'status', oper: '=', value: query.status, join: 'and' })
+    queryList.push({
+      key: 'status',
+      oper: query.statusOper || '=',
+      value: query.status,
+      join: 'and'
+    })
   }
 
-  if (query.keyword?.trim()) {
-    queryList.push({ key: 'keyword', oper: ':', value: query.keyword.trim(), join: 'and' })
+  // 第二个状态条件（如 status != PENDING 且 status = ACTIVE）
+  if (query.statusSecondary) {
+    queryList.push({ key: 'status', oper: '=', value: query.statusSecondary, join: 'and' })
+  }
+
+  // 商户名「非空」：所有列表查询默认带上，与系统默认条件 merchantName != null 对齐。
+  // 必须用空串而不是 null —— 接口把 null 当作去掉该条件，会返回 0 条。
+  if (!query.merchantName) {
+    queryList.push({ key: 'merchantName', oper: '!=', value: '', join: 'and' })
+  }
+
+  // 商户名模糊搜索（两个列表共用）
+  const merchantName = (query.merchantName ?? query.keyword ?? '').trim()
+  if (merchantName) {
+    queryList.push({ key: 'merchantName', oper: ':', value: merchantName, join: 'and' })
   }
 
   return queryList
@@ -143,6 +178,28 @@ export interface KybBeneficiary {
   updateTime?: string
 }
 
+/** Sumsub 侧的身份验证结果（详情接口 `identityVerification`） */
+export interface KybIdentityVerification {
+  dataSource: 'sumsub' | string
+  companyName: string
+  /** 企业主体验证结果：Verified / Pending / ...（三方原样返回） */
+  companyVerificationStatus: string
+  beneficiaries: KybIdentityBeneficiary[]
+}
+
+export interface KybIdentityBeneficiary {
+  name: string
+  type: 'ubo' | 'director' | 'shareholder' | string
+  shareSize?: number | null
+  /** 三方审查结论：GREEN / RED / YELLOW */
+  reviewAnswer?: string | null
+  /** 三方验证状态：Verified / Pending / ... */
+  verificationStatus: string
+  /** 三方 applicantId；未在 Sumsub 建档时为 null */
+  applicantId?: string | null
+  verifyTime?: string | null
+}
+
 /** 企业合规状态（字段为 null 表示不修改，提交时可用） */
 export interface ComplianceStatus {
   onboardingStatus?: 'PENDING' | 'ACTIVE' | 'FROZEN' | 'CANCELLED' | string | null
@@ -184,6 +241,8 @@ export interface AdminMerchantKybDetailView {
   appliedAt?: string | null
   questionnaire?: KybQuestionnaire | null
   beneficiaries?: KybBeneficiary[]
+  /** Sumsub 身份验证结果；尚未完成 KYB 建档时为 null */
+  identityVerification?: KybIdentityVerification | null
   complianceStatus?: ComplianceStatus | null
 }
 
@@ -309,7 +368,7 @@ export async function fetchMerchantListSummary(): Promise<MerchantListSummaryVie
 export async function fetchMerchantFilterOptions(): Promise<MerchantFilterOptionsView> {
   // Return default options - in real implementation, these would come from backend
   return {
-    statuses: ['ACTIVE', 'INACTIVE', 'PENDING'],
+    statuses: [MerchantStatus.Active, MerchantStatus.Frozen, MerchantStatus.Pending],
     merchantTypes: [],
     watchBuckets: []
   }

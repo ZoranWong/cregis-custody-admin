@@ -140,6 +140,7 @@
     formatLongDate,
     networkLabel
   } from '@/views/audit/_shared/format'
+  import { goBack } from '@/utils/navigation/back'
 
   defineOptions({ name: 'DailyReconciliationUnitDetail' })
 
@@ -258,14 +259,8 @@
   }
 
   function backToAsset(): void {
-    router.push({
-      name: 'daily-reconciliation-detail',
-      query: {
-        merchant: merchantCode.value,
-        coinId: coinId.value,
-        network: network.value
-      }
-    })
+    // 面包屑的第二段是列表页本身，优先走历史返回
+    goBack(router, 'daily-reconciliation-detail')
   }
 
   function iconStyle(id: string): Record<string, string> {

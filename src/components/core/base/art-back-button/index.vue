@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
   import { useRouter } from 'vue-router'
+  import { goBack } from '@/utils/navigation/back'
 
   defineOptions({ name: 'ArtBackButton' })
 
@@ -36,12 +37,11 @@
      */
     text?: string
     /**
-     * 是否使用浏览器历史返回（router.back）。
-     * 默认 false —— 用 router.back() 在直接打开链接时会跳出应用，
-     * 因此页面应优先传明确的 to；无明确目标时才用 history: true。
+     * 兼容旧用法：是否偏好历史返回。
+     * 现在历史返回是默认行为，该参数仅为调用方兼容保留。
      */
     history?: boolean
-    /** 明确的目标路由名（与 history 二选一） */
+    /** 明确的目标路由名：仅在浏览器历史不可用时兜底 */
     to?: string
   }
 
@@ -53,11 +53,14 @@
 
   const router = useRouter()
 
+  /*
+   * 返回统一走浏览器历史（router.go(-1)）：列表页把 tab / 筛选 / 页码写进 URL，
+   * 历史返回能原样恢复现场；push 到固定路由会丢掉这些状态。
+   *
+   * 无历史可退（直接打开详情链接 / 新标签页打开）时，router.back() 会跳出应用，
+   * 此时才回落到 `to` 指定的上级页面；两者都没有就交给浏览器。
+   */
   function onClick() {
-    if (props.to) {
-      router.push({ name: props.to }).catch(() => {})
-      return
-    }
-    router.back()
+    goBack(router, props.to)
   }
 </script>
