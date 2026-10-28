@@ -15,24 +15,28 @@
 
     <!-- ═══ 主要筛选栏（卡片区上方） ═══ -->
     <div class="flex flex-wrap items-center gap-4 mb-5">
-      <el-select
-        v-model="filters.merchant"
+      <MerchantSelect
+        v-model="store.txLens.merchant"
+        :selected-label="store.txLens.merchantName"
         :placeholder="$t('txLens.merchant')"
-        clearable
         class="!w-48"
-        @change="handleSearch"
-      >
-        <el-option v-for="m in merchants" :key="m.ecode" :label="m.name" :value="m.ecode" />
-      </el-select>
+        @select="
+          (_ecode, name) => {
+            store.txLens.merchantName = name
+          }
+        "
+        @update:model-value="handleSearch"
+      />
       <el-date-picker
-        v-model="filters.dateRange"
+        v-model="store.txLens.dateRange"
         type="daterange"
         class="tx-date-range"
         :start-placeholder="$t('txLens.startDate')"
         :end-placeholder="$t('txLens.endDate')"
         @change="handleSearch"
       />
-      <el-button type="primary" @click="handleSearch">{{ $t('console.refresh') }}</el-button>
+      <!-- 清空全部筛选条件（商户 / 日期 / 弹框内的 7 组条件）并重新查询 -->
+      <el-button plain @click="clearAllFilters">{{ $t('common.reset') }}</el-button>
       <!-- 高级筛选入口：列表卡片内的 7 组筛选收进弹框，条件对统计卡与列表同时生效 -->
       <el-button :type="activeFilterCount ? 'primary' : 'default'" plain @click="openFilterDialog">
         <ArtSvgIcon icon="ri:filter-3-line" class="text-icon-sm mr-1" />
@@ -93,133 +97,127 @@
     </div>
 
     <!-- ═══ 交易卡片列表 ═══ -->
-    <div class="art-card mb-4">
-      <div class="p-4">
-        <template v-if="loading">
-          <el-skeleton :rows="6" animated />
-        </template>
-        <template v-else>
-          <div v-for="tx in displayTransactions" :key="tx.orderId" class="tx-card mb-2.5 last:mb-0">
-            <!-- 顶部：金额 + 方向 + 结果 -->
-            <div class="flex items-start justify-between gap-3 mb-2">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                  <ArtSvgIcon
-                    :icon="tx.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
-                    :class="
-                      tx.direction === 'outgoing'
-                        ? 'text-tone-outbound-text'
-                        : 'text-tone-inbound-text'
-                    "
-                    class="text-icon-md flex-shrink-0"
-                  />
-                  <span class="text-metric tabular-nums font-semibold text-g-900">{{
-                    tx.amountDisplay
-                  }}</span>
-                  <span class="text-xs text-tone-muted-text">{{ tx.fiatDisplay }}</span>
-                </div>
-                <div class="flex items-center gap-2 mt-0.5">
-                  <span class="text-xs text-g-700 truncate">{{ tx.orderId }}</span>
-                  <span class="text-xs text-tone-muted-text">· {{ tx.createTime }}</span>
-                </div>
-              </div>
-              <div class="flex items-center gap-1.5 flex-shrink-0">
-                <!-- 方向是方位语义，不是风险语义：入金=绿 / 出金=蓝，
-                     走 ArtDirectionTag 以保证与其它页面的方向标签完全同款 -->
-                <ArtDirectionTag :inbound="tx.direction !== 'outgoing'" />
-                <!-- 复核结果四色：走 reviewResultStyle，与摘要卡/详情选择器同源，
-                     避免 FN 在三处出现三种颜色 -->
-                <span
-                  v-if="tx.reviewResult && tx.reviewResult !== 'none'"
-                  class="inline-flex items-center rounded-full px-2 py-0.5 text-label font-semibold"
-                  :style="reviewResultStyle(tx.reviewResult)"
-                  >{{ reviewResultLabel(tx.reviewResult) }}</span
-                >
-              </div>
-            </div>
-
-            <!-- parties 两侧 -->
-            <div class="flex items-stretch gap-2 mb-2">
-              <div
-                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
-                :class="
-                  tx.direction === 'outgoing'
-                    ? 'bg-[var(--el-color-primary-light-9)]'
-                    : 'bg-[var(--tone-neutral-bg)]'
-                "
-              >
-                <div class="text-caption text-g-700 font-medium">{{
-                  partyLabel(tx.direction, 'originator')
-                }}</div>
-                <div class="text-xs font-semibold text-g-900 truncate">{{ tx.originatorName }}</div>
-                <div class="text-caption text-g-700 font-mono truncate">{{
-                  tx.originator.address || '--'
-                }}</div>
-              </div>
-              <div class="flex items-center">
+    <div>
+      <template v-if="loading">
+        <el-skeleton :rows="6" animated />
+      </template>
+      <template v-else>
+        <div v-for="tx in displayTransactions" :key="tx.orderId" class="tx-card mb-2.5 last:mb-0">
+          <!-- 顶部：金额 + 方向 + 结果 -->
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
                 <ArtSvgIcon
-                  icon="ri:arrow-right-long-line"
+                  :icon="tx.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
                   :class="
                     tx.direction === 'outgoing'
                       ? 'text-tone-outbound-text'
                       : 'text-tone-inbound-text'
                   "
-                  class="text-icon-lg"
+                  class="text-icon-md flex-shrink-0"
                 />
+                <span class="text-metric tabular-nums font-semibold text-g-900">{{
+                  tx.amountDisplay
+                }}</span>
+                <span class="text-xs text-tone-muted-text">{{ tx.fiatDisplay }}</span>
               </div>
-              <div
-                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
-                :class="
-                  tx.direction === 'outgoing'
-                    ? 'bg-[var(--tone-neutral-bg)]'
-                    : 'bg-[var(--el-color-primary-light-9)]'
-                "
-              >
-                <div class="text-caption text-g-700 font-medium">{{
-                  partyLabel(tx.direction, 'beneficiary')
-                }}</div>
-                <div class="text-xs font-semibold text-g-900 truncate">{{
-                  tx.beneficiaryName
-                }}</div>
-                <div class="text-caption text-g-700 font-mono truncate">{{
-                  tx.beneficiary.address || '--'
-                }}</div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-xs text-g-700 truncate">{{ tx.orderId }}</span>
+                <span class="text-xs text-tone-muted-text">· {{ tx.createTime }}</span>
               </div>
             </div>
-
-            <!-- 生命周期阶段条 + Inspect 操作同行 -->
-            <div class="flex items-center gap-3">
-              <div class="lc-stages flex-1 min-w-0">
-                <template v-for="(stage, i) in tx.stages" :key="stage.key">
-                  <div v-if="i > 0" class="lc-sep"></div>
-                  <div class="lc-stage">
-                    <div class="lc-stage-dot" :style="toneDotStyle(stage.tone)"></div>
-                    <div class="lc-stage-content">
-                      <div class="lc-stage-label">{{ $t(stage.labelKey) }}</div>
-                      <div class="lc-stage-state" :style="toneTextStyle(stage.tone)">
-                        {{ stage.value }}
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </div>
-              <el-button
-                size="small"
-                plain
-                type="primary"
-                class="flex-shrink-0"
-                @click="inspect(tx.orderId)"
-                >{{ $t('txLens.inspect') }} →</el-button
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <!-- 方向是方位语义，不是风险语义：入金=绿 / 出金=蓝，
+                     走 ArtDirectionTag 以保证与其它页面的方向标签完全同款 -->
+              <ArtDirectionTag :inbound="tx.direction !== 'outgoing'" />
+              <!-- 复核结果四色：走 reviewResultStyle，与摘要卡/详情选择器同源，
+                     避免 FN 在三处出现三种颜色 -->
+              <span
+                v-if="tx.reviewResult && tx.reviewResult !== 'none'"
+                class="inline-flex items-center rounded-full px-2 py-0.5 text-label font-semibold"
+                :style="reviewResultStyle(tx.reviewResult)"
+                >{{ reviewResultLabel(tx.reviewResult) }}</span
               >
             </div>
           </div>
-          <div
-            v-if="displayTransactions.length === 0"
-            class="p-10 text-center text-tone-neutral-text text-body"
-            >{{ $t('txLens.noResults') }}</div
-          >
-        </template>
-      </div>
+
+          <!-- parties 两侧 -->
+          <div class="flex items-stretch gap-2 mb-2">
+            <div
+              class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
+              :class="
+                tx.direction === 'outgoing'
+                  ? 'bg-[var(--el-color-primary-light-9)]'
+                  : 'bg-[var(--tone-neutral-bg)]'
+              "
+            >
+              <div class="text-caption text-g-700 font-medium">{{
+                partyLabel(tx.direction, 'originator')
+              }}</div>
+              <div class="text-xs font-semibold text-g-900 truncate">{{ tx.originatorName }}</div>
+              <div class="text-caption text-g-700 font-mono truncate">{{
+                tx.originator.address || '--'
+              }}</div>
+            </div>
+            <div class="flex items-center">
+              <ArtSvgIcon
+                icon="ri:arrow-right-long-line"
+                :class="
+                  tx.direction === 'outgoing' ? 'text-tone-outbound-text' : 'text-tone-inbound-text'
+                "
+                class="text-icon-lg"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
+              :class="
+                tx.direction === 'outgoing'
+                  ? 'bg-[var(--tone-neutral-bg)]'
+                  : 'bg-[var(--el-color-primary-light-9)]'
+              "
+            >
+              <div class="text-caption text-g-700 font-medium">{{
+                partyLabel(tx.direction, 'beneficiary')
+              }}</div>
+              <div class="text-xs font-semibold text-g-900 truncate">{{ tx.beneficiaryName }}</div>
+              <div class="text-caption text-g-700 font-mono truncate">{{
+                tx.beneficiary.address || '--'
+              }}</div>
+            </div>
+          </div>
+
+          <!-- 生命周期阶段条 + Inspect 操作同行 -->
+          <div class="flex items-center gap-3">
+            <div class="lc-stages flex-1 min-w-0">
+              <template v-for="(stage, i) in tx.stages" :key="stage.key">
+                <div v-if="i > 0" class="lc-sep"></div>
+                <div class="lc-stage">
+                  <div class="lc-stage-dot" :style="toneDotStyle(stage.tone)"></div>
+                  <div class="lc-stage-content">
+                    <div class="lc-stage-label">{{ $t(stage.labelKey) }}</div>
+                    <div class="lc-stage-state" :style="toneTextStyle(stage.tone)">
+                      {{ stage.value }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+            <el-button
+              size="small"
+              plain
+              type="primary"
+              class="flex-shrink-0"
+              @click="inspect(tx.orderId)"
+              >{{ $t('txLens.inspect') }} →</el-button
+            >
+          </div>
+        </div>
+        <div
+          v-if="displayTransactions.length === 0"
+          class="p-10 text-center text-tone-neutral-text text-body"
+          >{{ $t('txLens.noResults') }}</div
+        >
+      </template>
 
       <!-- 分页 -->
       <div
@@ -227,9 +225,9 @@
         class="flex justify-end items-center px-4 py-3 border-t border-[var(--default-border)]"
       >
         <el-pagination
-          v-model:current-page="pagination.pageNum"
+          v-model:current-page="store.txLens.pageNum"
           :total="pagination.total"
-          :page-size="pagination.pageSize"
+          v-model:page-size="store.txLens.pageSize"
           :page-sizes="[10, 20, 50]"
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -292,7 +290,6 @@
     fetchTravelRuleCoinRates
   } from '@/api/compliance'
   import { fetchCoinList } from '@/api/coin'
-  import { fetchMerchantList } from '@/api/merchant'
   import type {
     TransactionLensItemView,
     TransactionLensSummaryView
@@ -321,6 +318,8 @@
   } from '@/features/compliance/txStages'
   import { formatCoinBalance, formatTime } from '@/utils/format'
   import { useCardLayoutStore } from '@/store/modules/cardLayout'
+  import { useComplianceFilterStore } from '@/store/modules/complianceFilters'
+  import MerchantSelect from '@/components/business/merchant-select/index.vue'
   import BigNumber from 'bignumber.js'
 
   defineOptions({ name: 'TransactionLens' })
@@ -329,6 +328,7 @@
   const { t } = useI18n()
   // 卡片密度（4/8 列）：pinia persist，全局记忆
   const cardLayout = useCardLayoutStore()
+  const store = useComplianceFilterStore()
 
   // ─── State ───
   const loading = ref(false)
@@ -337,39 +337,11 @@
   const coinDecimals = ref<Record<string, number>>({})
   const coinUsdRate = ref<Record<string, number>>({})
 
-  const filters = reactive({
-    merchant: '',
-    dateRange: [] as string[],
-    direction: '',
-    compliance: '',
-    travelRule: '',
-    signOff: '',
-    onChain: '',
-    fundDisposition: '',
-    reviewResult: ''
-  })
-
   const pagination = reactive({
     pageNum: 1,
     pageSize: 10,
     total: 0
   })
-
-  // ─── 商户下拉：走接口（ecode 作为查询值，名称仅展示）───
-  const merchants = ref<Array<{ ecode: string; name: string }>>([])
-
-  async function loadMerchants() {
-    try {
-      const res = await fetchMerchantList({ pageSize: 200 })
-      const map = new Map<string, string>()
-      for (const m of res.records ?? []) {
-        if (m.code) map.set(m.code, m.merchantName || m.code)
-      }
-      merchants.value = [...map.entries()].map(([ecode, name]) => ({ ecode, name }))
-    } catch {
-      merchants.value = []
-    }
-  }
 
   // ─── 摘要卡片（细分数据接口暂未提供，只显示主数值）───
   const summaryCards = computed(() => {
@@ -557,17 +529,18 @@
 
   /** 当前筛选条件（统计与列表共用，保证口径一致） */
   function buildQueryParams() {
+    const f = store.txLens
     return {
-      direction: filters.direction || undefined,
-      compliance: filters.compliance || undefined,
-      travelRule: filters.travelRule || undefined,
-      signoff: filters.signOff || undefined,
-      onchain: filters.onChain || undefined,
-      outcome: filters.fundDisposition || undefined,
-      reviewResult: filters.reviewResult || undefined,
-      merchantEcode: filters.merchant || undefined,
-      dateFrom: toDateParam(filters.dateRange?.[0]),
-      dateTo: toDateParam(filters.dateRange?.[1])
+      direction: f.direction || undefined,
+      compliance: f.compliance || undefined,
+      travelRule: f.travelRule || undefined,
+      signoff: f.signOff || undefined,
+      onchain: f.onChain || undefined,
+      outcome: f.fundDisposition || undefined,
+      reviewResult: f.reviewResult || undefined,
+      merchantEcode: f.merchant || undefined,
+      dateFrom: toDateParam(f.dateRange?.[0]),
+      dateTo: toDateParam(f.dateRange?.[1])
     }
   }
 
@@ -583,8 +556,8 @@
     loading.value = true
     try {
       const result = await fetchTransactionLensList({
-        pageNum: pagination.pageNum,
-        pageSize: pagination.pageSize,
+        pageNum: store.txLens.pageNum,
+        pageSize: store.txLens.pageSize,
         ...buildQueryParams()
       })
       transactions.value = result.records || []
@@ -676,7 +649,7 @@
 
   /** 设置某项筛选并立即查询（筛选弹框内直接修改草稿，点「应用」才查询） */
   function handleSearch() {
-    pagination.pageNum = 1
+    store.txLens.pageNum = 1
     loadSummary()
     loadList()
   }
@@ -686,7 +659,7 @@
     ElMessage.info(t('common.export'))
   }
 
-  // ─── 高级筛选弹框：草稿态，点「应用」才写回 filters 并查询 ───
+  // ─── 高级筛选弹框：草稿态，点「应用」才写回 store.txLens 并查询 ───
   type FilterKey = (typeof FILTER_GROUPS)[number]['key']
   const FILTER_KEYS = FILTER_GROUPS.map((g) => g.key)
 
@@ -696,7 +669,7 @@
   )
 
   /** 当前生效的筛选组数（弹框按钮上的角标） */
-  const activeFilterCount = computed(() => FILTER_KEYS.filter((k) => filters[k]).length)
+  const activeFilterCount = computed(() => FILTER_KEYS.filter((k) => store.txLens[k]).length)
 
   function openFilterDialog() {
     filterDialogVisible.value = true
@@ -704,11 +677,11 @@
 
   /** 每次打开弹框都从已生效条件回填，取消不会留下未应用的草稿 */
   function resetFilterDraft() {
-    for (const k of FILTER_KEYS) filterDraft[k] = filters[k]
+    for (const k of FILTER_KEYS) filterDraft[k] = store.txLens[k]
   }
 
   function applyFilters() {
-    for (const k of FILTER_KEYS) filters[k] = filterDraft[k]
+    for (const k of FILTER_KEYS) store.txLens[k] = filterDraft[k]
     filterDialogVisible.value = false
     handleSearch()
   }
@@ -717,14 +690,27 @@
   function resetFilters() {
     for (const k of FILTER_KEYS) {
       filterDraft[k] = ''
-      filters[k] = ''
+      store.txLens[k] = ''
+    }
+    filterDialogVisible.value = false
+    handleSearch()
+  }
+
+  /** 清空页面上所有筛选条件（商户、日期区间、弹框内 7 组）并重新查询 */
+  function clearAllFilters() {
+    store.txLens.merchant = ''
+    store.txLens.merchantName = ''
+    store.txLens.dateRange = []
+    for (const k of FILTER_KEYS) {
+      filterDraft[k] = ''
+      store.txLens[k] = ''
     }
     filterDialogVisible.value = false
     handleSearch()
   }
 
   function handleSizeChange() {
-    pagination.pageNum = 1
+    store.txLens.pageNum = 1
     loadList()
   }
 
@@ -741,7 +727,6 @@
 
   onMounted(() => {
     loadCoinMeta()
-    loadMerchants()
     loadSummary()
     loadList()
   })

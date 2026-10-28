@@ -12,23 +12,16 @@
       </el-button>
     </div>
 
-    <!-- ═══ Primary filters ═══ -->
+    <!-- ═══ 筛选栏（与 Transaction Lens 一致：单行筛选，无外层卡片）═══ -->
     <div class="flex flex-wrap items-center gap-4 mb-5">
-      <el-select
+      <MerchantSelect
         v-model="filters.merchant"
+        :selected-label="filters.merchantName"
         :placeholder="$t('travelRule.merchant')"
-        clearable
-        filterable
         class="!w-48"
-        @change="reload"
-      >
-        <el-option
-          v-for="m in merchantOptions"
-          :key="m.ecode"
-          :label="m.enterpriseName || m.ecode"
-          :value="m.ecode"
-        />
-      </el-select>
+        @select="(_ecode, name) => (filters.merchantName = name)"
+        @update:model-value="reload"
+      />
       <el-date-picker
         v-model="filters.dateFrom"
         type="date"
@@ -48,191 +41,180 @@
           ><ArtSvgIcon icon="ri:search-line" class="text-icon-md text-tone-muted-text"
         /></template>
       </el-input>
+      <el-select
+        v-model="filters.direction"
+        :placeholder="$t('travelRule.direction')"
+        clearable
+        class="!w-36"
+        @change="reload"
+      >
+        <el-option :label="$t('travelRule.outbound')" value="outgoing" />
+        <el-option :label="$t('travelRule.inbound')" value="incoming" />
+      </el-select>
+      <el-select
+        v-model="filters.status"
+        :placeholder="$t('travelRule.status')"
+        clearable
+        class="!w-52"
+        @change="reload"
+      >
+        <el-option
+          v-for="s in NOTIFICATION_STATUS_DICT"
+          :key="s.value"
+          :label="$t(s.labelKey)"
+          :value="s.value"
+        />
+      </el-select>
+      <el-button plain @click="clearAllFilters">{{ $t('common.reset') }}</el-button>
     </div>
 
-    <!-- ═══ Secondary filters (inside card) ═══ -->
-    <div class="art-card mb-4">
-      <div class="p-4 border-b border-[var(--default-border)]">
-        <div class="flex flex-wrap items-center gap-4">
-          <el-select
-            v-model="filters.direction"
-            :placeholder="$t('travelRule.direction')"
-            clearable
-            class="!w-36"
-            @change="reload"
-          >
-            <el-option :label="$t('travelRule.outbound')" value="outgoing" />
-            <el-option :label="$t('travelRule.inbound')" value="incoming" />
-          </el-select>
-          <el-select
-            v-model="filters.status"
-            :placeholder="$t('travelRule.status')"
-            clearable
-            class="!w-52"
-            @change="reload"
-          >
-            <el-option
-              v-for="s in NOTIFICATION_STATUS_DICT"
-              :key="s.value"
-              :label="$t(s.labelKey)"
-              :value="s.value"
-            />
-          </el-select>
-        </div>
-      </div>
-
-      <!-- ═══ Event Cards ═══ -->
-      <div class="p-4">
-        <template v-if="loading">
-          <el-skeleton :rows="6" animated />
-        </template>
-        <template v-else>
-          <div
-            v-for="event in displayEvents"
-            :key="event.id"
-            class="tx-card mb-2.5 last:mb-0 cursor-pointer"
-            @click="openDetail(event)"
-            role="button"
-            tabindex="0"
-            @keydown.enter.prevent="openDetail(event)"
-            @keydown.space.prevent="openDetail(event)"
-          >
-            <!-- Header: Amount + Meta -->
-            <div class="flex items-start justify-between gap-3 mb-2">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                  <ArtSvgIcon
-                    :icon="
-                      event.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'
-                    "
-                    :class="
-                      event.direction === 'outgoing'
-                        ? 'text-tone-outbound-text'
-                        : 'text-tone-inbound-text'
-                    "
-                    class="text-icon-md flex-shrink-0"
-                  />
-                  <span class="text-metric tabular-nums font-semibold text-g-900">{{
-                    event.amount
-                  }}</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs mt-0.5">
-                  <el-tooltip :content="event.transferId" placement="top">
-                    <span class="text-g-700 font-mono truncate max-w-52">{{
-                      event.transferId
-                    }}</span>
-                  </el-tooltip>
-                  <span class="text-tone-muted-text">· {{ event.timeAgo }}</span>
-                  <span class="text-tone-muted-text">· {{ $t('travelRule.merchant') }}:</span>
-                  <span class="text-g-700 truncate">{{ event.enterpriseName || '--' }}</span>
-                </div>
-              </div>
-              <!-- 三个 badge（对齐原型）：方向 + 通道 + 状态 -->
-              <div class="flex items-center gap-1.5 flex-shrink-0">
-                <ArtDirectionTag :inbound="event.direction !== 'outgoing'" />
-                <!--
-                  通道是交易的元数据，不占用语义色相：
-                  普通通道用中性灰；Off-Network 是异常通道，保留 warning 提示性。
-                  （此前用 primary → 落在主题绿，与「入金」「已完成」三个绿并排糊成一片）
-                -->
-                <el-tag
-                  :type="isOffNetwork(event.status) ? 'warning' : undefined"
-                  :class="isOffNetwork(event.status) ? '' : 'art-tag-neutral'"
-                  size="small"
-                  effect="light"
-                >
-                  {{
-                    isOffNetwork(event.status)
-                      ? $t('travelRule.chOffNetwork')
-                      : $t('travelRule.chNetwork')
-                  }}
-                </el-tag>
-                <el-tag :type="prototypeStateTagType(event.status)" size="small" effect="light">
-                  {{ prototypeStateLabel(event.status) }}
-                </el-tag>
-              </div>
-            </div>
-
-            <!-- Parties（三行结构，与 tx-lens / alerts 一致） -->
-            <div class="flex items-stretch gap-2 mb-2">
-              <div
-                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
-                :class="
-                  event.direction === 'outgoing'
-                    ? 'bg-[var(--el-color-primary-light-9)]'
-                    : 'bg-[var(--tone-neutral-bg)]'
-                "
-              >
-                <div class="text-caption text-g-700 font-medium">
-                  {{ partyLabel(event.direction, 'originator') }}
-                </div>
-                <div class="text-xs font-semibold text-g-900 truncate">{{
-                  event.originator.name
-                }}</div>
-                <div class="text-caption text-g-700 font-mono truncate">
-                  {{ event.originator.address }}
-                </div>
-              </div>
-              <div class="flex items-center">
+    <!-- ═══ Event Cards（与 Transaction Lens 一致：无外层卡片与标题栏）═══ -->
+    <div>
+      <template v-if="loading">
+        <el-skeleton :rows="6" animated />
+      </template>
+      <template v-else>
+        <div
+          v-for="event in displayEvents"
+          :key="event.id"
+          class="tx-card mb-2.5 last:mb-0 cursor-pointer"
+          @click="openDetail(event)"
+          role="button"
+          tabindex="0"
+          @keydown.enter.prevent="openDetail(event)"
+          @keydown.space.prevent="openDetail(event)"
+        >
+          <!-- Header: Amount + Meta -->
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
                 <ArtSvgIcon
-                  icon="ri:arrow-right-long-line"
+                  :icon="event.direction === 'outgoing' ? 'ri:arrow-up-line' : 'ri:arrow-down-line'"
                   :class="
                     event.direction === 'outgoing'
                       ? 'text-tone-outbound-text'
                       : 'text-tone-inbound-text'
                   "
-                  class="text-icon-lg"
+                  class="text-icon-md flex-shrink-0"
                 />
+                <span class="text-metric tabular-nums font-semibold text-g-900">{{
+                  event.amount
+                }}</span>
               </div>
-              <div
-                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
+              <div class="flex items-center gap-2 text-xs mt-0.5">
+                <el-tooltip :content="event.transferId" placement="top">
+                  <span class="text-g-700 font-mono truncate max-w-52">{{ event.transferId }}</span>
+                </el-tooltip>
+                <span class="text-tone-muted-text">· {{ event.timeAgo }}</span>
+                <span class="text-tone-muted-text">· {{ $t('travelRule.merchant') }}:</span>
+                <span class="text-g-700 truncate">{{ event.enterpriseName || '--' }}</span>
+              </div>
+            </div>
+            <!-- 三个 badge（对齐原型）：方向 + 通道 + 状态 -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <ArtDirectionTag :inbound="event.direction !== 'outgoing'" />
+              <!--
+                  通道是交易的元数据，不占用语义色相：
+                  普通通道用中性灰；Off-Network 是异常通道，保留 warning 提示性。
+                  （此前用 primary → 落在主题绿，与「入金」「已完成」三个绿并排糊成一片）
+                -->
+              <el-tag
+                :type="isOffNetwork(event.status) ? 'warning' : undefined"
+                :class="isOffNetwork(event.status) ? '' : 'art-tag-neutral'"
+                size="small"
+                effect="light"
+              >
+                {{
+                  isOffNetwork(event.status)
+                    ? $t('travelRule.chOffNetwork')
+                    : $t('travelRule.chNetwork')
+                }}
+              </el-tag>
+              <el-tag :type="prototypeStateTagType(event.status)" size="small" effect="light">
+                {{ prototypeStateLabel(event.status) }}
+              </el-tag>
+            </div>
+          </div>
+
+          <!-- Parties（三行结构，与 tx-lens / alerts 一致） -->
+          <div class="flex items-stretch gap-2 mb-2">
+            <div
+              class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
+              :class="
+                event.direction === 'outgoing'
+                  ? 'bg-[var(--el-color-primary-light-9)]'
+                  : 'bg-[var(--tone-neutral-bg)]'
+              "
+            >
+              <div class="text-caption text-g-700 font-medium">
+                {{ partyLabel(event.direction, 'originator') }}
+              </div>
+              <div class="text-xs font-semibold text-g-900 truncate">{{
+                event.originator.name
+              }}</div>
+              <div class="text-caption text-g-700 font-mono truncate">
+                {{ event.originator.address }}
+              </div>
+            </div>
+            <div class="flex items-center">
+              <ArtSvgIcon
+                icon="ri:arrow-right-long-line"
                 :class="
                   event.direction === 'outgoing'
-                    ? 'bg-[var(--tone-neutral-bg)]'
-                    : 'bg-[var(--el-color-primary-light-9)]'
+                    ? 'text-tone-outbound-text'
+                    : 'text-tone-inbound-text'
                 "
-              >
-                <div class="text-caption text-g-700 font-medium">
-                  {{ partyLabel(event.direction, 'beneficiary') }}
-                </div>
-                <div class="text-xs font-semibold text-g-900 truncate">
-                  {{ event.beneficiary.name }}
-                </div>
-                <div class="text-caption text-g-700 font-mono truncate">
-                  {{ event.beneficiary.address }}
-                </div>
-              </div>
+                class="text-icon-lg"
+              />
             </div>
-
-            <!-- Footer: 状态描述 + View Trace（对齐原型 .tr-status-text） -->
             <div
-              class="flex items-center justify-between gap-3 pt-2.5 border-t border-[var(--default-border)]"
+              class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
+              :class="
+                event.direction === 'outgoing'
+                  ? 'bg-[var(--tone-neutral-bg)]'
+                  : 'bg-[var(--el-color-primary-light-9)]'
+              "
             >
-              <div
-                class="text-label font-medium truncate"
-                :style="toneTextStyle(toneOf(event.status))"
-              >
-                {{ statusDescription(event.status) }}
+              <div class="text-caption text-g-700 font-medium">
+                {{ partyLabel(event.direction, 'beneficiary') }}
               </div>
-              <el-button
-                size="small"
-                type="primary"
-                plain
-                class="flex-shrink-0"
-                @click.stop="openDetail(event)"
-              >
-                {{ $t('travelRule.viewTrace') }} →
-              </el-button>
+              <div class="text-xs font-semibold text-g-900 truncate">
+                {{ event.beneficiary.name }}
+              </div>
+              <div class="text-caption text-g-700 font-mono truncate">
+                {{ event.beneficiary.address }}
+              </div>
             </div>
           </div>
+
+          <!-- Footer: 状态描述 + View Trace（对齐原型 .tr-status-text） -->
           <div
-            v-if="displayEvents.length === 0"
-            class="p-10 text-center text-tone-neutral-text text-body"
+            class="flex items-center justify-between gap-3 pt-2.5 border-t border-[var(--default-border)]"
           >
-            {{ $t('travelRule.noResults') }}
+            <div
+              class="text-label font-medium truncate"
+              :style="toneTextStyle(toneOf(event.status))"
+            >
+              {{ statusDescription(event.status) }}
+            </div>
+            <el-button
+              size="small"
+              type="primary"
+              plain
+              class="flex-shrink-0"
+              @click.stop="openDetail(event)"
+            >
+              {{ $t('travelRule.viewTrace') }} →
+            </el-button>
           </div>
-        </template>
-      </div>
+        </div>
+        <div
+          v-if="displayEvents.length === 0"
+          class="p-10 text-center text-tone-neutral-text text-body"
+        >
+          {{ $t('travelRule.noResults') }}
+        </div>
+      </template>
 
       <!-- ═══ Pagination ═══ -->
       <div
@@ -240,9 +222,9 @@
         class="flex justify-end items-center px-4 py-3 border-t border-[var(--default-border)]"
       >
         <el-pagination
-          v-model:current-page="pagination.page"
+          v-model:current-page="filters.page"
           :total="pagination.total"
-          :page-size="pagination.pageSize"
+          v-model:page-size="filters.pageSize"
           :page-sizes="[10, 20, 50]"
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -259,8 +241,9 @@
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { fetchInboundNotifications } from '@/api/compliance'
-  import { fetchMerchantList } from '@/api/merchant'
   import { useCoinStore } from '@/store/modules/coins'
+  import { useComplianceFilterStore } from '@/store/modules/complianceFilters'
+  import MerchantSelect from '@/components/business/merchant-select/index.vue'
   import type { InboundNotificationItem } from '@/features/compliance/types'
   import { NOTIFICATION_STATUS_DICT, toneOf, toneTextStyle } from '@/features/compliance/txState'
   import { parseIvms101Party } from '@/features/compliance/ivms101'
@@ -274,16 +257,11 @@
 
   const loading = ref(false)
   const notifications = ref<InboundNotificationItem[]>([])
-  const merchantOptions = ref<Array<{ ecode: string; enterpriseName: string }>>([])
-  const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
+  const pagination = reactive({ total: 0 })
 
-  const filters = reactive({
-    merchant: '',
-    dateFrom: '' as '' | Date,
-    search: '',
-    direction: '',
-    status: ''
-  })
+  // 筛选条件与分页放全局状态：详情页返回时条件仍在并自动重新查询
+  const filterStore = useComplianceFilterStore()
+  const filters = filterStore.travelRule
 
   // ─── 展示对象（保留原卡片结构所需字段）───
   interface DisplayParty {
@@ -410,6 +388,7 @@
     const map: Record<string, string> = {
       CREATED: 'travelRule.descCreated',
       PII_APPENDED: 'travelRule.descPiiAppended',
+      VASP_MISMATCH: 'travelRule.descVaspMismatch',
       UNMATCHED: 'travelRule.descUnmatched',
       AUTHORIZED: 'travelRule.descAuthorized',
       ACCEPTED: 'travelRule.descAccepted',
@@ -429,22 +408,6 @@
     return `${v.getFullYear()}-${pad(v.getMonth() + 1)}-${pad(v.getDate())}`
   }
 
-  async function loadMerchants() {
-    try {
-      const res = await fetchMerchantList({ pageSize: 200 })
-      const seen = new Map<string, string>()
-      for (const r of res.records ?? []) {
-        if (r.code) seen.set(r.code, r.merchantName || r.code)
-      }
-      merchantOptions.value = [...seen.entries()].map(([ecode, enterpriseName]) => ({
-        ecode,
-        enterpriseName
-      }))
-    } catch {
-      merchantOptions.value = []
-    }
-  }
-
   async function load() {
     loading.value = true
     try {
@@ -459,8 +422,8 @@
         ecode: filters.merchant || undefined,
         dateFrom: toDateParam(filters.dateFrom) || undefined,
         keyword: filters.search || undefined,
-        page: pagination.page,
-        pageSize: pagination.pageSize
+        page: filters.page,
+        pageSize: filters.pageSize
       })
       notifications.value = result.items || []
       pagination.total = result.total || 0
@@ -470,16 +433,26 @@
     } finally {
       loading.value = false
     }
-    loadMerchants()
   }
 
   function reload() {
-    pagination.page = 1
+    filters.page = 1
     load()
   }
 
+  /** 清空全部筛选条件并重新查询 */
+  function clearAllFilters() {
+    filters.merchant = ''
+    filters.merchantName = ''
+    filters.dateFrom = ''
+    filters.search = ''
+    filters.direction = ''
+    filters.status = ''
+    reload()
+  }
+
   function handleSizeChange() {
-    pagination.page = 1
+    filters.page = 1
     load()
   }
 

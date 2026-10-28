@@ -72,13 +72,6 @@
               <div class="text-xs mt-1 font-medium">{{ vaspMismatchHint }}</div>
             </div>
           </div>
-          <div v-else class="flex flex-wrap items-center gap-2 mt-3">
-            <el-button size="small" @click="openReviseDialog">
-              <ArtSvgIcon icon="ri:edit-line" class="text-icon-sm mr-1" />{{
-                $t('txLens.detail.vaspRevise')
-              }}
-            </el-button>
-          </div>
         </div>
       </div>
 
@@ -137,7 +130,7 @@
             <div class="text-xs text-g-700 mb-3 leading-relaxed">
               {{ $t('txLens.detail.offNetworkDescription') }}
             </div>
-            <div class="flex gap-3 mb-4 flex-wrap">
+            <div v-if="!travelRuleReadOnly" class="flex gap-3 mb-4 flex-wrap">
               <el-button size="small" @click="notifyDev('txLens.detail.shareLinkPending')">
                 <ArtSvgIcon icon="ri:link" class="text-icon-sm mr-1" />{{
                   $t('txLens.detail.generateShareLink')
@@ -164,7 +157,7 @@
                 size="small"
                 :loading="vaspActing"
                 @click="handleVaspConfirm"
-                >{{ $t('txLens.detail.vaspForceApprove') }}</el-button
+                >{{ $t('txLens.detail.resolve') }}</el-button
               >
               <el-button
                 v-if="showCancelButton"
@@ -173,82 +166,91 @@
                 size="small"
                 :loading="cancelling"
                 @click="handleCancel"
-                >{{ $t('txLens.detail.cancelTransfer') }}</el-button
+                >{{ $t('txLens.detail.reject') }}</el-button
               >
             </div>
             <p v-if="showVaspMismatchActions" class="text-xs text-tone-error-text mb-3">
               {{ vaspMismatchHint }}
             </p>
-            <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-3">
-              {{ $t('txLens.detail.manualTrace') }}
+            <!-- 子页签：Manual Trace / Proof Chain（自由切换） -->
+            <div class="sub-tab-bar mb-3">
+              <button
+                class="sub-tab"
+                :class="{ active: evidenceTab === 'trace' }"
+                @click="evidenceTab = 'trace'"
+              >
+                {{ $t('txLens.detail.manualTrace') }}
+              </button>
+              <button
+                class="sub-tab"
+                :class="{ active: evidenceTab === 'proof' }"
+                @click="evidenceTab = 'proof'"
+              >
+                {{ $t('txLens.detail.proofChain') }}
+              </button>
             </div>
             <!-- 接口无数据时展示原型 mock（提示条样式与 rules detail 一致：琥珀 + alert 图标） -->
-            <div v-if="manualTraceIsMock" class="mock-inline-notice mb-3">
-              <ArtSvgIcon icon="ri:alert-line" class="text-icon-md mt-0.5 flex-shrink-0" />
-              <span class="text-xs leading-relaxed">{{
-                $t('txLens.detail.manualTraceMockHint')
-              }}</span>
-            </div>
-            <div
-              v-if="!manualTrace.length"
-              class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
-            >
-              <ArtSvgIcon
-                icon="ri:information-line"
-                class="text-[var(--el-color-info)] text-base"
-              />
-              <span class="text-sm text-g-700">{{ $t('txLens.detail.noTimeline') }}</span>
-            </div>
-            <div v-else class="timeline-chain">
-              <div v-for="node in manualTrace" :key="node.label + node.time" class="timeline-node">
-                <div class="timeline-dot" :style="toneDotStyle(timelineNodeTone(node))" />
-                <div class="text-sm font-semibold text-g-800">{{ traceLabel(node.label) }}</div>
-                <div class="text-xs text-g-600 mt-0.5">{{ traceDetail(node.detail) }}</div>
-                <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
+            <div v-show="evidenceTab === 'trace'">
+              <div v-if="manualTraceIsMock" class="mock-inline-notice mb-3">
+                <ArtSvgIcon icon="ri:alert-line" class="text-icon-md mt-0.5 flex-shrink-0" />
+                <span class="text-xs leading-relaxed">{{
+                  $t('txLens.detail.manualTraceMockHint')
+                }}</span>
+              </div>
+              <div
+                v-if="!manualTrace.length"
+                class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
+              >
+                <ArtSvgIcon
+                  icon="ri:information-line"
+                  class="text-[var(--el-color-info)] text-base"
+                />
+                <span class="text-sm text-g-700">{{ $t('txLens.detail.noTimeline') }}</span>
+              </div>
+              <div v-else class="timeline-chain">
+                <div
+                  v-for="node in manualTrace"
+                  :key="node.label + node.time"
+                  class="timeline-node"
+                >
+                  <div class="timeline-dot" :style="toneDotStyle(timelineNodeTone(node))" />
+                  <div class="text-sm font-semibold text-g-800">{{ traceLabel(node.label) }}</div>
+                  <div class="text-xs text-g-600 mt-0.5">{{ traceDetail(node.detail) }}</div>
+                  <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(node.time) }}</div>
+                </div>
               </div>
             </div>
 
-            <!-- 已上传的取证材料（原生型：取证按钮产物 = 可追溯文件列表） -->
-            <template v-if="attestations.length">
-              <div class="text-caption font-bold text-g-700 uppercase tracking-wider mt-5 mb-3">
-                {{ $t('txLens.detail.uploadedProof') }}
+            <!-- Proof Chain：与 Manual Trace 同款时间轴，按上传时间正序 -->
+            <div v-show="evidenceTab === 'proof'">
+              <div
+                v-if="!attestations.length"
+                class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
+              >
+                <ArtSvgIcon
+                  icon="ri:information-line"
+                  class="text-[var(--el-color-info)] text-base"
+                />
+                <span class="text-sm text-g-700">{{ $t('txLens.detail.noProof') }}</span>
               </div>
-              <div class="flex flex-col gap-2">
-                <div
-                  v-for="item in attestations"
-                  :key="item.id"
-                  class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-g-50 border border-[var(--default-border)]"
-                >
-                  <div class="flex items-center gap-2 min-w-0">
-                    <ArtSvgIcon
-                      icon="ri:file-text-line"
-                      class="text-icon-sm text-g-500 flex-shrink-0"
-                    />
-                    <div class="min-w-0">
-                      <a
-                        :href="item.fileUrl"
-                        target="_blank"
-                        rel="noopener"
-                        class="text-xs font-medium text-g-800 hover:text-[var(--el-color-primary)] truncate block"
-                        >{{ item.fileName }}</a
-                      >
-                      <div class="text-[11px] text-tone-muted-text truncate">
-                        {{ attestationTypeLabel(item.type) }} · {{ formatFileSize(item.size) }} ·
-                        {{ item.uploader }} · {{ formatTime(item.uploadedAt) }}
-                      </div>
-                    </div>
-                  </div>
-                  <ElButton
-                    size="small"
-                    type="danger"
-                    text
-                    :loading="deletingEvidenceId === item.id"
-                    @click="handleDeleteEvidence(item)"
-                    >{{ $t('txLens.detail.voidEvidence') }}</ElButton
+              <div v-else class="timeline-chain">
+                <div v-for="item in proofChain" :key="item.id" class="timeline-node">
+                  <div class="timeline-dot" :style="toneDotStyle('done')" />
+                  <a
+                    :href="item.fileUrl"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-sm font-semibold text-g-800 hover:text-[var(--el-color-primary)] truncate block"
+                    >{{ item.fileName }}</a
                   >
+                  <div class="text-xs text-g-600 mt-0.5">
+                    {{ attestationTypeLabel(item.type) }} · {{ formatFileSize(item.size) }} ·
+                    {{ item.uploader }}
+                  </div>
+                  <div class="text-[11px] text-g-400 mt-0.5">{{ formatTime(item.uploadedAt) }}</div>
                 </div>
               </div>
-            </template>
+            </div>
           </div>
 
           <!-- Network Negotiation（仅发往过 Notabene 的交易） -->
@@ -289,39 +291,6 @@
         </div>
       </div>
     </template>
-
-    <!-- VASP 修正对话框：填写对方 DID / 名称后重新校验 -->
-    <el-dialog v-model="reviseDialogVisible" :title="$t('txLens.detail.vaspRevise')" width="480px">
-      <p class="text-xs text-g-600 mb-4 leading-relaxed">{{
-        $t('txLens.detail.vaspReviseHint')
-      }}</p>
-      <div class="flex flex-col gap-3">
-        <div>
-          <label class="field-label block mb-1">{{ $t('txLens.detail.vaspDid') }}</label>
-          <el-input
-            v-model="reviseForm.vaspDid"
-            :placeholder="$t('txLens.detail.vaspDidPlaceholder')"
-          />
-        </div>
-        <div>
-          <label class="field-label block mb-1">{{ $t('txLens.detail.vaspName') }}</label>
-          <el-input
-            v-model="reviseForm.vaspName"
-            :placeholder="$t('txLens.detail.vaspNamePlaceholder')"
-          />
-        </div>
-      </div>
-      <template #footer>
-        <ElButton @click="reviseDialogVisible = false">{{ $t('common.cancel') }}</ElButton>
-        <ElButton
-          type="primary"
-          :loading="vaspActing"
-          :disabled="!reviseForm.vaspDid.trim() || !reviseForm.vaspName.trim()"
-          @click="submitRevise"
-          >{{ $t('txLens.detail.vaspReviseSubmit') }}</ElButton
-        >
-      </template>
-    </el-dialog>
 
     <!-- 上传取证材料：对齐原型（拖拽区 + 文件列表 + Cancel/Upload），多选 -->
     <el-dialog
@@ -429,7 +398,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, reactive, ref, watch } from 'vue'
+  import { computed, onMounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import type {
@@ -448,18 +417,21 @@
     acceptInboundNotification,
     fetchInboundNotifications,
     confirmVaspMismatch,
-    reviseCounterpartyVasp,
     rejectTransaction,
     fetchTravelRuleAttestations,
     uploadFile,
-    createTravelRuleAttestation,
-    deleteTravelRuleAttestation
+    createTravelRuleAttestation
   } from '@/api/compliance'
 
   const props = defineProps<{
     data: TravelRuleTabView | null
     direction?: string
     orderId?: string
+    /**
+     * 列表 / overview 的 travelRule 阶段状态（complete / confirming / pending / mismatch…）。
+     * 详情接口的 status 与不是一一对应，confirming 这类中间态需要它来判断能否操作。
+     */
+    stageState?: string | null
   }>()
 
   const emit = defineEmits<{
@@ -470,6 +442,46 @@
   const countryStore = useCountryStore()
   const userStore = useUserStore()
   const opsTab = ref('manual')
+  /** Manual Resolution 内的两个子页签：Manual Trace / Proof Chain */
+  const evidenceTab = ref<'trace' | 'proof'>('trace')
+
+  /**
+   * Travel Rule 已进入终态 —— 完成 / 失败 / 拒绝都不再允许任何操作入口：
+   * 出金不再能 Resolve / Reject，入金也不再能 Accept / Reject，其余操作按钮一并隐藏。
+   * 状态来源是详情接口的 `status`（Notabene 状态），大写归一后比较。
+   */
+  const TRAVEL_RULE_TERMINAL_STATES = [
+    'ACCEPTED',
+    'COMPLETE',
+    'COMPLETED',
+    'SETTLED',
+    'REJECTED',
+    'FAILED',
+    'REVERTED'
+  ]
+  const travelRuleTerminal = computed(() => {
+    const s = (props.data?.status || '').toUpperCase()
+    return !!s && TRAVEL_RULE_TERMINAL_STATES.includes(s)
+  })
+
+  /**
+   * 进行中 / 已结束的中间态：已经发往网络、等待对手方处理。
+   * 此时不应再提供 Resolve / Reject / 上传证据等本地操作，避免绕过流程。
+   */
+  const TRAVEL_RULE_IN_FLIGHT_STATES = [
+    'CONFIRMING',
+    'CONFORMING',
+    'UNMATCHED',
+    'PII_APPENDED',
+    'AUTHORIZED'
+  ]
+  const travelRuleReadOnly = computed(() => {
+    if (travelRuleTerminal.value) return true
+    const detail = (props.data?.status || '').toUpperCase()
+    if (TRAVEL_RULE_IN_FLIGHT_STATES.includes(detail)) return true
+    const stage = (props.stageState || '').toLowerCase()
+    return stage === 'confirming' || stage === 'conforming'
+  })
   /**
    * Manual Resolution 只对出金交易展示 —— 对端离线/未响应时由我方发起线下取证；
    * 入金方向没有「我方发起」的动作，原型同样对入金隐藏该页签。
@@ -486,8 +498,6 @@
 
   // ─── VASP 不一致处置 ───
   const vaspActing = ref(false)
-  const reviseDialogVisible = ref(false)
-  const reviseForm = reactive({ vaspDid: '', vaspName: '' })
   /** 取消挂起出金订单（/cancel） */
   const cancelling = ref(false)
 
@@ -501,7 +511,9 @@
    * 后者是交易列表 travelRule 字段的汇总状态，避免其中一个先更新时入口消失。
    */
   const vaspReviewStatus = computed(() => (declaration.value?.reviewStatus || '').toUpperCase())
-  const showVaspMismatchActions = computed(() => vaspReviewStatus.value === 'MISMATCH')
+  const showVaspMismatchActions = computed(
+    () => vaspReviewStatus.value === 'MISMATCH' && !travelRuleReadOnly.value
+  )
   const vaspMismatchHint = computed(() => {
     const reason = declaration.value?.reason
     if (reason === 'no-vasp-pending') return t('txLens.detail.vaspMismatchNoVasp')
@@ -538,33 +550,11 @@
     }
   }
 
-  function openReviseDialog(): void {
-    reviseForm.vaspDid = declaration.value?.discoveredDid || declaration.value?.declaredDid || ''
-    reviseForm.vaspName = declaration.value?.discoveredName || declaration.value?.declaredName || ''
-    reviseDialogVisible.value = true
-  }
-
-  async function submitRevise(): Promise<void> {
-    if (!props.orderId) return
-    const did = reviseForm.vaspDid.trim()
-    const name = reviseForm.vaspName.trim()
-    if (!did || !name) return
-    vaspActing.value = true
-    try {
-      await reviseCounterpartyVasp(props.orderId, did, name, operator.value)
-      ElMessage.success(t('txLens.detail.vaspReviseDone'))
-      reviseDialogVisible.value = false
-      emit('reviewed')
-    } catch (err) {
-      ElMessage.error(err instanceof Error ? err.message : t('txLens.detail.actionFailed'))
-    } finally {
-      vaspActing.value = false
-    }
-  }
-
   // ─── Manual Resolution：Cancel transfer ───
   /** 仅出金（我方发起的线下取证）才有「取消 / 拒绝」入口 */
-  const showCancelButton = computed(() => props.direction !== 'incoming')
+  const showCancelButton = computed(
+    () => props.direction !== 'incoming' && !travelRuleReadOnly.value
+  )
 
   /**
    * Manual Resolution 的 Cancel transfer 调用「拒绝交易」接口：
@@ -623,16 +613,25 @@
     { value: 'EMAIL', labelKey: 'txLens.detail.evidenceTypeEmail' },
     { value: 'OTHER', labelKey: 'txLens.detail.evidenceTypeOther' }
   ]
-  const deletingEvidenceId = ref<number | null>(null)
+  /** Proof Chain：按上传时间正序（时间轴从上到下即发生顺序） */
+  const proofChain = computed(() =>
+    [...attestations.value].sort(
+      (a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime()
+    )
+  )
   /** 待上传文件（原型支持多选，逐个上传后统一登记为证据） */
   const evidenceFiles = ref<File[]>([])
 
+  /**
+   * 证据类型标签 —— 与 Upload Proof 弹框的下拉共用同一批 key，
+   * 避免「上传时叫 Transfer receipt、列表里叫别的」。
+   */
   const ATTESTATION_LABEL_KEYS: Record<string, string> = {
-    TRANSFER_RECEIPT: 'txLens.detail.evidenceType_TRANSFER_RECEIPT',
-    COUNTERPARTY_CONFIRM: 'txLens.detail.evidenceType_COUNTERPARTY_CONFIRM',
-    SELF_DECLARATION: 'txLens.detail.evidenceType_SELF_DECLARATION',
-    EMAIL: 'txLens.detail.evidenceType_EMAIL',
-    OTHER: 'txLens.detail.evidenceType_OTHER'
+    TRANSFER_RECEIPT: 'txLens.detail.evidenceTypeTransferReceipt',
+    COUNTERPARTY_CONFIRM: 'txLens.detail.evidenceTypeCounterpartyConfirm',
+    SELF_DECLARATION: 'txLens.detail.evidenceTypeSelfDeclaration',
+    EMAIL: 'txLens.detail.evidenceTypeEmail',
+    OTHER: 'txLens.detail.evidenceTypeOther'
   }
   function attestationTypeLabel(type: string): string {
     const key = ATTESTATION_LABEL_KEYS[type]
@@ -739,34 +738,6 @@
     }
   }
 
-  /** 作废证据（软删除，接口为 DELETE） */
-  async function handleDeleteEvidence(item: TravelRuleAttestationView): Promise<void> {
-    if (!props.orderId) return
-    try {
-      await ElMessageBox.confirm(
-        t('txLens.detail.voidEvidenceConfirm', { name: item.fileName }),
-        t('txLens.detail.voidEvidence'),
-        {
-          confirmButtonText: t('common.confirm'),
-          cancelButtonText: t('common.cancel'),
-          type: 'warning'
-        }
-      )
-    } catch {
-      return
-    }
-    deletingEvidenceId.value = item.id
-    try {
-      await deleteTravelRuleAttestation(props.orderId, item.id)
-      attestations.value = attestations.value.filter((a) => a.id !== item.id)
-      ElMessage.success(t('txLens.detail.voidEvidenceDone'))
-    } catch (err) {
-      ElMessage.error(err instanceof Error ? err.message : t('txLens.detail.actionFailed'))
-    } finally {
-      deletingEvidenceId.value = null
-    }
-  }
-
   function formatFileSize(bytes: number): string {
     if (!bytes) return '-'
     if (bytes < 1024) return `${bytes} B`
@@ -783,6 +754,7 @@
   const PENDING_REVIEW_STATUSES = ['CREATED', 'PII_APPENDED', 'UNMATCHED']
   const showResolveRejectButtons = computed(() => {
     if (props.direction !== 'incoming') return false
+    if (travelRuleReadOnly.value) return false
     const status = props.data?.status
     return !!status && PENDING_REVIEW_STATUSES.includes(status)
   })

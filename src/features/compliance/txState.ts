@@ -37,7 +37,11 @@ export const COMPLIANCE_DICT: TxStateItem[] = [
 /** Travel Rule 状态 */
 export const TRAVEL_RULE_DICT: TxStateItem[] = [
   { value: 'complete', labelKey: 'txLens.trComplete' },
+  // confirming / conforming：已发往 Notabene、对手方 VASP 正在确认（后端两种写法都可能出现）
+  { value: 'confirming', labelKey: 'txLens.trConfirming' },
+  { value: 'conforming', labelKey: 'txLens.trConfirming' },
   { value: 'pending', labelKey: 'txLens.trPending' },
+  { value: 'rejected', labelKey: 'txLens.trRejected' },
   // mismatch（VASP 信息与地址不符）对外统一显示为 Pending：
   // 「不一致」是待客户补全的数据问题，不是已完成的核验结论
   { value: 'mismatch', labelKey: 'txLens.trPending' },
@@ -128,6 +132,8 @@ export const REVIEW_OUTCOME_DICT: TxStateItem[] = [
 export const NOTIFICATION_STATUS_DICT: TxStateItem[] = [
   { value: 'CREATED', labelKey: 'travelRule.stCreated' },
   { value: 'PII_APPENDED', labelKey: 'travelRule.stPiiAppended' },
+  // Notabene 返回但此前未登记的取值（VASP 不匹配 / 待处理）
+  { value: 'VASP_MISMATCH', labelKey: 'travelRule.stVaspMismatch' },
   { value: 'UNMATCHED', labelKey: 'travelRule.stUnmatched' },
   { value: 'AUTHORIZED', labelKey: 'travelRule.stAuthorized' },
   { value: 'ACCEPTED', labelKey: 'travelRule.stAccepted' },
@@ -176,7 +182,10 @@ const TONES: Record<string, Tone> = {
   broadcasted: 'progress',
   held: 'progress',
   CREATED: 'progress',
+  confirming: 'progress',
+  conforming: 'progress',
   PII_APPENDED: 'progress',
+  VASP_MISMATCH: 'error',
   UNMATCHED: 'progress',
   SETTLING: 'progress',
   // 终态 · 异常

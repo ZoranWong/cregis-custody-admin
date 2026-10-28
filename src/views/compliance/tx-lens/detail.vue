@@ -147,6 +147,7 @@
           :data="travelRuleData"
           :direction="overview.direction"
           :orderId="overview.orderId"
+          :stage-state="overview.travelRule"
           @reviewed="loadDetail"
         />
       </div>

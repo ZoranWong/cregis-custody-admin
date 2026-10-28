@@ -2,28 +2,27 @@
 <template>
   <div class="page-content">
     <!-- ═══ Page Header ═══ -->
-    <div class="mb-5">
-      <h1 class="text-hero font-semibold text-g-900">{{ $t('alerts.pageTitle') }}</h1>
-      <p class="text-sm text-g-700 mt-1">{{ $t('alerts.pageSubtitle') }}</p>
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div>
+        <h1 class="text-hero font-semibold text-g-900">{{ $t('alerts.pageTitle') }}</h1>
+        <p class="text-sm text-g-700 mt-1">{{ $t('alerts.pageSubtitle') }}</p>
+      </div>
+      <!-- 导出：页面级动作，放在标题栏右侧（与 Transaction Lens 一致） -->
+      <el-button type="primary" plain class="flex-shrink-0">
+        <ArtSvgIcon icon="ri:download-line" class="text-icon-sm mr-1" />{{ $t('common.export') }}
+      </el-button>
     </div>
 
     <!-- ═══ 筛选栏 ═══ -->
     <div class="flex flex-wrap items-center gap-4 mb-5">
-      <el-select
+      <MerchantSelect
         v-model="filters.merchantEcode"
+        :selected-label="filters.merchantName"
         :placeholder="$t('alerts.merchant')"
-        clearable
-        filterable
         class="!w-48"
-        @change="handleFilterChange"
-      >
-        <el-option
-          v-for="m in merchants"
-          :key="m.code"
-          :label="m.merchantName || m.code"
-          :value="m.code"
-        />
-      </el-select>
+        @select="(_ecode, name) => (filters.merchantName = name)"
+        @update:model-value="handleFilterChange"
+      />
       <el-select
         v-model="filters.direction"
         :placeholder="$t('alerts.direction')"
@@ -66,170 +65,155 @@
       <el-button plain @click="resetFilters">{{ $t('common.reset') }}</el-button>
     </div>
 
-    <!-- ═══ 告警卡片列表 ═══ -->
-    <div class="art-card mb-4">
-      <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
-        <span class="text-g-700 font-medium">{{ $t('alerts.pageTitle') }}</span>
-        <el-button text size="small">
-          <ArtSvgIcon icon="ri:download-line" class="text-icon-sm mr-1" />{{ $t('common.export') }}
-        </el-button>
-      </div>
-
-      <div class="p-4">
-        <template v-if="loading">
-          <el-skeleton :rows="6" animated />
-        </template>
-        <template v-else>
-          <div
-            v-for="alert in alerts"
-            :key="alert.id"
-            class="tx-card mb-2.5 last:mb-0 cursor-pointer"
-            @click="openAlert(alert)"
-            role="button"
-            tabindex="0"
-            @keydown.enter.prevent="openAlert(alert)"
-            @keydown.space.prevent="openAlert(alert)"
-          >
-            <!-- 顶部：金额 + 订单号 + 标签（对齐 tx-lens 密度） -->
-            <div class="flex items-start justify-between gap-3 mb-2">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                  <ArtSvgIcon
-                    :icon="
-                      alert.direction === 'INCOMING' ? 'ri:arrow-down-line' : 'ri:arrow-up-line'
-                    "
-                    :class="
-                      alert.direction === 'INCOMING'
-                        ? 'text-tone-inbound-text'
-                        : 'text-tone-outbound-text'
-                    "
-                    class="text-icon-md flex-shrink-0"
-                  />
-                  <span class="text-metric tabular-nums font-semibold text-g-900">{{
-                    displayAmount(alert)
-                  }}</span>
-                  <span class="text-xs text-tone-muted-text">{{ alert.currency }}</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs mt-0.5">
-                  <el-tooltip :content="alert.bizRefId" placement="top">
-                    <span class="text-g-700 font-mono truncate max-w-52">{{ alert.bizRefId }}</span>
-                  </el-tooltip>
-                  <span class="text-tone-muted-text">· {{ formatTime(alert.createTime) }}</span>
-                  <span class="text-tone-muted-text">· {{ $t('alerts.merchantName') }}:</span>
-                  <span class="text-g-700 truncate">{{ merchantName(alert.merchantEcode) }}</span>
-                </div>
-              </div>
-              <!-- 徽章（对齐原型：方向 → 处置状态 → 严重级别） -->
-              <div class="flex items-center gap-1.5 flex-shrink-0">
-                <ArtDirectionTag :inbound="alert.direction === 'INCOMING'" />
-                <el-tag
-                  :type="dispositionTagType(alert.dispositionStatus)"
-                  size="small"
-                  effect="light"
-                >
-                  {{ txStateLabel(DISPOSITION_STATUS_DICT, alert.dispositionStatus, t) }}
-                </el-tag>
-                <el-tag
-                  :type="severityTagType(alert.maxSeverity)"
-                  v-if="alert.maxSeverity"
-                  size="small"
-                  effect="light"
-                >
-                  {{ severityLabelOf(alert.maxSeverity) }}
-                </el-tag>
-              </div>
-            </div>
-
-            <!-- 出入金双方（三行结构，与 tx-lens / travel-rule 一致） -->
-            <div class="flex items-stretch gap-2 mb-2">
-              <div
-                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
-                :class="
-                  alert.direction === 'OUTGOING'
-                    ? 'bg-[var(--el-color-primary-light-9)]'
-                    : 'bg-[var(--tone-neutral-bg)]'
-                "
-              >
-                <div class="text-caption text-g-700 font-medium">
-                  {{ partyLabel(alert.direction, 'originator') }}
-                </div>
-                <div class="text-xs font-semibold text-g-900 truncate">
-                  {{ partyName(alert.originator) }}
-                </div>
-                <div class="text-caption text-g-700 font-mono truncate">
-                  {{ alert.originator?.address || '--' }}
-                </div>
-              </div>
-              <div class="flex items-center">
+    <!-- ═══ 告警卡片列表（与 Transaction Lens 一致：无外层卡片与标题栏）═══ -->
+    <div>
+      <template v-if="loading">
+        <el-skeleton :rows="6" animated />
+      </template>
+      <template v-else>
+        <div
+          v-for="alert in alerts"
+          :key="alert.id"
+          class="tx-card mb-2.5 last:mb-0 cursor-pointer"
+          @click="openAlert(alert)"
+          role="button"
+          tabindex="0"
+          @keydown.enter.prevent="openAlert(alert)"
+          @keydown.space.prevent="openAlert(alert)"
+        >
+          <!-- 顶部：金额 + 订单号 + 标签（对齐 tx-lens 密度） -->
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
                 <ArtSvgIcon
-                  icon="ri:arrow-right-long-line"
+                  :icon="alert.direction === 'INCOMING' ? 'ri:arrow-down-line' : 'ri:arrow-up-line'"
                   :class="
                     alert.direction === 'INCOMING'
                       ? 'text-tone-inbound-text'
                       : 'text-tone-outbound-text'
                   "
-                  class="text-icon-lg"
+                  class="text-icon-md flex-shrink-0"
                 />
-              </div>
-              <div
-                class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
-                :class="
-                  alert.direction === 'OUTGOING'
-                    ? 'bg-[var(--tone-neutral-bg)]'
-                    : 'bg-[var(--el-color-primary-light-9)]'
-                "
-              >
-                <div class="text-caption text-g-700 font-medium">
-                  {{ partyLabel(alert.direction, 'beneficiary') }}
-                </div>
-                <div class="text-xs font-semibold text-g-900 truncate">
-                  {{ partyName(alert.beneficiary) }}
-                </div>
-                <div class="text-caption text-g-700 font-mono truncate">
-                  {{ alert.beneficiary?.address || '--' }}
-                </div>
-              </div>
-            </div>
-
-            <!-- 命中规则 + 结论 + Full Review 同行（对齐原型 footer） -->
-            <div
-              class="flex items-center justify-between gap-4 pt-3 border-t border-[var(--default-border)]"
-            >
-              <div class="flex items-center gap-2 flex-wrap min-w-0 flex-1">
-                <span class="text-xs text-g-700 flex-shrink-0">{{ $t('alerts.ruleHits') }}:</span>
-                <template v-if="alert.ruleHits?.length">
-                  <el-tag
-                    :type="severityTagType(hit.severity)"
-                    v-for="hit in alert.ruleHits"
-                    :key="hit.ruleCode"
-                    size="small"
-                    effect="light"
-                  >
-                    {{ hit.ruleName }}
-                  </el-tag>
-                </template>
-                <span v-else class="text-sm text-g-700">{{ $t('alerts.noRuleHit') }}</span>
-                <span class="text-xs text-g-700 ml-2">{{ $t('alerts.conclusion') }}:</span>
-                <span class="text-sm text-g-700 font-medium">{{
-                  txStateLabel(CONCLUSION_DICT, alert.conclusion, t)
+                <span class="text-metric tabular-nums font-semibold text-g-900">{{
+                  displayAmount(alert)
                 }}</span>
+                <span class="text-xs text-tone-muted-text">{{ alert.currency }}</span>
               </div>
-              <el-button
+              <div class="flex items-center gap-2 text-xs mt-0.5">
+                <el-tooltip :content="alert.bizRefId" placement="top">
+                  <span class="text-g-700 font-mono truncate max-w-52">{{ alert.bizRefId }}</span>
+                </el-tooltip>
+                <span class="text-tone-muted-text">· {{ formatTime(alert.createTime) }}</span>
+                <span class="text-tone-muted-text">· {{ $t('alerts.merchantName') }}:</span>
+                <span class="text-g-700 truncate">{{ merchantName(alert.merchantEcode) }}</span>
+              </div>
+            </div>
+            <!-- 徽章（对齐原型：方向 → 处置状态 → 严重级别） -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <ArtDirectionTag :inbound="alert.direction === 'INCOMING'" />
+              <el-tag
+                :type="dispositionTagType(alert.dispositionStatus)"
                 size="small"
-                type="primary"
-                plain
-                class="flex-shrink-0"
-                @click.stop="openAlert(alert)"
+                effect="light"
               >
-                {{ $t('alerts.fullReview') }} →
-              </el-button>
+                {{ txStateLabel(DISPOSITION_STATUS_DICT, alert.dispositionStatus, t) }}
+              </el-tag>
+              <el-tag
+                :type="severityTagType(alert.maxSeverity)"
+                v-if="alert.maxSeverity"
+                size="small"
+                effect="light"
+              >
+                {{ severityLabelOf(alert.maxSeverity) }}
+              </el-tag>
             </div>
           </div>
-          <div v-if="alerts.length === 0" class="p-10 text-center text-tone-neutral-text text-body">
-            {{ $t('alerts.noResults') }}
+
+          <!-- 出入金双方（三行结构，与 tx-lens / travel-rule 一致） -->
+          <div class="flex items-stretch gap-2 mb-2">
+            <div
+              class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
+              :class="
+                alert.direction === 'OUTGOING'
+                  ? 'bg-[var(--el-color-primary-light-9)]'
+                  : 'bg-[var(--tone-neutral-bg)]'
+              "
+            >
+              <div class="text-caption text-g-700 font-medium">
+                {{ partyLabel(alert.direction, 'originator') }}
+              </div>
+              <div class="text-xs font-semibold text-g-900 truncate">
+                {{ partyName(alert.originator) }}
+              </div>
+              <div class="text-caption text-g-700 font-mono truncate">
+                {{ alert.originator?.address || '--' }}
+              </div>
+            </div>
+            <div class="flex items-center">
+              <ArtSvgIcon
+                icon="ri:arrow-right-long-line"
+                :class="
+                  alert.direction === 'INCOMING'
+                    ? 'text-tone-inbound-text'
+                    : 'text-tone-outbound-text'
+                "
+                class="text-icon-lg"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0 rounded-lg px-2.5 py-1.5"
+              :class="
+                alert.direction === 'OUTGOING'
+                  ? 'bg-[var(--tone-neutral-bg)]'
+                  : 'bg-[var(--el-color-primary-light-9)]'
+              "
+            >
+              <div class="text-caption text-g-700 font-medium">
+                {{ partyLabel(alert.direction, 'beneficiary') }}
+              </div>
+              <div class="text-xs font-semibold text-g-900 truncate">
+                {{ partyName(alert.beneficiary) }}
+              </div>
+              <div class="text-caption text-g-700 font-mono truncate">
+                {{ alert.beneficiary?.address || '--' }}
+              </div>
+            </div>
           </div>
-        </template>
-      </div>
+
+          <!-- 命中规则 + 结论 + Full Review 同行（对齐原型 footer） -->
+          <div
+            class="flex items-center justify-between gap-4 pt-3 border-t border-[var(--default-border)]"
+          >
+            <div class="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+              <span class="text-xs text-g-700 flex-shrink-0">{{ $t('alerts.ruleHits') }}:</span>
+              <template v-if="alert.ruleHits?.length">
+                <el-tag
+                  :type="severityTagType(hit.severity)"
+                  v-for="hit in alert.ruleHits"
+                  :key="hit.ruleCode"
+                  size="small"
+                  effect="light"
+                >
+                  {{ hit.ruleName }}
+                </el-tag>
+              </template>
+              <span v-else class="text-sm text-g-700">{{ $t('alerts.noRuleHit') }}</span>
+            </div>
+            <el-button
+              size="small"
+              type="primary"
+              plain
+              class="flex-shrink-0"
+              @click.stop="openAlert(alert)"
+            >
+              {{ $t('alerts.fullReview') }} →
+            </el-button>
+          </div>
+        </div>
+        <div v-if="alerts.length === 0" class="p-10 text-center text-tone-neutral-text text-body">
+          {{ $t('alerts.noResults') }}
+        </div>
+      </template>
 
       <!-- 分页 -->
       <div
@@ -237,9 +221,9 @@
         class="flex justify-end items-center px-4 py-3 border-t border-[var(--default-border)]"
       >
         <el-pagination
-          v-model:current-page="pagination.pageIndex"
+          v-model:current-page="filters.pageIndex"
           :total="total"
-          :page-size="pagination.pageSize"
+          v-model:page-size="filters.pageSize"
           :page-sizes="[10, 20, 50]"
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -252,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, reactive, ref } from 'vue'
+  import { onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { fetchCoinList } from '@/api/coin'
@@ -260,7 +244,6 @@
   import { fetchMerchantList } from '@/api/merchant'
   import type { ComplianceAlertItem, TransactionPartyView } from '@/features/compliance/types'
   import {
-    CONCLUSION_DICT,
     DECISION_DICT,
     DISPOSITION_STATUS_DICT,
     dispositionTagType,
@@ -268,6 +251,8 @@
   } from '@/features/compliance/txState'
   import { severityLabel, severityTagType } from '@/features/compliance/dictionaries'
   import { formatCoinBalance, formatTime } from '@/utils/format'
+  import { useComplianceFilterStore } from '@/store/modules/complianceFilters'
+  import MerchantSelect from '@/components/business/merchant-select/index.vue'
 
   defineOptions({ name: 'ComplianceAlerts' })
 
@@ -281,17 +266,9 @@
   const merchantMap = ref<Record<string, string>>({})
   const coinDecimals = ref<Record<string, number>>({})
 
-  const filters = reactive({
-    merchantEcode: '',
-    direction: '',
-    decision: '',
-    dispositionStatus: ''
-  })
-
-  const pagination = reactive({
-    pageIndex: 1,
-    pageSize: 20
-  })
+  // 筛选条件与分页放全局状态：详情页返回时条件仍在，可自动重新查询
+  const filterStore = useComplianceFilterStore()
+  const filters = filterStore.alerts
 
   // ─── 展示辅助 ───
 
@@ -378,8 +355,8 @@
         queryList.push({ key: 'dispositionStatus', value: filters.dispositionStatus })
 
       const res = await fetchComplianceAlerts({
-        pageIndex: pagination.pageIndex,
-        pageSize: pagination.pageSize,
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
         queryList
       })
       alerts.value = res.records ?? []
@@ -394,12 +371,13 @@
   }
 
   function handleFilterChange() {
-    pagination.pageIndex = 1
+    filters.pageIndex = 1
     fetchData()
   }
 
   function resetFilters() {
     filters.merchantEcode = ''
+    filters.merchantName = ''
     filters.direction = ''
     filters.decision = ''
     filters.dispositionStatus = ''
@@ -407,7 +385,7 @@
   }
 
   function handleSizeChange() {
-    pagination.pageIndex = 1
+    filters.pageIndex = 1
     fetchData()
   }
 
