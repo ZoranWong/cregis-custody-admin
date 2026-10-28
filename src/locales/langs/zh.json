@@ -710,15 +710,16 @@
       "originatorAddress": "发起方地址",
       "beneficiaryAddress": "受益方地址",
       "jurisdiction": "管辖区域",
-      "vaspStatus": "VASP 状态",
-      "regulatory": "监管状态",
+      "vaspStatus": "VASP 监管状态",
+      "regulatory": "VASP 监管校验",
       "trCapable": "Travel Rule 能力",
       "ivms101Valid": "IVMS101 PII",
       "riskScore": "风险分数",
       "counterpartyType": "对手方类型",
       "amount": "金额",
       "beneficiaryNameMatch": "受益企业名称匹配",
-      "amountDeviation": "入金金额偏差百分比"
+      "amountDeviation": "入金金额偏差百分比",
+      "vaspDidStatus": "VASP DID 状态"
     },
     "factorOptions": {
       "onboarded": "已入网",
@@ -761,8 +762,14 @@
       "Privacy Wallet": "隐私钱包",
       "match": "匹配",
       "mismatch": "不匹配",
-      "unknown": "未知"
+      "unknown": "未知",
+      "verified": "已验证",
+      "discovered": "已发现",
+      "declared_unknown": "未知定义",
+      "unresolved": "未解决",
+      "error": "解析出错"
     },
+    "conditionValueJoiner": " 或 ",
     "otherDomain": "其他",
     "acceptanceConditions": "接受条件",
     "acceptanceConditionsHint": "所有启用的条件必须满足才能自动接受。不符合条件的请求将转入人工审查。",

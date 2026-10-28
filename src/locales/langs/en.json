@@ -710,15 +710,16 @@
       "originatorAddress": "Originator Address",
       "beneficiaryAddress": "Beneficiary Address",
       "jurisdiction": "Jurisdiction",
-      "vaspStatus": "VASP Status",
-      "regulatory": "Regulatory",
+      "vaspStatus": "VASP Regulatory Status",
+      "regulatory": "VASP Regulatory Verification",
       "trCapable": "Travel Rule Capable",
       "ivms101Valid": "IVMS101 PII",
       "riskScore": "Risk Score",
       "counterpartyType": "Counterparty Type",
       "amount": "Amount",
       "beneficiaryNameMatch": "Beneficiary Name Match",
-      "amountDeviation": "Amount Deviation (%)"
+      "amountDeviation": "Amount Deviation (%)",
+      "vaspDidStatus": "VASP DID Status"
     },
     "factorOptions": {
       "onboarded": "Onboarded",
@@ -761,8 +762,14 @@
       "Privacy Wallet": "Privacy Wallet",
       "match": "Match",
       "mismatch": "Mismatch",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "verified": "Verified",
+      "discovered": "Discovered",
+      "declared_unknown": "Declared unknown",
+      "unresolved": "Unresolved",
+      "error": "Resolution error"
     },
+    "conditionValueJoiner": " or ",
     "otherDomain": "Other",
     "acceptanceConditions": "Acceptance Conditions",
     "acceptanceConditionsHint": "All enabled conditions must be met for auto-accept. Requests that don't qualify fall through to manual review.",

@@ -175,7 +175,7 @@
                       factorLabel(factor.label)
                     }}</span>
                     <span class="text-xs text-tone-info-text font-medium ml-auto">{{
-                      factor.values.map(factorOptionLabel).join(', ')
+                      factor.values.map(factorOptionLabel).join($t('rules.conditionValueJoiner'))
                     }}</span>
                   </div>
                 </div>

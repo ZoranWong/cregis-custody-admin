@@ -174,8 +174,8 @@
                   size="small"
                   @update:model-value="(v) => setFactorValue(factor.key, String(v))"
                 >
-                  <el-radio v-for="opt in factor.options" :key="opt" :value="opt">
-                    {{ opt }}
+                  <el-radio v-for="opt in factor.options" :key="opt.value" :value="opt.value">
+                    {{ opt.label }}
                   </el-radio>
                 </el-radio-group>
               </div>
@@ -187,12 +187,12 @@
               >
                 <el-checkbox
                   v-for="opt in factor.options"
-                  :key="opt"
-                  :model-value="isOptionSelected(factor.key, opt)"
-                  @update:model-value="toggleFactorOption(factor.key, opt)"
+                  :key="opt.value"
+                  :model-value="isOptionSelected(factor.key, opt.value)"
+                  @update:model-value="toggleFactorOption(factor.key, opt.value)"
                   size="small"
                 >
-                  {{ opt }}
+                  {{ opt.label }}
                 </el-checkbox>
               </div>
               <!-- 否定值因子：不提供取值选择，展示系统自动采用的校验值 -->
@@ -239,9 +239,12 @@
     SEVERITY_DICT,
     DIRECTION_DICT,
     factorByKey,
+    factorOptionsOverride,
+    factorSortOrder,
     NEGATIVE_OPTION,
     isNegativeOnlyFactor,
     factorLabel as factorLabelOf,
+    factorOptionLabel as factorOptionLabelOf,
     stageLabel as stageLabelOf
   } from '@/features/compliance/dictionaries'
 
@@ -305,18 +308,6 @@
     return staticFactor?.hintKey ? t(staticFactor.hintKey) : ''
   }
 
-  // 辖区因子（allowedValues 为空 + in 操作符）用国家列表做数据源
-  function factorOptions(factor: FactorView): string[] {
-    if (factorType(factor) === 'input') return []
-    if (factor.allowedValues.length > 0) {
-      return factor.allowedValues.map((opt) => {
-        const translated = t(`rules.factorOptions.${opt}`)
-        return translated.startsWith('rules.factorOptions.') ? opt : translated
-      })
-    }
-    return countryOptions.value
-  }
-
   const factorCatalog = computed(() => {
     const domains: Record<
       string,
@@ -326,7 +317,8 @@
         type: string
         hint: string
         supported: boolean
-        options: string[]
+        options: Array<{ value: string; label: string }>
+        rank: number
       }>
     > = {}
     for (const factor of serverFactors.value) {
@@ -341,15 +333,30 @@
         : factor.domain
       const domainKey = `rules.factorDomains.${domain}`
       if (!domains[domainKey]) domains[domainKey] = []
+      // 取值与后端 allowedValues 保持一致（仅字典显式覆盖时收敛），展示走 i18n
+      const values = factorOptionsOverride(factor.factorCode) ?? factor.allowedValues
+      const type = isNegativeOnlyFactor(factor.factorCode) ? 'negative' : factorType(factor)
+      let options: Array<{ value: string; label: string }> = []
+      if (type === 'multi' || type === 'single') {
+        // 辖区因子（allowedValues 为空 + in 操作符）用国家列表做数据源
+        options =
+          values.length > 0
+            ? values.map((v) => ({ value: v, label: factorOptionLabelOf(v, t) }))
+            : countryOptions.value.map((c) => ({ value: c, label: c }))
+      }
       domains[domainKey].push({
         key: factor.factorCode,
         label: factorLabel(factor),
-        // 否定值因子：只勾选因子，取值自动填（见 toggleFactor）
-        type: isNegativeOnlyFactor(factor.factorCode) ? 'negative' : factorType(factor),
+        type,
         hint: factorHint(factor),
         supported: factor.enabled,
-        options: factorOptions(factor)
+        options,
+        rank: factorSortOrder(factor.factorCode) ?? factor.sortOrder
       })
+    }
+    // 分组内按 sortOrder 排序（vasp_did_status 紧跟 vasp_status），分组间保持后端顺序
+    for (const factors of Object.values(domains)) {
+      factors.sort((a, b) => a.rank - b.rank)
     }
     return Object.entries(domains).map(([domainKey, factors]) => ({
       domain: t(domainKey),
@@ -407,15 +414,13 @@
   /** 否定值因子的自动取值标签；非否定值因子返回空串 */
   function negativeOptionLabel(factorKey: string): string {
     const negative = NEGATIVE_OPTION[factorKey]
-    if (!negative) return ''
-    const translated = t(`rules.factorOptions.${negative}`)
-    return translated.startsWith('rules.factorOptions.') ? negative : translated
+    return negative ? factorOptionLabelOf(negative, t) : ''
   }
 
   function getFactorOptionsDisplay(factorKey: string): string {
     const factor = factorCatalog.value.flatMap((d) => d.factors).find((f) => f.key === factorKey)
     if (!factor) return ''
-    return factor.options.join(' | ')
+    return factor.options.map((o) => o.label).join(' | ')
   }
 
   const form = reactive({

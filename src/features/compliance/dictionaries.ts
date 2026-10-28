@@ -115,6 +115,10 @@ export interface FactorOption {
   type: 'multi' | 'input'
   /** multi 类型的可选项（'__countries__' 表示国家列表） */
   options: string[]
+  /** 编辑器取值覆盖：仅展示/提交这些取值（后端 allowedValues 里不合适的取值在此收敛） */
+  optionsOverride?: string[]
+  /** 排序权重：有值时在所属分组内按此升序，未配置的沿用后端 sortOrder */
+  sortOrder?: number
   /** input 类型的用途提示 i18n 键 */
   hintKey?: string
   /**
@@ -122,6 +126,16 @@ export interface FactorOption {
    * false 的因子仅目录展示，编辑器禁用勾选，等后端补字典后放开。
    */
   supported: boolean
+}
+
+/** 分组内排序权重：前端覆盖优先，否则沿用后端下发的 sortOrder */
+export function factorSortOrder(key: string): number | undefined {
+  return FACTOR_CATALOG.find((f) => f.key === key)?.sortOrder
+}
+
+/** 编辑器取值覆盖（null 表示完全跟随后端 allowedValues） */
+export function factorOptionsOverride(key: string): string[] | null {
+  return FACTOR_CATALOG.find((f) => f.key === key)?.optionsOverride ?? null
 }
 
 export const FACTOR_CATALOG: FactorOption[] = [
@@ -161,6 +175,19 @@ export const FACTOR_CATALOG: FactorOption[] = [
     operator: 'eq',
     type: 'multi',
     options: ['verified', 'unverified'],
+    supported: true
+  },
+  {
+    // 后端目录 sortOrder=140；编辑器里紧跟 vasp_status 展示（两者语义相近）
+    key: 'vasp_did_status',
+    labelKey: 'rules.factors.vaspDidStatus',
+    domainKey: 'rules.factorDomains.counterpartyVasp',
+    operator: 'in',
+    type: 'multi',
+    // 取值为「非正常」状态：DID 未知 / 未解析 / 解析失败
+    options: ['declared_unknown', 'unresolved', 'error'],
+    optionsOverride: ['declared_unknown', 'unresolved', 'error'],
+    sortOrder: 35,
     supported: true
   },
   {
@@ -376,16 +403,35 @@ export function stageLabel(value: string | null | undefined, t: Translate): stri
   return labelOf(STAGE_DICT, value, t)
 }
 
-/** 因子 field → 标签（未收录的 field 用 fallback；无 fallback 则原样展示） */
+/** 字段 key 拆分 → 可读词；未知字段也不把后端 snake_case 直接甩给用户 */
+const KEY_ACRONYMS: Record<string, string> = {
+  vasp: 'VASP',
+  did: 'DID',
+  ivms101: 'IVMS101',
+  pii: 'PII',
+  kya: 'KYA',
+  kyt: 'KYT',
+  tr: 'Travel Rule'
+}
+
+function humanizeKey(key: string): string {
+  return key
+    .split(/[._]/)
+    .filter(Boolean)
+    .map((w) => KEY_ACRONYMS[w] ?? w[0]!.toUpperCase() + w.slice(1))
+    .join(' ')
+}
+
 export function factorLabel(
   value: string | null | undefined,
   t: Translate,
   fallback?: string
 ): string {
   if (!value) return fallback || '--'
+  // 后端目录下发的 factorName 仅在没有本地字典时使用：接口文案恒为英文，中文界面会被污染
   const key = FACTOR_CATALOG.find((f) => f.key === value)?.labelKey
   if (key) return t(key)
-  return fallback || value
+  return fallback || humanizeKey(value)
 }
 
 /**
@@ -425,7 +471,8 @@ export function directionTagType(value: string): TagType {
 /**
  * 条件 → 展示文本，对齐原型：
  *   相等/包含 → `对手方类型: 未托管`
- *   比较类   → `金额 ≥ 10000`
+ *   多值 in   → `VASP DID 状态: 申报未知 或 未解决`（不逐个重复字段名）
+ *   比较类    → `金额 ≥ 10000`
  */
 export function conditionText(
   cond: { field: string; operator?: string; value?: string },
@@ -440,8 +487,9 @@ export function conditionText(
     .map((s) => s.trim())
     .filter(Boolean)
     .map((v) => factorOptionLabel(v, t))
+  const joined = values.join(t('rules.conditionValueJoiner'))
   const joiner = COLON_OPERATORS.has(op) ? `${op} ` : ` ${op} `
-  return `${field}${joiner}${values.join(', ')}`
+  return `${field}${joiner}${joined}`
 }
 
 /** 条件中的因子 → 所属域标签（未收录归入 otherDomain） */
