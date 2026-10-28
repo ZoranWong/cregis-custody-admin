@@ -65,7 +65,6 @@
         <el-table-column :label="$t('gas.merchant')" min-width="160">
           <template #default="{ row }">
             <div class="text-sm font-medium text-g-800">{{ row.merchantName || '-' }}</div>
-            <div class="text-xs text-tone-muted-text">Project {{ row.projectId ?? '—' }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="reason" :label="$t('gas.issue')" min-width="200" />
@@ -171,7 +170,6 @@
         <el-table-column :label="$t('gas.merchant')" min-width="160">
           <template #default="{ row }">
             <div class="text-sm font-medium text-g-800">{{ row.merchantName || '-' }}</div>
-            <div class="text-xs text-tone-muted-text">Project {{ row.projectId ?? '—' }}</div>
           </template>
         </el-table-column>
         <el-table-column :label="$t('gas.activity')" min-width="200">
@@ -373,10 +371,11 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, reactive, ref, onMounted } from 'vue'
+  import { computed, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useGasOperations } from '@/features/ops/gas/useGasOperations'
   import { useCoinStore } from '@/store/modules/coins'
+  import { useGasOperationsStore, type GasTab } from '@/store/modules/gasOperations'
   import { formatCoinBalance, formatRelativeTime } from '@/utils/format'
   import type { GasHomeActivityView } from '@/features/ops/gas/types'
 
@@ -384,6 +383,7 @@
   const route = useRoute()
   const router = useRouter()
   const coinStore = useCoinStore()
+  const gasStore = useGasOperationsStore()
   const {
     loading,
     naLoading,
@@ -402,9 +402,33 @@
     updateAccountsFilters,
     updateRecentActivitiesFilters
   } = useGasOperations()
+  /**
+   * 初始化期间不重复请求：composable 默认 state 是空的，直接 load() 会用空条件
+   * 覆盖掉全局状态里的分页/筛选，回退后条件与列表对不上。
+   */
+  let initializing = true
 
   onMounted(async () => {
     await coinStore.ensureLoaded()
+    // 用全局状态里的条件初始化查询对象，保证回退后筛选显示与实际查询一致
+    initializing = false
+    await updateNeedsAttentionFilters({
+      merchantName: naFilters.merchantName,
+      taskType: naFilters.taskType,
+      network: naFilters.network,
+      page: naFilters.page,
+      pageSize: naFilters.pageSize
+    } as any)
+    await updateAccountsFilters({
+      merchantName: acFilters.merchantName,
+      page: acFilters.page,
+      pageSize: acFilters.pageSize
+    } as any)
+    await updateRecentActivitiesFilters({
+      network: raFilters.network,
+      page: raFilters.page,
+      pageSize: raFilters.pageSize
+    })
     load()
   })
 
@@ -445,29 +469,42 @@
     return v.replace(/_/g, ' ')
   }
 
-  const validTabs = ['overview', 'accounts'] as const
-  const activeTab = ref(
-    validTabs.includes(route.query.tab as any) ? (route.query.tab as string) : 'overview'
-  )
+  const validTabs: GasTab[] = ['overview', 'accounts']
+  /**
+   * 当前 tab：URL（?tab=）优先 —— 详情页 router.back() 回来时按 URL 定位；
+   * 无参数时沿用全局状态（例如直接从菜单进入不会重置上次的 tab）。
+   */
+  const activeTab = computed<GasTab>({
+    get: () => {
+      const tab = route.query.tab as GasTab | undefined
+      return tab && validTabs.includes(tab) ? tab : gasStore.activeTab
+    },
+    set: (tab) => {
+      gasStore.activeTab = tab
+      router.replace({ query: { ...route.query, tab } }).catch(() => {})
+    }
+  })
   const tabs = [
     { key: 'overview', labelKey: 'gas.overview' },
     { key: 'accounts', labelKey: 'gas.accounts' }
   ]
 
-  function switchTab(tab: string): void {
-    if (activeTab.value === tab) return
-    activeTab.value = tab
-    router.replace({ query: { ...route.query, tab } }).catch(() => {})
-    if (tab === 'accounts' && overviewRows.value.length === 0) {
+  /** 搜索条件与分页统一放在全局状态：详情返回后条件仍在 */
+  const naFilters = gasStore.needsAttention
+  const raFilters = gasStore.recentActivities
+  const acFilters = gasStore.accounts
+  const naFilterForm = naFilters
+  const raFilterForm = raFilters
+  const acFilterForm = acFilters
+
+  function switchTab(tab: string | number | boolean | undefined): void {
+    const next = tab as GasTab
+    if (activeTab.value === next) return
+    activeTab.value = next
+    if (next === 'accounts' && overviewRows.value.length === 0) {
       updateAccountsFilters({ page: 1 })
     }
   }
-  const naFilters = reactive({ page: 1, pageSize: 10 })
-  const raFilters = reactive({ page: 1, pageSize: 10 })
-  const acFilters = reactive({ page: 1, pageSize: 10 })
-  const naFilterForm = reactive({ merchantName: '', taskType: '', network: '' })
-  const raFilterForm = reactive({ merchantName: '', event: '', network: '' })
-  const acFilterForm = reactive({ merchantName: '' })
 
   const taskTypeOptions = computed(
     () =>
@@ -493,13 +530,33 @@
   })
 
   function onNaFilterChange() {
-    updateNeedsAttentionFilters({ ...naFilterForm, page: 1 } as any)
+    if (initializing) return
+    naFilters.page = 1
+    updateNeedsAttentionFilters({
+      merchantName: naFilters.merchantName,
+      taskType: naFilters.taskType,
+      network: naFilters.network,
+      page: 1,
+      pageSize: naFilters.pageSize
+    } as any)
   }
   function onRaFilterChange() {
-    updateRecentActivitiesFilters({ network: raFilterForm.network || undefined, page: 1 })
+    if (initializing) return
+    raFilters.page = 1
+    updateRecentActivitiesFilters({
+      network: raFilters.network || undefined,
+      page: 1,
+      pageSize: raFilters.pageSize
+    })
   }
   function onAcFilterChange() {
-    updateAccountsFilters({ ...acFilterForm, page: 1 } as any)
+    if (initializing) return
+    acFilters.page = 1
+    updateAccountsFilters({
+      merchantName: acFilters.merchantName,
+      page: 1,
+      pageSize: acFilters.pageSize
+    } as any)
   }
   function openDetail(row: any) {
     router.push(`/operations/gas/${row.cusAccountId || row.id}`)
