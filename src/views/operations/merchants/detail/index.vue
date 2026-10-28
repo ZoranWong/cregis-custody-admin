@@ -22,9 +22,7 @@
               >
               <span
                 >{{ $t('merchantDetail.businessType') }}:
-                <span class="font-medium text-g-700">{{
-                  merchantTypeLabel(detail.merchantType)
-                }}</span></span
+                <span class="font-medium text-g-700">{{ headerBusinessType }}</span></span
               >
               <span v-if="detail.appliedAt">
                 {{
@@ -518,14 +516,14 @@
 
           <!-- Tab 3: Identity Verification & Screening（对齐原型：验证卡片 + 筛查名单 chips） -->
           <el-tab-pane :label="$t('merchantDetail.tabIdentity')" name="identity">
-            <!-- 身份验证 -->
-            <div class="mb-6">
+            <!-- 身份验证：数据来自详情接口的 identityVerification（Sumsub） -->
+            <div class="mb-6" v-loading="identityLoading">
               <div class="text-body-lg font-semibold text-g-700 mb-3">
                 {{ $t('merchantDetail.identityVerification') }}
               </div>
-              <div class="p-4 bg-g-50 rounded-lg">
+              <div v-if="identityVerification" class="p-4 bg-g-50 rounded-lg">
                 <div class="text-sm font-semibold text-g-900 mb-3">
-                  {{ detail.merchantName }}
+                  {{ identityVerification.companyName || detail.merchantName }}
                 </div>
                 <div class="flex flex-col gap-2">
                   <!-- Corporate Identity 行 -->
@@ -533,14 +531,17 @@
                     <span class="text-body-lg font-medium text-g-700 min-w-[140px]">
                       {{ $t('merchantDetail.corporateIdentity') }}
                     </span>
-                    <span class="text-xs font-medium text-tone-done-text">
-                      {{ $t('merchantDetail.verified') }} ✓
+                    <span
+                      class="text-xs font-medium"
+                      :class="identityStatusClass(identityVerification.companyVerificationStatus)"
+                    >
+                      {{ identityStatusLabel(identityVerification.companyVerificationStatus) }}
                     </span>
                   </div>
                   <!-- 受益人缩进行 -->
                   <div
-                    v-for="b in detail.beneficiaries || []"
-                    :key="'v-' + b.id"
+                    v-for="(b, i) in identityVerification.beneficiaries || []"
+                    :key="'v-' + (b.applicantId || i)"
                     class="flex items-center gap-3 ml-6"
                   >
                     <span class="text-body-lg font-medium text-g-700 min-w-[140px]">
@@ -549,15 +550,41 @@
                     </span>
                     <span
                       class="text-xs font-medium"
-                      :class="b.status === 'KYC_PASSED' ? 'text-tone-done-text' : 'text-g-500'"
+                      :class="identityStatusClass(b.verificationStatus)"
                     >
-                      {{
-                        b.status === 'KYC_PASSED'
-                          ? $t('merchantDetail.verified') + ' ✓'
-                          : beneficiaryStatusLabel(b.status)
-                      }}
+                      {{ identityStatusLabel(b.verificationStatus) }}
                     </span>
                   </div>
+                </div>
+                <div class="text-xs text-g-500 mt-3">
+                  {{ $t('merchantDetail.identityDataSource') }}:
+                  {{ identityVerification.dataSource }}
+                </div>
+              </div>
+              <div v-else class="p-4 bg-g-50 rounded-lg">
+                <div class="text-sm text-g-500">
+                  {{ $t('merchantDetail.identityNotStarted') }}
+                </div>
+                <!-- 未建档时回显问卷登记的受益人与审查状态 -->
+                <div
+                  v-for="b in detail.beneficiaries || []"
+                  :key="'v-' + b.id"
+                  class="flex items-center gap-3 mt-3"
+                >
+                  <span class="text-body-lg font-medium text-g-700 min-w-[140px]">
+                    {{ b.name
+                    }}<template v-if="b.shareSize != null"> ({{ b.shareSize }}%)</template>
+                  </span>
+                  <span
+                    class="text-xs font-medium"
+                    :class="b.status === 'KYC_PASSED' ? 'text-tone-done-text' : 'text-g-500'"
+                  >
+                    {{
+                      b.status === 'KYC_PASSED'
+                        ? $t('merchantDetail.verified') + ' ✓'
+                        : beneficiaryStatusLabel(b.status)
+                    }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -702,6 +729,8 @@
   } from '@/api/merchant'
   import type { AdminMerchantKybDetailView, KybQuestionnaire } from '@/api/merchant'
   import { useCountryStore } from '@/store/modules/country'
+  import { entityTypeLabel } from '@/utils/entityType'
+  import { KYB_REJECTED_STATES, KybStatus } from '@/enums/merchantEnum'
 
   defineOptions({ name: 'MerchantDetail' })
 
@@ -915,12 +944,16 @@
    * 否则同意后进度条会从第二步退回成「待处理」。
    */
   const screeningPassed = computed(() =>
-    ['DRAFT', 'SUBMITTED', 'NEED_SUPPLEMENT', 'APPROVED'].includes(kybState.value)
+    [KybStatus.Draft, KybStatus.Submitted, KybStatus.NeedSupplement, KybStatus.Approved].includes(
+      kybState.value as KybStatus
+    )
   )
 
   /** 身份验证已进入（step 3 已开始） */
   const verificationStarted = computed(() =>
-    ['DRAFT', 'SUBMITTED', 'NEED_SUPPLEMENT', 'APPROVED'].includes(kybState.value)
+    [KybStatus.Draft, KybStatus.Submitted, KybStatus.NeedSupplement, KybStatus.Approved].includes(
+      kybState.value as KybStatus
+    )
   )
 
   /**
@@ -930,14 +963,14 @@
    * 会在预审通过（kyb→DRAFT）后立刻翻到已入驻视图，跳过了 waiting-for-KYB 的第三步。
    * 现在唯一依据是 kybStatus=APPROVED，与审批接口的后置状态对齐。
    */
-  const isOnboarded = computed(() => kybState.value === 'APPROVED')
+  const isOnboarded = computed(() => kybState.value === KybStatus.Approved)
 
   /** 预审决策仅在后端返回 PENDING_SCREENING（即 step 2 进行中）时可用 */
-  const canDecide = computed(() => kybState.value === 'PENDING_SCREENING')
+  const canDecide = computed(() => kybState.value === KybStatus.PendingScreening)
 
   /** 客户已提交身份材料、等待三方审核 */
   const isVerificationReviewing = computed(() =>
-    ['SUBMITTED', 'NEED_SUPPLEMENT'].includes(kybState.value)
+    [KybStatus.Submitted, KybStatus.NeedSupplement].includes(kybState.value as KybStatus)
   )
 
   /**
@@ -946,13 +979,13 @@
    * 企业名称右侧的徽章必须反映进度条里 class=active 的那一步，
    * 否则同一屏会出现「徽章说是审核中、进度条说在进行中」的矛盾。
    *   onboarded            → 绿
-   *   REJECTED             → 红
+   *   REJECTED / ADMIN_REJECTED → 红
    *   SUBMITTED/NEED_SUPPLEMENT（三方处理中） → 蓝
    *   其余进行中（待筛查 / 等待客户提交）      → 琥珀
    */
   const stageToneClass = computed(() => {
     if (isOnboarded.value) return 'onboarded'
-    if (kybState.value === 'REJECTED') return 'rejected'
+    if (KYB_REJECTED_STATES.includes(kybState.value)) return 'rejected'
     if (isVerificationReviewing.value) return 'in-review'
     return 'pending'
   })
@@ -972,7 +1005,7 @@
    */
   const headerStatusLabel = computed(() => {
     if (isOnboarded.value) return t('merchantDetail.statusOnboarded')
-    if (kybState.value === 'REJECTED') return t('merchantDetail.rejected')
+    if (KYB_REJECTED_STATES.includes(kybState.value)) return t('merchantDetail.rejected')
     return canDecide.value
       ? t('merchantDetail.qualificationScreening')
       : t('merchantDetail.stepVerification')
@@ -985,24 +1018,59 @@
     return raw ? countryStore.countryName(raw) : '-'
   })
 
+  /**
+   * 头部 Business Type：取问卷的企业主体类型（questionnaire.entityType）。
+   * 与商户列表的 Type 列共用 entityTypeLabel，保证两处文案一致。
+   * 问卷缺失时回退 merchant.merchantType（平台侧类型），不应显示为空。
+   */
+  const headerBusinessType = computed(() => {
+    const entityType = detail.value?.questionnaire?.entityType
+    if (entityType) return entityTypeLabel(entityType)
+    return merchantTypeLabel(detail.value?.merchantType || '')
+  })
+
+  // ─── Identity Verification（详情接口 identityVerification）───
+  const identityLoading = computed(() => loading.value)
+  const identityVerification = computed(() => detail.value?.identityVerification || null)
+
+  /** 三方验证状态 → 文案（Verified 带对勾；兼容 RED/YELLOW 审查结论） */
+  function identityStatusLabel(status?: string | null): string {
+    const s = (status || '').toLowerCase()
+    if (!s) return '-'
+    if (s === 'verified' || s === 'green') return `${t('merchantDetail.verified')} ✓`
+    if (s === 'pending') return t('merchantDetail.pendingStatus')
+    if (s === 'red') return t('merchantDetail.screeningRejected')
+    if (s === 'yellow') return t('merchantDetail.screeningReview')
+    return status as string
+  }
+
+  /** 三方验证状态 → 文字颜色（通过=绿 / 待处理=琥珀 / 拒绝=红 / 其余=灰） */
+  function identityStatusClass(status?: string | null): string {
+    const s = (status || '').toLowerCase()
+    if (s === 'verified' || s === 'green') return 'text-tone-done-text'
+    if (s === 'pending' || s === 'yellow') return 'text-tone-progress-text'
+    if (s === 'red') return 'text-tone-error-text'
+    return 'text-g-500'
+  }
+
   // Stepper states (screening = step 2, verification = step 3)
   const screeningStepClass = computed(() => {
-    if (kybState.value === 'PENDING_SCREENING') return 'active'
-    if (screeningPassed.value || kybState.value === 'REJECTED') return 'completed'
+    if (kybState.value === KybStatus.PendingScreening) return 'active'
+    if (screeningPassed.value || KYB_REJECTED_STATES.includes(kybState.value)) return 'completed'
     return ''
   })
   const screeningStepMeta = computed(() => {
     const cls = screeningStepClass.value
     if (cls === 'active') return t('merchantDetail.inProgress')
     if (cls === 'completed') {
-      return kybState.value === 'REJECTED'
+      return KYB_REJECTED_STATES.includes(kybState.value)
         ? t('merchantDetail.rejected')
         : t('merchantDetail.passed')
     }
     return t('merchantDetail.pendingMeta')
   })
   const verificationStepClass = computed(() => {
-    if (kybState.value === 'APPROVED') return 'completed'
+    if (kybState.value === KybStatus.Approved) return 'completed'
     if (verificationStarted.value) return 'active'
     return ''
   })
@@ -1049,14 +1117,16 @@
    *   Submitted  已提交：kybStatus 一旦有值（DRAFT 起）即视为已提交 → 完成(绿)
    *   Review     审核  ：DRAFT / SUBMITTED / NEED_SUPPLEMENT 期间进行中(琥珀)；
    *                     出结果后（APPROVED / REJECTED）该步完成(绿)
-   *   Passed     已通过：APPROVED → 成功(绿)；REJECTED → 失败(红)
+   *   Passed     已通过：APPROVED → 成功(绿)；REJECTED / ADMIN_REJECTED → 失败(红)
    */
   const verificationSubSteps = computed(() => {
     const s = kybState.value
-    const submitted = !!s && s !== 'PENDING_SCREENING'
-    const reviewing = ['DRAFT', 'SUBMITTED', 'NEED_SUPPLEMENT'].includes(s)
-    const passed = s === 'APPROVED'
-    const failed = s === 'REJECTED'
+    const submitted = !!s && s !== KybStatus.PendingScreening
+    const reviewing = [KybStatus.Draft, KybStatus.Submitted, KybStatus.NeedSupplement].includes(
+      s as KybStatus
+    )
+    const passed = s === KybStatus.Approved
+    const failed = KYB_REJECTED_STATES.includes(s)
 
     const states: string[] = [
       submitted ? 'done' : 'pending',
@@ -1287,13 +1357,14 @@
   }
   function kybStatusLabel(s: string): string {
     const map: Record<string, string> = {
-      DRAFT: 'Draft',
-      PENDING_SCREENING: 'Pending Screening',
-      SUBMITTED: 'Submitted',
-      NEED_SUPPLEMENT: 'Need Supplement',
-      APPROVED: 'Approved',
-      REJECTED: 'Rejected',
-      CANCELLED: 'Cancelled'
+      [KybStatus.Draft]: 'Draft',
+      [KybStatus.PendingScreening]: 'Pending Screening',
+      [KybStatus.Submitted]: 'Submitted',
+      [KybStatus.NeedSupplement]: 'Need Supplement',
+      [KybStatus.Approved]: 'Approved',
+      [KybStatus.Rejected]: 'Rejected',
+      [KybStatus.AdminRejected]: 'Admin Rejected',
+      [KybStatus.Cancelled]: 'Cancelled'
     }
     return map[s] || s || '-'
   }

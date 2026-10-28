@@ -9,19 +9,21 @@
       </div>
     </div>
 
-    <!-- ═══ Tabs: Applications + List ═══ -->
-    <el-tabs v-model="activeTab" class="merchant-tabs" @tab-change="handleTabChange">
+    <!--
+      当前 tab 写进 URL（?tab=list），详情页返回时（router.back）能停在原 tab；
+      搜索条件与分页放在 Pinia 里，返回时无需重新输入即可沿用（刷新页面则回到默认）。
+    -->
+    <el-tabs v-model="activeTab" class="merchant-tabs">
       <!-- Tab 1: Merchant Applications (PENDING) -->
       <el-tab-pane :label="$t('merchantList.applications')" name="applications">
         <!-- Filter Bar -->
         <div class="flex flex-wrap items-center gap-3 mb-4">
+          <!-- v-model 变化时 watch 自动触发查询；el-input 内部已处理 IME，拼音中途不会更新 v-model -->
           <el-input
-            v-model="appFilters.keyword"
+            v-model="store.applications.merchantName"
             :placeholder="$t('merchantList.searchPlaceholder')"
             clearable
             class="flex-1 !min-w-[200px]"
-            @clear="loadApplications"
-            @keyup.enter="loadApplications"
           >
             <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
           </el-input>
@@ -60,9 +62,13 @@
                   <span class="text-xs text-g-600">{{ formatDateTime(row.createTime) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column :label="$t('merchantList.status')" width="120">
+              <!-- 申请列表展示 KYB 阶段（kybStatus），不是商户 status -->
+              <el-table-column :label="$t('merchantList.status')" width="160">
                 <template #default="{ row }">
-                  <ArtStatusTag :status="statusTone(row.status)" :text="statusLabel(row.status)" />
+                  <ArtStatusTag
+                    :status="kybStatusTone(row.kybStatus)"
+                    :text="kybStatusLabel(row.kybStatus)"
+                  />
                 </template>
               </el-table-column>
             </el-table>
@@ -75,14 +81,12 @@
                 {{ appPagination.total }} {{ $t('merchantList.totalRecords') }}
               </span>
               <el-pagination
-                v-model:current-page="appPagination.page"
-                v-model:page-size="appPagination.pageSize"
+                v-model:current-page="store.applications.page"
+                v-model:page-size="store.applications.pageSize"
                 :total="appPagination.total"
                 :page-sizes="[10, 20, 50]"
                 background
                 layout="prev, pager, next, sizes"
-                @current-change="loadApplications"
-                @size-change="handleAppSizeChange"
               />
             </div>
           </template>
@@ -94,41 +98,31 @@
         <!-- Filter Bar -->
         <div class="flex flex-wrap items-center gap-3 mb-4">
           <el-select
-            v-model="listFilters.status"
+            v-model="store.list.status"
             :placeholder="$t('merchantList.status')"
             clearable
             class="!w-40"
-            @change="handleListFilterChange"
           >
             <el-option :label="$t('merchantList.allStatus')" value="" />
-            <el-option :label="$t('merchantList.statusActive')" value="ACTIVE" />
-            <el-option :label="$t('merchantList.statusFrozen')" value="FROZEN" />
-            <el-option :label="$t('merchantList.statusInactive')" value="INACTIVE" />
-          </el-select>
-          <el-select
-            v-model="listFilters.screening"
-            :placeholder="$t('merchantList.screening')"
-            clearable
-            class="!w-40"
-            @change="handleListFilterChange"
-          >
-            <el-option :label="$t('merchantList.allScreening')" value="" />
-            <el-option :label="$t('merchantList.screeningClear')" value="clear" />
-            <el-option :label="$t('merchantList.screeningHits')" value="hits" />
+            <!-- 取值与接口 status 字段一致（MerchantStatus） -->
+            <el-option
+              v-for="option in MERCHANT_STATUS_OPTIONS"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
           </el-select>
           <el-input
-            v-model="listFilters.keyword"
+            v-model="store.list.merchantName"
             :placeholder="$t('merchantList.searchPlaceholder')"
             clearable
             class="flex-1 !min-w-[200px]"
-            @clear="handleListFilterChange"
-            @keyup.enter="handleListFilterChange"
           >
             <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
           </el-input>
           <div class="flex items-center gap-2 text-xs text-g-500">
             <span>{{ $t('merchantList.sort') }}:</span>
-            <el-select v-model="listFilters.sort" class="!w-40" @change="handleListFilterChange">
+            <el-select v-model="store.list.sort" class="!w-40">
               <el-option :label="$t('merchantList.sortRecent')" value="recent" />
               <el-option :label="$t('merchantList.sortNameAZ')" value="name_asc" />
             </el-select>
@@ -158,6 +152,7 @@
               <el-table-column :label="$t('merchantList.type')" min-width="160">
                 <template #default="{ row }">{{ entityTypeLabel(row.entityType) }}</template>
               </el-table-column>
+              <!-- 商户列表展示商户 status（非 KYB 阶段） -->
               <el-table-column :label="$t('merchantList.status')" min-width="120">
                 <template #default="{ row }">
                   <ArtStatusTag :status="statusTone(row.status)" :text="statusLabel(row.status)" />
@@ -173,9 +168,7 @@
               </el-table-column>
               <el-table-column :label="$t('merchantList.updatedAt')" min-width="160">
                 <template #default="{ row }">
-                  <span class="text-xs text-g-600">{{
-                    formatDateTime(row.updateTime || row.createTime)
-                  }}</span>
+                  <span class="text-xs text-g-600">{{ formatDateTime(row.updateTime) }}</span>
                 </template>
               </el-table-column>
             </el-table>
@@ -188,14 +181,12 @@
                 {{ listPagination.total }} {{ $t('merchantList.totalRecords') }}
               </span>
               <el-pagination
-                v-model:current-page="listPagination.page"
-                v-model:page-size="listPagination.pageSize"
+                v-model:current-page="store.list.page"
+                v-model:page-size="store.list.pageSize"
                 :total="listPagination.total"
                 :page-sizes="[10, 20, 50]"
                 background
                 layout="prev, pager, next, sizes"
-                @current-change="loadMerchants"
-                @size-change="handleListSizeChange"
               />
             </div>
           </template>
@@ -206,30 +197,62 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, reactive, ref } from 'vue'
-  import { useRouter } from 'vue-router'
+  import { computed, onMounted, reactive, ref, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { fetchMerchantList } from '@/api/merchant'
   import type { MerchantRecord } from '@/api/merchant'
+  import { entityTypeLabel } from '@/utils/entityType'
+  import { useMerchantListStore, type MerchantListTab } from '@/store/modules/merchantList'
+  import { KybStatus, MerchantStatus } from '@/enums/merchantEnum'
 
   defineOptions({ name: 'MerchantManagement' })
+
+  const route = useRoute()
   const router = useRouter()
+  const { t } = useI18n()
+  const store = useMerchantListStore()
 
-  const activeTab = ref('applications')
+  const TABS: MerchantListTab[] = ['applications', 'list']
 
-  // ─── Applications (PENDING) ───
+  const MERCHANT_STATUS_OPTIONS = computed(() => [
+    { value: MerchantStatus.Active, label: t('merchantList.statusActive') },
+    { value: MerchantStatus.Frozen, label: t('merchantList.statusFrozen') },
+    { value: MerchantStatus.Cancelled, label: t('merchantList.statusCancelled') }
+  ])
+
+  // ─── 数据 ───
   const appLoading = ref(false)
   const applications = ref<MerchantRecord[]>([])
-  const appFilters = reactive({ keyword: '' })
-  const appPagination = reactive({ page: 1, pageSize: 10, total: 0 })
+  const appPagination = reactive({ total: 0 })
+
+  const listLoading = ref(false)
+  const merchants = ref<MerchantRecord[]>([])
+  const listPagination = reactive({ total: 0 })
+
+  // ─── URL tab 同步（必须在 watch(activeTab) 之前定义）───
+  const activeTab = computed<MerchantListTab>({
+    get: () => {
+      const tab = typeof route.query.tab === 'string' ? (route.query.tab as MerchantListTab) : null
+      return tab && TABS.includes(tab) ? tab : store.activeTab
+    },
+    set: (tab) => {
+      store.activeTab = tab
+      const query = { ...route.query }
+      if (tab === 'applications') delete query.tab
+      else query.tab = tab
+      router.replace({ query }).catch(() => {})
+    }
+  })
 
   async function loadApplications() {
     appLoading.value = true
     try {
       const response = await fetchMerchantList({
-        pageNum: appPagination.page,
-        pageSize: appPagination.pageSize,
-        status: 'PENDING',
-        keyword: appFilters.keyword || undefined,
+        pageNum: store.applications.page,
+        pageSize: store.applications.pageSize,
+        status: MerchantStatus.Pending,
+        merchantName: store.applications.merchantName || undefined,
         sort: 'createTime_desc'
       })
       applications.value = response.records
@@ -242,31 +265,17 @@
     }
   }
 
-  function handleAppSizeChange() {
-    appPagination.page = 1
-    loadApplications()
-  }
-
-  // ─── Merchant List (non-PENDING) ───
-  const listLoading = ref(false)
-  const merchants = ref<MerchantRecord[]>([])
-  const listFilters = reactive({
-    status: '',
-    screening: '',
-    keyword: '',
-    sort: 'recent'
-  })
-  const listPagination = reactive({ page: 1, pageSize: 10, total: 0 })
-
   async function loadMerchants() {
     listLoading.value = true
     try {
       const response = await fetchMerchantList({
-        pageNum: listPagination.page,
-        pageSize: listPagination.pageSize,
-        status: listFilters.status || undefined,
-        keyword: listFilters.keyword || undefined,
-        sort: listFilters.sort === 'recent' ? 'updateTime_desc' : 'merchantName_asc'
+        pageNum: store.list.page,
+        pageSize: store.list.pageSize,
+        status: MerchantStatus.Pending,
+        statusOper: '!=',
+        statusSecondary: store.list.status || undefined,
+        merchantName: store.list.merchantName || undefined,
+        sort: store.list.sort === 'recent' ? 'updateTime_desc' : 'merchantName_asc'
       })
       merchants.value = response.records
       listPagination.total = response.total
@@ -278,44 +287,147 @@
     }
   }
 
-  function handleListFilterChange() {
-    listPagination.page = 1
-    loadMerchants()
+  function loadActiveTab() {
+    if (activeTab.value === 'applications') void loadApplications()
+    else void loadMerchants()
   }
 
-  function handleListSizeChange() {
-    listPagination.page = 1
-    loadMerchants()
+  // ─── watch 驱动搜索：输入即搜（防抖）+ IME 天然支持 ───
+  //
+  // el-input 的 `v-model` 在中文输入期间（composition）不会触发 update，
+  // 只有汉字上屏后才 emit 最终值，因此 watch 天然只在「可搜索的值」变化时触发，
+  // 不需要自己处理 compositionstart / compositionend。
+  //
+  // 防抖逻辑放在 watch 内部：每次值变化重置计时器，300ms 无新输入才发请求。
+  function watchWithDebounce(getter: () => unknown, onTrigger: () => void, debounceMs = 300): void {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    watch(getter, () => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        timer = null
+        onTrigger()
+      }, debounceMs)
+    })
   }
 
-  function handleTabChange(tab: string | number) {
-    if (tab === 'applications' && applications.value.length === 0) {
-      loadApplications()
-    } else if (tab === 'list' && merchants.value.length === 0) {
-      loadMerchants()
+  // 搜索字段变化 → 重置页码 + 查询（防抖 300ms）
+  watchWithDebounce(
+    () => store.applications.merchantName,
+    () => {
+      store.applications.page = 1
+      void loadApplications()
     }
-  }
+  )
+  watchWithDebounce(
+    () => store.list.merchantName,
+    () => {
+      store.list.page = 1
+      void loadMerchants()
+    }
+  )
+
+  // 分页变化（无防抖，立即查询）
+  watch(
+    () => store.applications.page,
+    () => {
+      void loadApplications()
+    }
+  )
+  watch(
+    () => store.list.page,
+    () => {
+      void loadMerchants()
+    }
+  )
+
+  // pageSize 变化 → 重置页码 + 查询
+  watch(
+    () => store.applications.pageSize,
+    () => {
+      store.applications.page = 1
+      void loadApplications()
+    }
+  )
+  watch(
+    () => store.list.pageSize,
+    () => {
+      store.list.page = 1
+      void loadMerchants()
+    }
+  )
+
+  // 筛选变化（status / sort）→ 重置页码 + 查询
+  watch(
+    () => store.list.status,
+    () => {
+      store.list.page = 1
+      void loadMerchants()
+    }
+  )
+  watch(
+    () => store.list.sort,
+    () => {
+      store.list.page = 1
+      void loadMerchants()
+    }
+  )
+
+  // 切换 tab 时按需加载
+  watch(activeTab, (tab) => {
+    if (tab === 'applications' && applications.value.length === 0) void loadApplications()
+    if (tab === 'list' && merchants.value.length === 0) void loadMerchants()
+  })
+
+  // ─── URL tab 同步 ───
 
   function openDetail(row: MerchantRecord) {
+    // tab 在 URL、条件在 store，详情页返回后原样还原
     router.push({ name: 'merchant-detail', params: { merchantId: row.code } })
   }
 
   function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' | null {
-    const s = status?.toUpperCase()
-    if (s === 'ACTIVE') return 'success'
-    if (s === 'PENDING') return 'warning'
-    if (s === 'FROZEN') return 'info'
-    if (s === 'INACTIVE') return 'danger'
+    if (status === MerchantStatus.Active) return 'success'
+    if (status === MerchantStatus.Frozen) return 'warning'
+    if (status === MerchantStatus.Cancelled) return 'danger'
     return null
   }
 
   function statusLabel(status: string): string {
-    const s = status?.toUpperCase()
-    if (s === 'ACTIVE') return 'Onboarded'
-    if (s === 'PENDING') return 'Pending'
-    if (s === 'FROZEN') return 'Frozen'
-    if (s === 'INACTIVE') return 'Offboarded'
+    if (status === MerchantStatus.Active) return t('merchantList.statusActive')
+    if (status === MerchantStatus.Frozen) return t('merchantList.statusFrozen')
+    if (status === MerchantStatus.Cancelled) return t('merchantList.statusCancelled')
     return status || '-'
+  }
+
+  /** KYB 阶段（申请 tab）：展示 kybStatus */
+  function kybStatusTone(
+    kybStatus?: string | null
+  ): 'success' | 'warning' | 'danger' | 'info' | null {
+    if (kybStatus === KybStatus.Approved) return 'success'
+    if (
+      kybStatus === KybStatus.Rejected ||
+      kybStatus === KybStatus.AdminRejected ||
+      kybStatus === KybStatus.Cancelled
+    ) {
+      return 'danger'
+    }
+    if (kybStatus === KybStatus.Submitted || kybStatus === KybStatus.NeedSupplement) return 'info'
+    if (kybStatus === KybStatus.PendingScreening || kybStatus === KybStatus.Draft) return 'warning'
+    return null
+  }
+
+  function kybStatusLabel(kybStatus?: string | null): string {
+    const map: Record<string, string> = {
+      [KybStatus.Draft]: t('merchantList.kybDraft'),
+      [KybStatus.PendingScreening]: t('merchantList.kybPendingScreening'),
+      [KybStatus.Submitted]: t('merchantList.kybSubmitted'),
+      [KybStatus.NeedSupplement]: t('merchantList.kybNeedSupplement'),
+      [KybStatus.Approved]: t('merchantList.kybApproved'),
+      [KybStatus.Rejected]: t('merchantList.kybRejected'),
+      [KybStatus.AdminRejected]: t('merchantList.kybAdminRejected'),
+      [KybStatus.Cancelled]: t('merchantList.kybCancelled')
+    }
+    return (kybStatus && map[kybStatus]) || kybStatus || '-'
   }
 
   function screeningTone(row: MerchantRecord): 'success' | 'danger' | null {
@@ -330,10 +442,10 @@
       row.merchantName?.toLowerCase().includes('node') ||
       row.merchantName?.toLowerCase().includes('block')
     if (hasHits) {
-      const hits = Math.floor(Math.random() * 3) + 1
+      const hits = (row.code.charCodeAt(0) % 3) + 1
       return hits === 1 ? '1 Hit' : `${hits} Hits`
     }
-    return 'Clear'
+    return t('merchantList.screeningClear')
   }
 
   function formatDateTime(v?: string | null): string {
@@ -341,23 +453,7 @@
     return v.replace('T', ' ').slice(0, 19)
   }
 
-  function entityTypeLabel(s: string): string {
-    const map: Record<string, string> = {
-      NON_FINANCIAL_CORPORATE: 'Non-Financial Corporate',
-      REGULATED_VASP: 'Regulated VASP',
-      INTERNAL_SYSTEM: 'Internal System'
-    }
-    if (map[s]) return map[s]
-    // 未匹配的值转标题大小写：partnership → Partnership
-    return (s || '-')
-      .split('_')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-      .join(' ')
-  }
-
-  onMounted(() => {
-    loadApplications()
-  })
+  onMounted(loadActiveTab)
 </script>
 
 <style scoped>
