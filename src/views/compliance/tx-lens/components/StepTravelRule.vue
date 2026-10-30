@@ -130,7 +130,7 @@
             <div class="text-xs text-g-700 mb-3 leading-relaxed">
               {{ $t('txLens.detail.offNetworkDescription') }}
             </div>
-            <div v-if="!travelRuleReadOnly" class="flex gap-3 mb-4 flex-wrap">
+            <div v-if="needsManualProcess" class="flex gap-3 mb-4 flex-wrap">
               <el-button size="small" @click="notifyDev('txLens.detail.shareLinkPending')">
                 <ArtSvgIcon icon="ri:link" class="text-icon-sm mr-1" />{{
                   $t('txLens.detail.generateShareLink')
@@ -172,8 +172,11 @@
             <p v-if="showVaspMismatchActions" class="text-xs text-tone-error-text mb-3">
               {{ vaspMismatchHint }}
             </p>
-            <!-- 子页签：Manual Trace / Proof Chain（自由切换） -->
-            <div class="sub-tab-bar mb-3">
+            <!-- 子页签：Manual Trace / Proof Chain -->
+            <div
+              v-if="needsManualProcess || (manualTrace.length && attestations.length)"
+              class="sub-tab-bar mb-3"
+            >
               <button
                 class="sub-tab"
                 :class="{ active: evidenceTab === 'trace' }"
@@ -189,14 +192,8 @@
                 {{ $t('txLens.detail.proofChain') }}
               </button>
             </div>
-            <!-- 接口无数据时展示原型 mock（提示条样式与 rules detail 一致：琥珀 + alert 图标） -->
-            <div v-show="evidenceTab === 'trace'">
-              <div v-if="manualTraceIsMock" class="mock-inline-notice mb-3">
-                <ArtSvgIcon icon="ri:alert-line" class="text-icon-md mt-0.5 flex-shrink-0" />
-                <span class="text-xs leading-relaxed">{{
-                  $t('txLens.detail.manualTraceMockHint')
-                }}</span>
-              </div>
+            <!-- Manual Trace 内容 -->
+            <div v-show="needsManualProcess || manualTrace.length" v-if="evidenceTab === 'trace'">
               <div
                 v-if="!manualTrace.length"
                 class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
@@ -222,7 +219,7 @@
             </div>
 
             <!-- Proof Chain：与 Manual Trace 同款时间轴，按上传时间正序 -->
-            <div v-show="evidenceTab === 'proof'">
+            <div v-show="needsManualProcess || attestations.length" v-if="evidenceTab === 'proof'">
               <div
                 v-if="!attestations.length"
                 class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
@@ -402,7 +399,6 @@
   import { useI18n } from 'vue-i18n'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import type {
-    TimelineNodeView,
     TravelRuleAttestationType,
     TravelRuleAttestationView,
     TravelRuleTabView
@@ -485,8 +481,26 @@
   /**
    * Manual Resolution 只对出金交易展示 —— 对端离线/未响应时由我方发起线下取证；
    * 入金方向没有「我方发起」的动作，原型同样对入金隐藏该页签。
+   *
+   * 两类情况展示：
+   *   1. 需要手动处理的状态（pending/未进入网络）→ 必须显示，可操作
+   *   2. 终止状态但有历史记录（manualTrace/attestations 非空）→ 只读查看
    */
-  const showManualResolution = computed(() => props.direction !== 'incoming')
+  const MANUAL_PROCESS_STATUSES = ['CREATED', 'PII_APPENDED', 'UNMATCHED']
+  const needsManualProcess = computed(() => {
+    const detail = (props.data?.status || '').toUpperCase()
+    return MANUAL_PROCESS_STATUSES.includes(detail)
+  })
+  const hasManualResolutionHistory = computed(
+    () =>
+      (props.data?.manualTrace && props.data.manualTrace.length > 0) ||
+      (props.data?.attestations && props.data.attestations.length > 0)
+  )
+  const showManualResolution = computed(
+    () =>
+      props.direction !== 'incoming' &&
+      (needsManualProcess.value || hasManualResolutionHistory.value)
+  )
   /**
    * 是否发往过 Notabene —— 只看 notabeneTxId。
    * 不能用 networkTrace 判断：没有真正发到网络时 trace 也可能有本地记录，
@@ -512,7 +526,7 @@
    */
   const vaspReviewStatus = computed(() => (declaration.value?.reviewStatus || '').toUpperCase())
   const showVaspMismatchActions = computed(
-    () => vaspReviewStatus.value === 'MISMATCH' && !travelRuleReadOnly.value
+    () => vaspReviewStatus.value === 'MISMATCH' && needsManualProcess.value
   )
   const vaspMismatchHint = computed(() => {
     const reason = declaration.value?.reason
@@ -553,7 +567,7 @@
   // ─── Manual Resolution：Cancel transfer ───
   /** 仅出金（我方发起的线下取证）才有「取消 / 拒绝」入口 */
   const showCancelButton = computed(
-    () => props.direction !== 'incoming' && !travelRuleReadOnly.value
+    () => props.direction !== 'incoming' && needsManualProcess.value
   )
 
   /**
@@ -965,35 +979,8 @@
 
   const networkTrace = computed(() => props.data?.networkTrace || [])
 
-  /*
-   * Manual Trace：接口暂无数据源，先用原型（compliance-tx-lens-detail.html）的
-   * 三条事件做样式演示，并显示「mock 数据」提示条；接口就绪后删掉
-   * MANUAL_TRACE_MOCK 与 manualTraceIsMock 即可切换回真实数据。
-   */
-  const MANUAL_TRACE_MOCK: TimelineNodeView[] = [
-    {
-      label: 'VASP_NOT_FOUND',
-      detail: 'txLens.detail.vaspNotFoundDetail',
-      time: '2026-07-28 09:01:15',
-      status: 'info'
-    },
-    {
-      label: 'SHARE_LINK_GENERATED',
-      detail: 'txLens.detail.shareLinkDetail',
-      time: '2026-07-28 09:05:00',
-      status: 'pending'
-    },
-    {
-      label: 'BENEFICIARY_AUTHORIZED',
-      detail: 'txLens.detail.beneficiaryAuthorizedDetail',
-      time: '2026-07-28 09:30:00',
-      status: 'completed'
-    }
-  ]
-  const manualTraceIsMock = computed(() => !(props.data?.manualTrace || []).length)
-  const manualTrace = computed(() =>
-    manualTraceIsMock.value ? MANUAL_TRACE_MOCK : props.data?.manualTrace || []
-  )
+  /** Manual Trace：使用接口真实数据 */
+  const manualTrace = computed(() => props.data?.manualTrace || [])
 
   // ─── 网络追踪 label：后端返回 i18n key（notification.* / tap.*），统一翻译 ───
   const TRACE_LABEL_KEYS: Record<string, string> = {

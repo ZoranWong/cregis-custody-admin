@@ -1160,8 +1160,7 @@
 
   /** 重新发送验证链接（接口待接入） */
   function handleResendLink() {
-    const email = detail.value?.email || ''
-    ElMessage.info(t('merchantDetail.resendLink') + (email ? ` → ${email}` : ''))
+    ElMessage.info('Resend activation link in development')
   }
 
   // ─── Load ───
