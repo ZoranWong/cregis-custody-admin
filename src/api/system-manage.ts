@@ -7,10 +7,21 @@ import type {
   EmployeeRowView,
   EmployeeCreateInput,
   SystemMonitorResponse,
+  RoleOverviewView,
+  ReviewFlowView,
+  ReviewFlowUpdateRequest,
+  ReviewFlowApproversVO,
+  ReviewerLevelBindRequest,
+  RoleUserBatchRequest,
+  RoleMemberView,
+  ReviewFlowApprover,
+  ReviewFlowStep
+} from '@/features/system-admin/types'
+import type {
   EmployeeAccessBindingView,
   AccessReviewApplyResult,
   AuthorizedDomainId
-} from '@/features/system-admin/types'
+} from '@/types/models'
 
 // 员工管理 API
 
@@ -350,6 +361,170 @@ export async function forceLogoutStaff(id: string): Promise<void> {
     method: 'POST',
     body: {}
   })
+}
+
+// ═══ 角色总览 & 三级复核流配置（Team Management — Roles Tab）═══
+
+/**
+ * 角色总览
+ * GET /system/role/overview
+ */
+export async function fetchRoleOverview(): Promise<RoleOverviewView[]> {
+  const raw = (await apiRequest('/system/role/overview')) as
+    | Record<string, unknown>[]
+    | Record<string, unknown>
+  const items = Array.isArray(raw) ? raw : (raw?.data as Record<string, unknown>[] | undefined)
+  if (!Array.isArray(items)) return []
+  return items.map(normalizeRoleOverview)
+}
+
+function normalizeRoleOverview(raw: Record<string, unknown>): RoleOverviewView {
+  const roleCode = raw.roleCode as string
+  const users = Array.isArray(raw.users)
+    ? (raw.users as Record<string, unknown>[]).map(normalizeRoleMember)
+    : []
+  const levelsRaw = raw.levels as Record<string, unknown>[] | undefined
+  const levels: Record<string, ReviewFlowApprover[]> = {}
+  if (levelsRaw && typeof levelsRaw === 'object' && !Array.isArray(levelsRaw)) {
+    for (const [key, value] of Object.entries(levelsRaw)) {
+      if (Array.isArray(value)) {
+        levels[key] = value.map(normalizeApprover)
+      }
+    }
+  }
+  return {
+    id: Number(raw.id || 0),
+    roleCode,
+    roleName: (raw.roleName as string) || roleCode,
+    users,
+    levels: Object.keys(levels).length > 0 ? levels : null
+  }
+}
+
+function normalizeRoleMember(raw: Record<string, unknown>): RoleMemberView {
+  return {
+    userId: Number(raw.userId || 0),
+    username: (raw.username as string) || '',
+    displayName: (raw.displayName as string) || '',
+    email: (raw.email as string) || '',
+    accountStatus: (raw.accountStatus as 'enabled' | 'disabled') || 'enabled',
+    roleCode: (raw.roleCode as string) || ''
+  }
+}
+
+function normalizeApprover(raw: Record<string, unknown>): ReviewFlowApprover {
+  const keyData = raw.key as Record<string, unknown> | undefined
+  return {
+    sortNo: Number((keyData?.sortNo ?? raw.sortNo) || 0),
+    userId: Number((keyData?.userId ?? raw.userId) || 0),
+    name: (keyData?.name ?? raw.name ?? '') as string,
+    email: (keyData?.email ?? raw.email ?? '') as string,
+    accountStatus:
+      ((keyData?.accountStatus ?? raw.accountStatus) as 'enabled' | 'disabled') || 'enabled'
+  }
+}
+
+/**
+ * 批量调整角色成员（不处理 COMPLIANCE_REVIEWER）
+ * PUT /system/role/{roleCode}/users
+ */
+export async function batchUpdateRoleUsers(
+  roleCode: string,
+  request: RoleUserBatchRequest
+): Promise<RoleMemberView[]> {
+  const raw = (await apiRequest(`/system/role/${encodeURIComponent(roleCode)}/users`, {
+    method: 'PUT',
+    body: {
+      addUserIds: request.addUserIds,
+      removeUserIds: request.removeUserIds
+    }
+  })) as Record<string, unknown>[] | Record<string, unknown>
+  const items = Array.isArray(raw) ? raw : (raw?.data as Record<string, unknown>[] | undefined)
+  return Array.isArray(items) ? items.map(normalizeRoleMember) : []
+}
+
+/**
+ * 查询三级复核流
+ * GET /system/review-flow/list
+ */
+export async function fetchReviewFlows(): Promise<ReviewFlowView[]> {
+  const raw = (await apiRequest('/system/review-flow/list')) as
+    | Record<string, unknown>[]
+    | Record<string, unknown>
+  const items = Array.isArray(raw) ? raw : (raw?.data as Record<string, unknown>[] | undefined)
+  return Array.isArray(items) ? items.map(normalizeReviewFlow) : []
+}
+
+function normalizeReviewFlow(raw: Record<string, unknown>): ReviewFlowView {
+  const steps = Array.isArray(raw.steps)
+    ? (raw.steps as Record<string, unknown>[]).map(normalizeFlowStep)
+    : []
+  return {
+    severity: (raw.severity as ReviewFlowView['severity']) || 'ROUTINE',
+    flowName: (raw.flowName as string) || '',
+    timeoutMinutes: Number(raw.timeoutMinutes || 0),
+    timeoutAction: (raw.timeoutAction as 'AUTO_RESOLVE' | 'ESCALATE') || 'AUTO_RESOLVE',
+    status: (raw.status as string) || '',
+    description: raw.description as string | undefined,
+    steps
+  }
+}
+
+function normalizeFlowStep(raw: Record<string, unknown>): ReviewFlowStep {
+  return {
+    stepNo: Number(raw.stepNo || 0),
+    roleCode: (raw.roleCode as string) || '',
+    roleName: raw.roleName as string | undefined,
+    assigneeUserId: Number(raw.assigneeUserId || 0),
+    assigneeName: (raw.assigneeName as string) || '',
+    assigneeEmail: (raw.assigneeEmail as string) || '',
+    assigneeStatus: (raw.assigneeStatus as 'enabled' | 'disabled') || 'enabled'
+  }
+}
+
+/**
+ * 保存单个级别的复核流
+ * PUT /system/review-flow/{severity}
+ */
+export async function updateReviewFlow(
+  severity: string,
+  request: ReviewFlowUpdateRequest
+): Promise<ReviewFlowView> {
+  const raw = (await apiRequest(`/system/review-flow/${encodeURIComponent(severity)}`, {
+    method: 'PUT',
+    body: {
+      timeoutMinutes: request.timeoutMinutes,
+      timeoutAction: request.timeoutAction,
+      steps: request.steps
+    }
+  })) as Record<string, unknown>
+  const data = raw?.data ? (raw.data as Record<string, unknown>) : raw
+  if (!data) throw new Error('No data returned from updateReviewFlow')
+  return normalizeReviewFlow(data)
+}
+
+/**
+ * 整体覆盖某等级的复核人（COMPLIANCE_REVIEWER 角色）
+ * PUT /system/review-flow/{severity}/reviewers
+ */
+export async function updateReviewersForLevel(
+  severity: string,
+  request: ReviewerLevelBindRequest
+): Promise<ReviewFlowApproversVO> {
+  const raw = (await apiRequest(`/system/review-flow/${encodeURIComponent(severity)}/reviewers`, {
+    method: 'PUT',
+    body: { userIds: request.userIds }
+  })) as Record<string, unknown> | Record<string, unknown>[]
+  const data = Array.isArray(raw)
+    ? raw[0]
+    : (raw?.data as Record<string, unknown> | undefined) || raw
+  if (!data) throw new Error('No data returned from updateReviewersForLevel')
+  return {
+    severity: (data.severity as string) || severity,
+    approvers: Array.isArray(data.approvers)
+      ? (data.approvers as Record<string, unknown>[]).map(normalizeApprover)
+      : []
+  }
 }
 
 // Dev-only: 创建待激活测试账号

@@ -38,7 +38,13 @@
                 </div>
                 <div class="text-xs text-g-500">{{ owner?.email }}</div>
               </div>
-              <el-button size="small" type="primary" plain @click="showTransferDialog = true">
+              <el-button
+                v-if="isCurrentUserOwner"
+                size="small"
+                type="primary"
+                plain
+                @click="showTransferDialog = true"
+              >
                 {{ $t('system.transferOwnership') }}
               </el-button>
             </div>
@@ -68,7 +74,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                   <span class="text-body-lg font-semibold text-g-900">{{ member.name }}</span>
-                  <span class="status-badge" :class="member.status.toLowerCase()">
+                  <span class="status-pill" :class="member.status.toLowerCase()">
                     {{ member.status }}
                   </span>
                 </div>
@@ -103,323 +109,85 @@
 
     <!-- ═══════ Roles Tab ═══════ -->
     <template v-if="currentTab === 'roles'">
-      <!-- 后端接口未就绪提示 -->
-      <ArtMockNotice :description="$t('system.rolesMockNotice')" />
-
-      <template v-if="loading">
-        <!-- System Administrators skeleton -->
-        <div class="art-card mb-4 overflow-hidden">
-          <div class="p-4 border-b border-[var(--default-border)]">
-            <el-skeleton :rows="1" animated />
-          </div>
-          <div class="p-4"><el-skeleton :rows="2" animated /></div>
-        </div>
-        <!-- Compliance Officers skeleton -->
-        <div class="art-card mb-4 overflow-hidden">
-          <div class="p-4 border-b border-[var(--default-border)]">
-            <el-skeleton :rows="1" animated />
-          </div>
-          <div class="p-4"><el-skeleton :rows="2" animated /></div>
-        </div>
-        <!-- Tx Review Flow skeleton -->
-        <div class="art-card mb-4 overflow-hidden">
-          <div class="p-4 border-b border-[var(--default-border)]">
-            <el-skeleton :rows="1" animated />
-          </div>
-          <div class="p-4"><el-skeleton :rows="4" animated /></div>
-        </div>
-        <!-- Travel Rule Team skeleton -->
-        <div class="art-card mb-4 overflow-hidden">
-          <div class="p-4 border-b border-[var(--default-border)]">
-            <el-skeleton :rows="1" animated />
-          </div>
+      <template v-if="rolesLoading || loading">
+        <div v-for="i in 4" :key="i" class="art-card mb-4 overflow-hidden">
+          <div class="p-4 border-b border-[var(--default-border)]"
+            ><el-skeleton :rows="1" animated
+          /></div>
           <div class="p-4"><el-skeleton :rows="2" animated /></div>
         </div>
       </template>
       <template v-else>
         <!-- System Administrators -->
-        <div class="art-card mb-4 overflow-hidden">
-          <div
-            class="p-4 border-b border-[var(--default-border)] flex items-center justify-between"
-          >
-            <h3 class="text-sm font-semibold text-g-900">{{ $t('system.systemAdmins') }}</h3>
-            <el-button
-              size="small"
-              text
-              @click="editSection = editSection === 'admins' ? null : 'admins'"
-            >
-              {{ editSection === 'admins' ? $t('system.save') : $t('system.edit') }}
-            </el-button>
-          </div>
-          <div class="p-4">
-            <div class="flex flex-wrap gap-3">
-              <div
-                v-for="person in adminPeople"
-                :key="person.id"
-                class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
-              >
-                <div
-                  class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
-                >
-                  {{ person.initials }}
-                </div>
-                <span class="text-sm text-g-900">{{ person.name }}</span>
-                <el-button
-                  v-if="editSection === 'admins'"
-                  :icon="'ri:close-line'"
-                  circle
-                  size="small"
-                  @click="removeFromSection('admins', person.id)"
-                />
-              </div>
-            </div>
-            <div v-if="editSection === 'admins'" class="mt-3 flex flex-wrap gap-2">
-              <el-select
-                v-model="newAdminId"
-                :placeholder="$t('system.addMember')"
-                clearable
-                class="!w-56"
-                @change="
-                  (v: string) => {
-                    if (v) {
-                      adminIds.push(v)
-                      newAdminId = ''
-                    }
-                  }
-                "
-              >
-                <el-option
-                  v-for="p in availablePeople('admins')"
-                  :key="p.id"
-                  :label="p.name"
-                  :value="p.id"
-                />
-              </el-select>
-            </div>
-          </div>
-        </div>
+        <RoleSectionCard
+          title="SYSTEM_ADMIN"
+          :title-display="$t('system.systemAdmins')"
+          :role-code="SYSTEM_ADMIN_ROLE"
+          :is-editing="editingSection === SYSTEM_ADMIN_ROLE"
+          :members="adminMembers"
+          :available="adminAvailable"
+          @start-edit="startSectionEdit(SYSTEM_ADMIN_ROLE)"
+          @cancel-edit="cancelSectionEdit"
+          @save="saveSectionEdit"
+          @remove="removeFromSection"
+          @add="addToSection"
+        />
 
         <!-- Compliance Officers -->
-        <div class="art-card mb-4 overflow-hidden">
-          <div
-            class="p-4 border-b border-[var(--default-border)] flex items-center justify-between"
-          >
-            <h3 class="text-sm font-semibold text-g-900">{{ $t('system.complianceOfficers') }}</h3>
-            <el-button
-              size="small"
-              text
-              @click="editSection = editSection === 'officers' ? null : 'officers'"
-            >
-              {{ editSection === 'officers' ? $t('system.save') : $t('system.edit') }}
-            </el-button>
-          </div>
-          <div class="p-4">
-            <div class="mb-3 flex flex-wrap gap-2">
-              <el-tag size="small">{{ $t('system.permSetRules') }}</el-tag>
-              <el-tag size="small">{{ $t('system.permMonitor') }}</el-tag>
-              <el-tag size="small">{{ $t('system.permLabelFPFN') }}</el-tag>
-            </div>
-            <div class="flex flex-wrap gap-3">
-              <div
-                v-for="person in officerPeople"
-                :key="person.id"
-                class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
-              >
-                <div
-                  class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
-                >
-                  {{ person.initials }}
-                </div>
-                <span class="text-sm text-g-900">{{ person.name }}</span>
-                <el-button
-                  v-if="editSection === 'officers'"
-                  :icon="'ri:close-line'"
-                  circle
-                  size="small"
-                  @click="removeFromSection('officers', person.id)"
-                />
-              </div>
-            </div>
-            <div v-if="editSection === 'officers'" class="mt-3 flex flex-wrap gap-2">
-              <el-select
-                v-model="newOfficerId"
-                :placeholder="$t('system.addMember')"
-                clearable
-                class="!w-56"
-                @change="
-                  (v: string) => {
-                    if (v) {
-                      officerIds.push(v)
-                      newOfficerId = ''
-                    }
-                  }
-                "
-              >
-                <el-option
-                  v-for="p in availablePeople('officers')"
-                  :key="p.id"
-                  :label="p.name"
-                  :value="p.id"
-                />
-              </el-select>
-            </div>
-          </div>
-        </div>
+        <RoleSectionCard
+          :title-display="$t('system.complianceOfficers')"
+          :role-code="COMPLIANCE_OFFICER_ROLE"
+          :is-editing="editingSection === COMPLIANCE_OFFICER_ROLE"
+          :members="officerMembers"
+          :available="officerAvailable"
+          :perms="[$t('system.permSetRules'), $t('system.permMonitor'), $t('system.permLabelFPFN')]"
+          @start-edit="startSectionEdit(COMPLIANCE_OFFICER_ROLE)"
+          @cancel-edit="cancelSectionEdit"
+          @save="saveSectionEdit"
+          @remove="removeFromSection"
+          @add="addToSection"
+        />
 
         <!-- Transaction Compliance Review Flow -->
-        <div class="art-card mb-4 overflow-hidden">
-          <div class="p-4 border-b border-[var(--default-border)]">
-            <h3 class="text-sm font-semibold text-g-900">{{ $t('system.txReviewFlow') }}</h3>
-          </div>
-          <div class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div v-for="flow in flows" :key="flow.id" class="tier-card" :class="flow.sevClass">
-                <div class="tier-card-header">
-                  <div class="flex items-center gap-1.5">
-                    <span class="sev-dot" :class="flow.sevClass" />
-                    <span class="text-body-lg font-semibold text-g-900">{{ flow.label }}</span>
-                  </div>
-                  <span class="step-badge" :class="flow.sevClass">
-                    {{ flow.steps.length }}-Step
-                  </span>
-                </div>
-                <div class="tier-card-body">
-                  <div class="flow-config mb-3">
-                    <div>
-                      <div class="text-caption text-g-400 uppercase tracking-wider">{{
-                        $t('system.timeout')
-                      }}</div>
-                      <div class="text-body-lg font-semibold text-g-800">{{
-                        flow.timeoutLabel
-                      }}</div>
-                    </div>
-                    <div>
-                      <div class="text-caption text-g-400 uppercase tracking-wider">{{
-                        $t('system.value')
-                      }}</div>
-                      <div class="text-body-lg font-semibold text-g-800">{{
-                        flow.timeoutValue
-                      }}</div>
-                    </div>
-                  </div>
-                  <div class="flow-chain">
-                    <div v-for="(step, idx) in flow.steps" :key="idx" class="flow-step">
-                      <div class="flow-step-indicator">
-                        <span class="flow-step-num" :class="flow.stepClass">{{ idx + 1 }}</span>
-                        <div
-                          v-if="idx < flow.steps.length - 1"
-                          class="flow-connector"
-                          :class="flow.sevClass"
-                        />
-                        <div
-                          v-else
-                          class="flow-connector"
-                          :class="flow.sevClass"
-                          style="min-height: 14px"
-                        />
-                      </div>
-                      <div class="flow-step-content">
-                        <div class="flex items-center gap-2">
-                          <div
-                            class="w-[18px] h-[18px] rounded-full bg-g-200 text-g-700 flex items-center justify-center text-[9px] font-semibold flex-shrink-0"
-                          >
-                            {{ getPerson(step.personId)?.initials }}
-                          </div>
-                          <div class="flex flex-col gap-0.5">
-                            <span class="text-xs font-semibold text-g-900">
-                              {{ getPerson(step.personId)?.name }}
-                            </span>
-                            <span class="text-caption text-g-500">
-                              {{ getPerson(step.personId)?.email }}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <!-- Resolved terminator -->
-                    <div class="flow-step">
-                      <div class="flow-step-indicator">
-                        <span class="flow-step-num resolved">✓</span>
-                      </div>
-                      <div class="flow-step-content resolved">
-                        <span class="text-xs font-semibold text-success">{{
-                          $t('system.resolved')
-                        }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReviewFlowCard
+          :flows="reviewFlows"
+          :editing-flow="editingFlow"
+          :flow-buffer="flowBuffer"
+          :all-members="allMembers"
+          @start-edit="startFlowEdit"
+          @cancel-edit="cancelFlowEdit"
+          @save="saveFlowEdit"
+          @update-assignee="
+            ({ severity, stepIdx, userId }) => updateFlowStepAssignee(severity, stepIdx, userId)
+          "
+          @add-step="addFlowStep"
+          @remove-step="removeFlowStep"
+          @move-step="
+            ({ severity, stepIdx, direction }) => moveFlowStep(severity, stepIdx, direction)
+          "
+        />
 
         <!-- Travel Rule Manual Resolution Team -->
-        <div class="art-card mb-4 overflow-hidden">
-          <div
-            class="p-4 border-b border-[var(--default-border)] flex items-center justify-between"
-          >
-            <h3 class="text-sm font-semibold text-g-900">{{ $t('system.travelRuleTeam') }}</h3>
-            <el-button
-              size="small"
-              text
-              @click="editSection = editSection === 'travelRule' ? null : 'travelRule'"
-            >
-              {{ editSection === 'travelRule' ? $t('system.save') : $t('system.edit') }}
-            </el-button>
-          </div>
-          <div class="p-4">
-            <div class="mb-3 flex flex-wrap gap-2">
-              <el-tag size="small">{{ $t('system.permResolve') }}</el-tag>
-              <el-tag size="small">{{ $t('system.permReject') }}</el-tag>
-            </div>
-            <div class="flex flex-wrap gap-3">
-              <div
-                v-for="person in travelRulePeople"
-                :key="person.id"
-                class="flex items-center gap-2 bg-g-50 rounded-lg px-3 py-2"
-              >
-                <div
-                  class="w-8 h-8 rounded-full bg-[var(--el-color-primary-light-7)] text-[var(--theme-text)] flex items-center justify-center text-xs font-semibold"
-                >
-                  {{ person.initials }}
-                </div>
-                <span class="text-sm text-g-900">{{ person.name }}</span>
-                <el-button
-                  v-if="editSection === 'travelRule'"
-                  :icon="'ri:close-line'"
-                  circle
-                  size="small"
-                  @click="removeFromSection('travelRule', person.id)"
-                />
-              </div>
-            </div>
-            <div v-if="editSection === 'travelRule'" class="mt-3 flex flex-wrap gap-2">
-              <el-select
-                v-model="newTravelRuleId"
-                :placeholder="$t('system.addMember')"
-                clearable
-                class="!w-56"
-                @change="
-                  (v: string) => {
-                    if (v) {
-                      travelRuleIds.push(v)
-                      newTravelRuleId = ''
-                    }
-                  }
-                "
-              >
-                <el-option
-                  v-for="p in availablePeople('travelRule')"
-                  :key="p.id"
-                  :label="p.name"
-                  :value="p.id"
-                />
-              </el-select>
-            </div>
-          </div>
-        </div>
+        <RoleSectionCard
+          :title-display="$t('system.travelRuleTeam')"
+          :role-code="TRAVEL_RULE_ROLE"
+          :is-editing="editingSection === TRAVEL_RULE_ROLE"
+          :members="travelRuleMembers"
+          :available="travelRuleAvailable"
+          :perms="[$t('system.permResolve'), $t('system.permReject')]"
+          @start-edit="startSectionEdit(TRAVEL_RULE_ROLE)"
+          @cancel-edit="cancelSectionEdit"
+          @save="saveSectionEdit"
+          @remove="removeFromSection"
+          @add="addToSection"
+        />
       </template>
+
+      <!-- Governance Notice -->
+      <div class="governance-notice">
+        <strong>{{ $t('system.governanceTitle') }}:</strong>
+        {{ $t('system.governanceNotice') }}
+      </div>
     </template>
     <el-dialog v-model="inviteDialogOpen" :title="$t('system.inviteMember')" width="500px">
       <el-form label-width="80px">
@@ -453,35 +221,60 @@
         }}</el-button>
       </template>
     </el-dialog>
-
-    <!-- Governance Notice -->
-    <div class="governance-notice">
-      <strong>{{ $t('system.governanceTitle') }}:</strong>
-      {{ $t('system.governanceNotice') }}
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useTeamManagement } from '@/features/system-admin/useTeamManagement'
+  import RoleSectionCard from './components/RoleSectionCard.vue'
+  import ReviewFlowCard from './components/ReviewFlowCard.vue'
 
   defineOptions({ name: 'TeamManagement' })
+
+  // Role code constants — match backend role codes
+  const SYSTEM_ADMIN_ROLE = 'SYSTEM_ADMIN'
+  const COMPLIANCE_OFFICER_ROLE = 'COMPLIANCE_OFFICER'
+  const TRAVEL_RULE_ROLE = 'TRAVEL_RULE_RESOLVER'
 
   // ─── Members Tab (real API) ───
   const {
     owner,
+    isCurrentUserOwner,
     regularMembers,
     inviteDialogOpen,
     showTransferDialog,
     transferTo,
     inviteForm,
     loading,
+    rolesLoading,
     suspendMember,
     recoverMember,
     inviteMember,
     transferOwnership,
-    openInviteDialog
+    openInviteDialog,
+    // Roles Tab
+    allMembers,
+    roleOverviews,
+    reviewFlows,
+    editingSection,
+    sectionBuffer,
+    editingFlow,
+    flowBuffer,
+    loadRolesData,
+    getAvailableForRole,
+    startSectionEdit,
+    cancelSectionEdit,
+    saveSectionEdit,
+    removeFromSection,
+    addToSection,
+    startFlowEdit,
+    cancelFlowEdit,
+    saveFlowEdit,
+    updateFlowStepAssignee,
+    addFlowStep,
+    removeFlowStep,
+    moveFlowStep
   } = useTeamManagement()
 
   const ownerInitials = computed(() => owner.value?.initials || '')
@@ -532,155 +325,113 @@
     }
   }
 
-  // ─── Roles Tab (mock data for now) ───
+  // ─── Roles Tab (real API) ───
   const currentTab = ref<'members' | 'roles'>('members')
-  const editSection = ref<null | 'admins' | 'officers' | 'travelRule'>(null)
-  const newAdminId = ref('')
-  const newOfficerId = ref('')
-  const newTravelRuleId = ref('')
 
-  // ─── All available people ───
-  interface Person {
+  // Load roles data when switching to roles tab
+  watch(currentTab, (tab) => {
+    if (tab === 'roles') void loadRolesData()
+  })
+
+  type MemberStatus = 'Active' | 'Pending' | 'Suspended'
+  interface RoleMemberRow {
     id: string
+    userId: number
     initials: string
     name: string
     email: string
-    role?: string
+    status: MemberStatus
+    removed?: boolean
   }
 
-  const allPeople: Person[] = [
-    { id: 'sc', initials: 'SC', name: 'Sarah Chen', email: 'sarah.chen@cregis.com', role: 'Lead' },
-    {
-      id: 'mr',
-      initials: 'MR',
-      name: 'Michael Reed',
-      email: 'michael.reed@cregis.com',
-      role: 'Officer'
-    },
-    {
-      id: 'jz',
-      initials: 'JZ',
-      name: 'Jing Zhang',
-      email: 'jing.zhang@cregis.com',
-      role: 'Officer'
-    },
-    {
-      id: 'ap',
-      initials: 'AP',
-      name: 'Aisha Patel',
-      email: 'aisha.patel@cregis.com',
-      role: 'Analyst'
-    },
-    {
-      id: 'dk',
-      initials: 'DK',
-      name: 'David Kim',
-      email: 'david.kim@cregis.com',
-      role: 'Operator'
-    },
-    { id: 'lt', initials: 'LT', name: 'Li Tan', email: 'li.tan@cregis.com', role: 'Operator' },
-    {
-      id: 'rm',
-      initials: 'RM',
-      name: 'Rohit Mehta',
-      email: 'rohit.mehta@cregis.com',
-      role: 'Operator'
-    },
-    {
-      id: 'eh',
-      initials: 'EH',
-      name: 'Emma Huang',
-      email: 'emma.huang@cregis.com',
-      role: 'Operator'
-    },
-    {
-      id: 'jw',
-      initials: 'JW',
-      name: 'James Wilson',
-      email: 'james.wilson@cregis.com',
-      role: 'Operator'
-    },
-    { id: 'nl', initials: 'NL', name: 'Nadia Lo', email: 'nadia.lo@cregis.com', role: 'Operator' }
-  ]
-
-  // ─── Role groups ───
-  const adminIds = ref(['tw', 'lk'])
-  const officerIds = ref(['sc', 'mr', 'jz', 'ap'])
-  const travelRuleIds = ref(['mr', 'sc', 'nl'])
-
-  const adminPeople = computed(() => allPeople.filter((p) => adminIds.value.includes(p.id)))
-  const officerPeople = computed(() => allPeople.filter((p) => officerIds.value.includes(p.id)))
-  const travelRulePeople = computed(() =>
-    allPeople.filter((p) => travelRuleIds.value.includes(p.id))
-  )
-
-  function availablePeople(section: string): Person[] {
-    const ids =
-      section === 'admins'
-        ? adminIds.value
-        : section === 'officers'
-          ? officerIds.value
-          : travelRuleIds.value
-    return allPeople.filter((p) => !ids.includes(p.id))
-  }
-
-  function removeFromSection(section: string, personId: string) {
-    if (section === 'admins') {
-      adminIds.value = adminIds.value.filter((id) => id !== personId)
-    } else if (section === 'officers') {
-      officerIds.value = officerIds.value.filter((id) => id !== personId)
-    } else if (section === 'travelRule') {
-      travelRuleIds.value = travelRuleIds.value.filter((id) => id !== personId)
+  /** 把 userId 映射成展示行（先查 allMembers，再回退 overview） */
+  function buildMemberRow(
+    userId: number,
+    overviewMap: Map<number, { name: string; email: string; status: MemberStatus }>
+  ): RoleMemberRow | null {
+    const member = allMembers.value.find((m) => Number(m.id) === userId)
+    if (member) {
+      return {
+        id: member.id,
+        userId,
+        initials: member.initials,
+        name: member.name,
+        email: member.email,
+        status: member.status
+      }
+    }
+    const info = overviewMap.get(userId)
+    if (!info) return null
+    const initials = info.name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+    return {
+      id: String(userId),
+      userId,
+      initials,
+      name: info.name,
+      email: info.email,
+      status: info.status
     }
   }
 
-  function getPerson(id: string): Person | undefined {
-    return allPeople.find((p) => p.id === id)
-  }
-
-  // ─── Approval Flows ───
-  interface FlowStep {
-    personId: string
-  }
-  interface Flow {
-    id: string
-    label: string
-    sevClass: string
-    stepClass: string
-    timeoutLabel: string
-    timeoutValue: string
-    steps: FlowStep[]
-  }
-
-  const flows: Flow[] = [
-    {
-      id: 'routine',
-      label: 'Routine',
-      sevClass: 'routine',
-      stepClass: 's1',
-      timeoutLabel: 'Auto-Resolve',
-      timeoutValue: '4h',
-      steps: [{ personId: 'dk' }]
-    },
-    {
-      id: 'medium',
-      label: 'Medium',
-      sevClass: 'medium',
-      stepClass: 's2',
-      timeoutLabel: 'Escalation',
-      timeoutValue: '2h',
-      steps: [{ personId: 'eh' }, { personId: 'jw' }]
-    },
-    {
-      id: 'critical',
-      label: 'Critical',
-      sevClass: 'critical',
-      stepClass: 's3',
-      timeoutLabel: 'Escalation',
-      timeoutValue: '30m',
-      steps: [{ personId: 'dk' }, { personId: 'jz' }, { personId: 'sc' }]
+  /** Build member view from role overview + allMembers */
+  function buildRoleMembers(roleCode: string): RoleMemberRow[] {
+    const overview = roleOverviews.value.find((r) => r.roleCode === roleCode)
+    const overviewMap = new Map<number, { name: string; email: string; status: MemberStatus }>()
+    if (overview) {
+      overview.users.forEach((u) => {
+        overviewMap.set(u.userId, {
+          name: u.displayName,
+          email: u.email,
+          status: u.accountStatus === 'disabled' ? 'Suspended' : 'Active'
+        })
+      })
     }
-  ]
+
+    const result: RoleMemberRow[] = []
+    for (const userId of getRoleMemberIds(roleCode)) {
+      const row = buildMemberRow(userId, overviewMap)
+      if (row) result.push(row)
+    }
+    // 编辑中被移除的成员：保留在列表里，标记为 removed（可恢复）
+    for (const userId of getRemovedIds(roleCode)) {
+      const row = buildMemberRow(userId, overviewMap)
+      if (row) result.push({ ...row, removed: true })
+    }
+    return result
+  }
+
+  /** 编辑中被移除、但仍需以删除态展示的 userId
+   *  注意：原本靠 getRoleMemberIds 取「原始 vs buffer」差集，
+   *  但切换 section 后原始数据仍在 roleOverviews 中，可直接比对。 */
+  function getRemovedIds(roleCode: string): number[] {
+    if (editingSection.value !== roleCode || !sectionBuffer.value[roleCode]) return []
+    const pending = new Set(sectionBuffer.value[roleCode])
+    const overview = roleOverviews.value.find((r) => r.roleCode === roleCode)
+    const original = overview?.users.map((u) => u.userId) ?? []
+    return original.filter((id) => !pending.has(id))
+  }
+
+  /** Get role member IDs from buffer (if editing) or overview */
+  function getRoleMemberIds(roleCode: string): number[] {
+    if (editingSection.value === roleCode && sectionBuffer.value[roleCode]) {
+      return sectionBuffer.value[roleCode]
+    }
+    const overview = roleOverviews.value.find((r) => r.roleCode === roleCode)
+    return overview?.users.map((u) => u.userId) ?? []
+  }
+
+  // Computed members for each role section
+  const adminMembers = computed(() => buildRoleMembers(SYSTEM_ADMIN_ROLE))
+  const adminAvailable = computed(() => getAvailableForRole(SYSTEM_ADMIN_ROLE))
+  const officerMembers = computed(() => buildRoleMembers(COMPLIANCE_OFFICER_ROLE))
+  const officerAvailable = computed(() => getAvailableForRole(COMPLIANCE_OFFICER_ROLE))
+  const travelRuleMembers = computed(() => buildRoleMembers(TRAVEL_RULE_ROLE))
+  const travelRuleAvailable = computed(() => getAvailableForRole(TRAVEL_RULE_ROLE))
 </script>
 
 <style scoped>
@@ -724,35 +475,30 @@
     border-bottom: none;
   }
 
-  /* Status badge */
-  .status-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    font-size: 10px;
+  /* Status pill (prototype matching) */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    font-size: 11px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    border-radius: 4px;
+    line-height: 1.4;
+    border-radius: 20px;
   }
 
-  .status-badge.active {
-    color: var(--el-color-success);
-    background: var(--el-color-success-light-8);
+  .status-pill.active {
+    color: var(--el-color-success-dark-2);
+    background: var(--el-color-success-light-9);
   }
 
-  .status-badge.pending {
+  .status-pill.pending {
     color: var(--el-color-warning-dark-2);
-    background: var(--el-color-warning-light-8);
+    background: var(--el-color-warning-light-9);
   }
 
-  .status-badge.inactive {
-    color: var(--el-text-color-secondary);
-    background: var(--el-fill-color);
-  }
-
-  .status-badge.suspended {
-    color: var(--el-color-danger);
-    background: var(--el-color-danger-light-8);
+  .status-pill.suspended {
+    color: var(--el-color-danger-dark-2);
+    background: var(--el-color-danger-light-9);
   }
 
   /* Tier cards */
