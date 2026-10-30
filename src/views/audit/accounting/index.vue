@@ -1,6 +1,6 @@
 <!-- Accounting — 财资单元账务（余额趋势 / 资金流水 / 交易明细） -->
 <template>
-  <div class="page-content">
+  <div class="page-content" v-loading.fullscreen.lock="orderIdLoading">
     <!-- Page Header -->
     <div class="flex items-start justify-between gap-4 mb-4">
       <div>
@@ -29,7 +29,7 @@
           remote
           :remote-method="onMerchantRemoteSearch"
           :loading="merchantLoading"
-          class="!w-52"
+          class="!w-44"
           @change="onMerchantChange"
         >
           <el-option
@@ -45,29 +45,11 @@
         <label>{{ $t('accounting.treasuryUnit') }}</label>
         <el-select
           v-model="filters.treasuryUnitId"
-          :placeholder="$t('accounting.allUnits')"
+          :placeholder="$t('accounting.selectTreasuryUnit')"
           :disabled="filters.merchantCode === ''"
-          class="!w-48"
+          class="!w-40"
         >
-          <el-option :label="$t('accounting.allUnits')" :value="0" />
           <el-option v-for="unit in units" :key="unit.id" :label="unit.name" :value="unit.id" />
-        </el-select>
-      </div>
-
-      <div class="filter-group">
-        <label>{{ $t('accounting.account') }}</label>
-        <el-select
-          v-model="filters.accountType"
-          :placeholder="$t('accounting.allAccounts')"
-          class="!w-36"
-        >
-          <el-option :label="$t('accounting.allAccounts')" value="" />
-          <el-option
-            v-for="type in ACCOUNT_TYPES"
-            :key="type"
-            :label="$t(`accounting.accountType.${type}`)"
-            :value="type"
-          />
         </el-select>
       </div>
 
@@ -77,14 +59,32 @@
           v-model="filters.assetKey"
           :placeholder="$t('accounting.selectAsset')"
           filterable
-          class="!w-56"
+          class="!w-48"
         >
-          <el-option :label="$t('accounting.allAssets')" value="" />
           <el-option
             v-for="asset in assetOptions"
             :key="asset.key"
             :label="`${asset.coinId} · ${networkLabel(asset.network)}`"
             :value="asset.key"
+          />
+        </el-select>
+      </div>
+
+      <div class="filter-group">
+        <label>{{ $t('accounting.account') }}</label>
+        <el-select
+          v-model="filters.cusAccountId"
+          :placeholder="$t('accounting.allAccounts')"
+          :disabled="!filters.assetKey"
+          filterable
+          class="!w-44"
+        >
+          <el-option :label="$t('accounting.allAccounts')" :value="0" />
+          <el-option
+            v-for="acc in filteredAccounts"
+            :key="acc.id"
+            :label="formatAccountName(acc.accountName)"
+            :value="acc.id"
           />
         </el-select>
       </div>
@@ -108,19 +108,29 @@
       </ElButton>
     </div>
 
-    <!-- 未就绪：Overview 需要资产；Transactions 还需要财资单元 -->
+    <!-- 未就绪：必须选资产和财资单元 -->
     <div
-      v-if="!applied.assetKey || (activeTab === 'transactions' && !applied.treasuryUnitId)"
+      v-if="!applied.assetKey || !applied.treasuryUnitId"
       class="art-card flex flex-col items-center justify-center py-20 text-center"
     >
       <ArtSvgIcon icon="ri:calculator-line" class="text-5xl text-g-300 mb-4" />
       <div class="text-base font-semibold text-g-700 mb-2">
         {{
-          applied.assetKey ? $t('accounting.selectUnitFirst') : $t('accounting.selectAssetFirst')
+          !applied.assetKey
+            ? $t('accounting.selectAssetFirst')
+            : !applied.treasuryUnitId
+              ? $t('accounting.selectUnitFirst')
+              : $t('accounting.selectFiltersFirst')
         }}
       </div>
       <div class="text-sm text-g-500">
-        {{ applied.assetKey ? $t('accounting.selectUnitHint') : $t('accounting.selectAssetHint') }}
+        {{
+          !applied.assetKey
+            ? $t('accounting.selectAssetHint')
+            : !applied.treasuryUnitId
+              ? $t('accounting.selectUnitHint')
+              : $t('accounting.selectFiltersHint')
+        }}
       </div>
     </div>
 
@@ -246,7 +256,7 @@
                   {{ $t('accounting.transactions') }}
                 </h3>
                 <span class="text-xs font-normal text-g-500">
-                  {{ txAccountNote || $t('accounting.txHint') }}
+                  {{ $t('accounting.txHint') }}
                 </span>
               </div>
             </div>
@@ -316,7 +326,14 @@
               </el-table-column>
               <el-table-column :label="$t('accounting.orderId')" width="180">
                 <template #default="{ row }">
-                  <span class="font-mono text-xs text-g-600">{{ row.orderId || '—' }}</span>
+                  <span
+                    v-if="row.orderId"
+                    class="font-mono text-xs text-link cursor-pointer hover:underline"
+                    @click.stop="onOrderIdClick(row)"
+                  >
+                    {{ row.orderId }}
+                  </span>
+                  <span v-else class="font-mono text-xs text-g-600">—</span>
                 </template>
               </el-table-column>
               <el-table-column :label="$t('accounting.createdAt')" width="150">
@@ -375,11 +392,12 @@
     fetchUnitAccounts
   } from '@/api/auditAccounting'
   import { fetchMerchantList, type MerchantListItemView } from '@/api/merchantSearch'
+  import { fetchTransactionLensOverview } from '@/api/compliance'
+  import { useRouter } from 'vue-router'
   import { useCoinStore } from '@/store/modules/coins'
   import type {
     AccountingRecordView,
     AccountStatView,
-    AccountTypeFilter,
     CustodyAccountView,
     FundRecordView,
     TreasuryUnitView,
@@ -389,10 +407,10 @@
 
   defineOptions({ name: 'AuditAccounting' })
 
+  const router = useRouter()
   const { t } = useI18n()
   const coinStore = useCoinStore()
 
-  const ACCOUNT_TYPES: Exclude<AccountTypeFilter, ''>[] = ['PRIMARY', 'PAYOUT', 'PAYIN']
   const DATE_TYPE_MAP: Record<TrendGranularity, 1 | 2 | 3> = {
     daily: 1,
     weekly: 2,
@@ -416,8 +434,8 @@
 
   const filters = reactive({
     merchantCode: '',
-    treasuryUnitId: 0,
-    accountType: '' as AccountTypeFilter,
+    treasuryUnitId: null as number | null,
+    cusAccountId: 0 as number | undefined,
     assetKey: ''
   })
   const dateRange = ref<[string, string] | null>([...defaultRange])
@@ -426,8 +444,8 @@
   /** 已应用的条件：筛选变化但未点 Apply 时，看板保持上一次结果（对齐原型） */
   const applied = reactive({
     merchantCode: '',
-    treasuryUnitId: 0,
-    accountType: '' as AccountTypeFilter,
+    treasuryUnitId: null as number | null,
+    cusAccountId: 0 as number | undefined,
     assetKey: '',
     assetLabel: '',
     from: defaultRange[0],
@@ -451,6 +469,16 @@
   const appliedAsset = computed(
     () => assetOptions.value.find((a) => a.key === applied.assetKey) ?? null
   )
+
+  /** 按已选资产过滤账户列表 */
+  const filteredAccounts = computed(() => {
+    if (!filters.assetKey) return accounts.value
+    const asset = assetOptions.value.find((a) => a.key === filters.assetKey)
+    if (!asset) return accounts.value
+    return accounts.value.filter(
+      (acc) => acc.coinId === asset.coinId && acc.network === asset.network
+    )
+  })
   const decimals = computed(() =>
     coinStore.getDecimalsByCoinId(appliedAsset.value?.coinId, appliedAsset.value?.network)
   )
@@ -479,7 +507,13 @@
         { key: 'net', label: t('accounting.netFlow'), value: '—' }
       ]
     }
-    const dec = trendDecimals.value || decimals.value
+    const dec =
+      trendDecimals.value ||
+      decimals.value ||
+      (stats.value[0]
+        ? coinStore.getDecimalsByCoinId(stats.value[0].coinId, appliedAsset.value?.network)
+        : 0) ||
+      6
     // Opening = 区间起点的上一期余额（首个统计点余额 - 首期净流入）；
     // 只有一期数据时退化为「首期余额 - 首期净流量」。
     const first = stats.value[0]!
@@ -529,7 +563,13 @@
   const balanceTrendData = computed(() => {
     const points = stats.value
     if (!points.length) return []
-    const dec = trendDecimals.value || decimals.value
+    const dec =
+      trendDecimals.value ||
+      decimals.value ||
+      (points[0]
+        ? coinStore.getDecimalsByCoinId(points[0].coinId, appliedAsset.value?.network)
+        : 0) ||
+      6
     const unit = new BigNumber(10).pow(dec)
     const toNum = (v: string | number | undefined) => new BigNumber(v || 0).div(unit).toNumber()
     return [
@@ -559,7 +599,11 @@
     const idx = params[0]?.dataIndex ?? 0
     const point = stats.value[idx]
     if (!point) return ''
-    const dec = trendDecimals.value || decimals.value
+    const dec =
+      trendDecimals.value ||
+      decimals.value ||
+      coinStore.getDecimalsByCoinId(point.coinId, appliedAsset.value?.network) ||
+      6
     const unit = new BigNumber(10).pow(dec)
     const fmt = (v: string | number | undefined) => new BigNumber(v || 0).div(unit).toFormat()
     const rows: Array<[string, string]> = [
@@ -606,7 +650,9 @@
    *   选了 Account → 账户级流水 POST /list/account（带 cusAccountId）
    * 页面上不再提供手动切换。
    */
-  const txSource = computed<'unit' | 'account'>(() => (applied.accountType ? 'account' : 'unit'))
+  const txSource = computed<'unit' | 'account'>(() =>
+    filters.cusAccountId && filters.cusAccountId > 0 ? 'account' : 'unit'
+  )
   /** 本次请求实际落到的接口（账户解析失败时会回退到单元级） */
   const txRequestSource = ref<'unit' | 'account'>('unit')
   const txRows = ref<Array<AccountingRecordView | FundRecordView>>([])
@@ -614,8 +660,6 @@
   const txPage = ref(1)
   const txPageSize = ref(20)
   const txLoading = ref(false)
-  /** 选中的账户数 > 1 时的提示（接口每次只能按单个账户查询） */
-  const txAccountNote = ref('')
 
   const txIndex = computed(() => (txPage.value - 1) * txPageSize.value + 1)
 
@@ -629,14 +673,38 @@
     void loadTransactions()
   }
 
+  /** 点击 orderId：尝试查询 overview，成功则跳转到交易详情页面 */
+  const orderIdLoading = ref(false)
+  async function onOrderIdClick(row: AccountingRecordView | FundRecordView): Promise<void> {
+    const orderId = row.orderId
+    if (!orderId) return
+    orderIdLoading.value = true
+    try {
+      await fetchTransactionLensOverview(orderId)
+      await router.push({ name: 'TransactionLensDetail', params: { id: orderId } })
+    } catch {
+      // overview 查询失败（无详情数据），不跳转
+    } finally {
+      orderIdLoading.value = false
+    }
+  }
+
   function txActivity(row: AccountingRecordView | FundRecordView): string {
     if ('activity' in row && row.activity) return activityLabel(row.activity)
-    if ('txType' in row && row.txType) return activityLabel(row.txType)
     return activityLabel(row.direction === 'IN' ? 'TRANSFER_IN' : 'TRANSFER_OUT')
   }
 
+  /** 账户名称格式化：已知类型首字母大写，其余原样显示 */
+  function formatAccountName(name: string): string {
+    if (!name) return name
+    const known = new Set(['PAYIN', 'PAYOUT', 'PRIMARY'])
+    if (known.has(name)) return name.charAt(0) + name.slice(1).toLowerCase()
+    return name
+  }
+
   function fmtBase(value: BigNumber, dec: number): string {
-    return value.div(new BigNumber(10).pow(dec)).toFormat()
+    const maxDec = Math.min(dec, 8)
+    return value.div(new BigNumber(10).pow(dec)).decimalPlaces(maxDec).toFormat()
   }
 
   /**
@@ -655,18 +723,6 @@
     return { coinId: appliedAsset.value.coinId, network: appliedAsset.value.network }
   }
 
-  /**
-   * Account 筛选：先从 listAccountsByUnitId 取账户，按 type 过滤，
-   * 再落到具体 cusAccountId；未选具体账户时仍按资产维度查询。
-   */
-  function resolveAccountIds(): number[] {
-    const coinId = appliedAsset.value?.coinId
-    return accounts.value
-      .filter((account) => !applied.accountType || account.type === applied.accountType)
-      .filter((account) => !coinId || account.coinId === coinId)
-      .map((account) => account.id)
-  }
-
   async function loadTransactions(): Promise<void> {
     if (!applied.assetKey) return
     txLoading.value = true
@@ -682,19 +738,11 @@
         startDate: applied.from,
         endDate: applied.to
       }
-      const accountIds = resolveAccountIds()
-      txAccountNote.value = ''
-      // 选了 Account 筛选但账户列表还没取到：退回单元级接口，避免直接打出空表
-      const useAccountApi = txSource.value === 'account' && accountIds.length > 0
-      if (txSource.value === 'account' && accountIds.length === 0) {
-        txAccountNote.value = t('accounting.accountFallback')
-      } else if (useAccountApi && accountIds.length > 1) {
-        txAccountNote.value = t('accounting.multiAccountHint', { count: accountIds.length })
-      }
+      const useAccountApi =
+        txSource.value === 'account' && applied.cusAccountId && applied.cusAccountId > 0
       txRequestSource.value = useAccountApi ? 'account' : 'unit'
       if (useAccountApi) {
-        // 资金流水接口一次只能查一个 cusAccountId；多账户时取第一个，并在表头提示
-        const res = await fetchFundRecords({ ...base, cusAccountId: accountIds[0] })
+        const res = await fetchFundRecords({ ...base, cusAccountId: applied.cusAccountId })
         txRows.value = res.records
         txTotal.value = res.total
       } else {
@@ -730,7 +778,8 @@
   }
 
   async function onMerchantChange(): Promise<void> {
-    filters.treasuryUnitId = 0
+    filters.treasuryUnitId = null
+    filters.cusAccountId = 0
     filters.assetKey = ''
     units.value = []
     accounts.value = []
@@ -747,13 +796,14 @@
     }
   }
 
-  async function loadAccounts(): Promise<void> {
-    if (!applied.treasuryUnitId) {
+  async function loadAccounts(unitId?: number): Promise<void> {
+    const target = unitId ?? applied.treasuryUnitId
+    if (!target) {
       accounts.value = []
       return
     }
     try {
-      const res = await fetchUnitAccounts(applied.treasuryUnitId)
+      const res = await fetchUnitAccounts(target)
       accounts.value = res.records
     } catch {
       accounts.value = []
@@ -857,17 +907,15 @@
     }
   }
 
-  /** Apply 可用条件：必须选资产；Transactions Tab 还必须选财资单元 */
-  const canApply = computed(
-    () => !!filters.assetKey && (activeTab.value === 'overview' || !!filters.treasuryUnitId)
-  )
+  /** Apply 可用条件：必须选资产；必须选财资单元 */
+  const canApply = computed(() => !!filters.assetKey && !!filters.treasuryUnitId)
 
   async function applyFilters(): Promise<void> {
     if (!canApply.value) return
     const asset = assetOptions.value.find((a) => a.key === filters.assetKey)
     applied.merchantCode = filters.merchantCode
     applied.treasuryUnitId = filters.treasuryUnitId
-    applied.accountType = filters.accountType
+    applied.cusAccountId = filters.cusAccountId
     applied.assetKey = filters.assetKey
     applied.assetLabel = asset ? `${asset.coinId} · ${networkLabel(asset.network)}` : ''
     const [from, to] = dateRange.value ?? defaultRange
@@ -886,6 +934,25 @@
     if (tab === 'overview') void loadTrend()
     else void loadTransactions()
   })
+
+  /** 切换财资单元时重新加载账户列表，并清空已选账户 */
+  watch(
+    () => filters.treasuryUnitId,
+    (n) => {
+      filters.cusAccountId = 0
+      filters.assetKey = ''
+      if (n) void loadAccounts(n)
+      else accounts.value = []
+    }
+  )
+
+  /** 切换资产时清空已选账户 */
+  watch(
+    () => filters.assetKey,
+    () => {
+      filters.cusAccountId = 0
+    }
+  )
 
   onMounted(async () => {
     await Promise.all([coinStore.ensureLoaded(), searchMerchants('')])

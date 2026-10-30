@@ -121,7 +121,7 @@
     "confirmed": "已确认",
     "failed": "失败",
     "trComplete": "完整",
-    "trConfirming": "确认中",
+    "trConfirming": "等待对手方同意",
     "trRejected": "已拒绝",
     "trPending": "待处理",
     "trMismatch": "不匹配",
@@ -1952,6 +1952,7 @@
     "complianceOfficers": "合规官",
     "txReviewFlow": "交易合规审查流程",
     "travelRuleTeam": "Travel Rule 手动解决团队",
+    "systemOwner": "系统 Owner",
     "edit": "编辑",
     "save": "保存",
     "addMember": "添加成员",
@@ -1973,7 +1974,9 @@
     "healthStatus": "健康状态",
     "latency": "延迟",
     "serviceStatus": "服务状态",
-    "rolesMockNotice": "角色管理后端接口仍在开发中，本标签页使用 mock 数据，角色调整不会被保存。"
+    "rolesMockNotice": "角色管理后端接口仍在开发中，本标签页使用 mock 数据，角色调整不会被保存。",
+    "noMembers": "暂未分配成员。",
+    "addStep": "添加步骤"
   },
   "dashboard": {
     "aboutProject": "关于项目",
@@ -2153,7 +2156,7 @@
     "merchant": "商户",
     "selectMerchant": "选择商户",
     "treasuryUnit": "财资单元",
-    "allUnits": "全部单元",
+    "selectTreasuryUnit": "选择财资单元",
     "account": "账户",
     "allAccounts": "全部账户",
     "asset": "资产",
@@ -2209,6 +2212,8 @@
     "totalBalance": "总余额",
     "accountFallback": "账户列表暂不可用，已回退为单元级流水",
     "selectUnitFirst": "请选择财资单元",
-    "selectUnitHint": "资金流水按财资单元查询，请在筛选条件中选择后点击 Apply。"
+    "selectUnitHint": "资金流水按财资单元查询，请在筛选条件中选择后点击 Apply。",
+    "selectFiltersFirst": "请选择筛选条件",
+    "selectFiltersHint": "请选择商户、财资单元和资产，然后点击 Apply。"
   }
 }

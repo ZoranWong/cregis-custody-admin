@@ -65,15 +65,22 @@ export interface FundRecordView {
   orderId: string
   coinId: string
   network: string
+  /** 原始字段名（后端返回） */
   fromAddr: string
   toAddr: string
+  /** 对齐 AccountingRecordView 的字段名 */
+  fromAddress: string
+  toAddress: string
   direction: 'IN' | 'OUT'
   amount: number
   preBalance: number
   postBalance: number
   /** 手续费（字符串，接口直接返回） */
   fee: string
+  /** 原始类型字段名（后端返回） */
   txType: FundRecordTxType | string
+  /** 对齐 AccountingRecordView 的字段名 */
+  activity: string
   createTime: string
 }
 

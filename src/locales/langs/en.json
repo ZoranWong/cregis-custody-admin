@@ -121,7 +121,7 @@
     "confirmed": "Confirmed",
     "failed": "Failed",
     "trComplete": "Complete",
-    "trConfirming": "Confirming",
+    "trConfirming": "Awaiting Counterparty",
     "trRejected": "Rejected",
     "trPending": "Pending",
     "trMismatch": "Mismatch",
@@ -1950,6 +1950,7 @@
     "complianceOfficers": "Compliance Officers",
     "txReviewFlow": "Transaction Compliance Review Flow",
     "travelRuleTeam": "Travel Rule Manual Resolution Team",
+    "systemOwner": "System Owner",
     "edit": "Edit",
     "save": "Save",
     "addMember": "Add Member",
@@ -1971,7 +1972,9 @@
     "healthStatus": "Health",
     "latency": "Latency",
     "serviceStatus": "Service Status",
-    "rolesMockNotice": "Backend role management is still in development. This tab uses mock data, and role changes will not be saved."
+    "rolesMockNotice": "Backend role management is still in development. This tab uses mock data, and role changes will not be saved.",
+    "noMembers": "No members assigned yet.",
+    "addStep": "Add step"
   },
   "dashboard": {
     "aboutProject": "About Project",
@@ -2151,7 +2154,7 @@
     "merchant": "Merchant",
     "selectMerchant": "Select merchant",
     "treasuryUnit": "Treasury Unit",
-    "allUnits": "All units",
+    "selectTreasuryUnit": "Select treasury unit",
     "account": "Account",
     "allAccounts": "All accounts",
     "asset": "Asset",
@@ -2207,6 +2210,8 @@
     "totalBalance": "Total Balance",
     "accountFallback": "Account list unavailable, showing unit-level records",
     "selectUnitFirst": "Select a treasury unit",
-    "selectUnitHint": "Transactions are queried per treasury unit. Pick one in the filter and click Apply."
+    "selectUnitHint": "Transactions are queried per treasury unit. Pick one in the filter and click Apply.",
+    "selectFiltersFirst": "Select filters to continue",
+    "selectFiltersHint": "Choose merchant, treasury unit, and asset, then click Apply."
   }
 }
