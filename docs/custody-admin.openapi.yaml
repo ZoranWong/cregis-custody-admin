@@ -147,7 +147,7 @@ paths:
       security: []
   /system/staff/add:
     post:
-      summary: 添加系统员工。
+      summary: 添加系统员工
       deprecated: false
       description: 若未传用户名则使用邮箱前缀；若未传角色则默认 SYSTEM_STAFF。
       tags: []
@@ -165,47 +165,15 @@ paths:
             schema:
               $ref: '#/components/schemas/AddSystemStaffRequest'
               description: ''
+            examples: {}
       responses:
         '200':
           description: ''
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /system/staff/role/grant/{email}:
-    post:
-      summary: 按邮箱覆盖更新员工角色。
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: email
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
+                $ref: '#/components/schemas/MessageResultSystemStaffVO'
+          headers: {}
       security: []
   /system/staff/{userId}/disable:
     post:
@@ -370,188 +338,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ForgetPasswordDto'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /system/role/page:
-    post:
-      summary: 角色分页
-      deprecated: false
-      description: |-
-        角色分页
-        系统角色分页查询
-      tags: []
-      parameters:
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QueryParamSystemRole'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /system/role:
-    post:
-      summary: create
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SystemRole'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /system/role/{id}:
-    put:
-      summary: update
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: id
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: integer
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SystemRole'
-              description: ''
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-    delete:
-      summary: delete
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: id
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: integer
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-  /system/role/{id}/permissions:
-    get:
-      summary: 查询角色权限
-      deprecated: false
-      description: |-
-        查询角色权限
-        根据角色ID查询权限编码列表
-      tags: []
-      parameters:
-        - name: id
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: integer
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResult%3F'
-      security: []
-    post:
-      summary: setRolePermissions
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: id
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: integer
-        - name: Authorization
-          in: header
-          description: ''
-          example: '{{token}}'
-          schema:
-            type: string
-            default: '{{token}}'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RolePermissionUpdateRequest'
               description: ''
       responses:
         '200':
@@ -2566,7 +2352,7 @@ paths:
       security: []
   /merchant/detail/{ecode}:
     post:
-      summary: 展示商户的详情含kyb问卷
+      summary: 展示商户的详细信息
       deprecated: false
       description: |-
         显示商户的详细信息
@@ -6542,6 +6328,61 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessageResultBoolean'
       security: []
+  /projectUnitAccountingRecord/listAccountsByUnitId:
+    get:
+      summary: 根据unitId查询 账户列表
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: unitId
+          in: query
+          description: 财务单元id
+          required: true
+          schema:
+            type: integer
+        - name: coinId
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: network
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          description: 页码
+          required: false
+          example: 1
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          description: 每页数量
+          required: false
+          example: 10
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultPageProjectUnitAccount'
+                description: MessageResult<Page<ProjectUnitAccount>>
+      security: []
   /projectUnitAccountingRecord/list/unit:
     post:
       summary: 查询财务单元级流水
@@ -6704,31 +6545,88 @@ paths:
                 $ref: '#/components/schemas/MessageResultPageProjectUnit'
                 description: MessageResult<Page<ProjectUnit>>
       security: []
-  /projectUnitAccountingRecord/listAccountsByUnitId:
+  /system/role/overview:
     get:
-      summary: 根据unitId查询 账户列表
+      summary: 角色总览
       deprecated: false
-      description: ''
+      description: |-
+        角色总览
+        一次返回全部角色及成员；复核角色按 ROUTINE/MEDIUM/CRITICAL 分成三级有序列表
       tags: []
       parameters:
-        - name: unitId
-          in: query
-          description: 财务单元id
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListRoleOverviewVO'
+      security: []
+  /system/role/list:
+    get:
+      summary: 角色列表
+      deprecated: false
+      description: |-
+        角色列表
+        返回全部角色及成员数量，供团队管理页按角色分组渲染
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListRoleVO'
+          headers: {}
+      security: []
+  /system/role/{roleCode}/users:
+    get:
+      summary: 按角色查询用户
+      deprecated: false
+      description: |-
+        按角色查询用户
+        分页查询绑定了指定角色的后台用户，支持邮箱/用户名关键词过滤
+      tags: []
+      parameters:
+        - name: roleCode
+          in: path
+          description: 角色编码
           required: true
           schema:
-            type: integer
-        - name: pageNumber
+            type: string
+        - name: keyword
           in: query
-          description: 页码
+          description: 邮箱/用户名关键词
           required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: 页码，从 1 开始
+          required: true
           example: 1
           schema:
             type: integer
         - name: pageSize
           in: query
-          description: 每页数量
-          required: false
-          example: 10
+          description: 每页条数
+          required: true
+          example: 20
           schema:
             type: integer
         - name: Authorization
@@ -6744,8 +6642,272 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResultPageProjectUnitAccount'
-                description: MessageResult<Page<ProjectUnitAccount>>
+                $ref: '#/components/schemas/MessageResultPageRoleMemberVO'
+      security: []
+    put:
+      summary: 批量调整角色成员
+      deprecated: false
+      description: >-
+        批量调整角色成员
+        
+        一个请求内同时加入与移除成员，同一事务生效。不处理 COMPLIANCE_REVIEWER：复核角色按等级整体覆盖且有序，请用 PUT /system/review-flow/{severity}/reviewers。同一用户同时出现在两个列表会返回 ROLE_BATCH_CONFLICT。
+
+
+      tags: []
+      parameters:
+        - name: roleCode
+          in: path
+          description: 角色编码
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUserBatchRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListRoleMemberVO'
+      security: []
+  /system/staff/{userId}/roles:
+    post:
+      summary: addUserRoles
+      deprecated: true
+      description: ''
+      tags: []
+      parameters:
+        - name: userId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleBindRequest'
+              description: ''
+            examples: {}
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListUserRoleVO'
+      security: []
+    get:
+      summary: 查询用户角色列表
+      deprecated: false
+      description: ''
+      tags: []
+      parameters:
+        - name: userId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListUserRoleVO'
+          headers: {}
+      security: []
+  /system/staff/{userId}/roles/{roleCode}:
+    delete:
+      summary: 解绑用户单个角色
+      deprecated: true
+      description: ''
+      tags: []
+      parameters:
+        - name: userId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: roleCode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListUserRoleVO'
+          headers: {}
+      security: []
+  /system/review-flow/list:
+    get:
+      summary: 查询三级复核流
+      deprecated: true
+      description: |-
+        查询三级复核流
+        返回 ROUTINE / MEDIUM / CRITICAL 三个级别的超时配置与有序步骤
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListReviewFlowVO'
+      security: []
+  /system/review-flow/{severity}:
+    get:
+      summary: 查询单个级别复核流
+      deprecated: true
+      description: 查询单个级别复核流
+      tags: []
+      parameters:
+        - name: severity
+          in: path
+          description: 级别：ROUTINE/MEDIUM/CRITICAL
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultReviewFlowVO'
+      security: []
+    put:
+      summary: 保存复核流
+      deprecated: false
+      description: >-
+        保存复核流
+        
+        steps 为 null 时保留原步骤；传空数组表示清空步骤。每步必须指定 assigneeUserId，stepNo 即审批顺序（1 先审、2 复审……），且指派人必须已绑定该步骤的资格角色。
+
+
+      tags: []
+      parameters:
+        - name: severity
+          in: path
+          description: 级别：ROUTINE/MEDIUM/CRITICAL
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewFlowUpdateRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultReviewFlowVO'
+      security: []
+  /system/review-flow/{severity}/reviewers:
+    put:
+      summary: 整体覆盖某等级的复核人
+      deprecated: false
+      description: >-
+        整体覆盖某等级的复核人
+        
+        COMPLIANCE_REVIEWER 角色的分配入口，每次只处理一个等级：该等级复核人整体替换为入参有序列表，顺序即审批顺序（1 先审、2 复审……），空数组=清空该等级。新进入该等级的用户自动授予 COMPLIANCE_REVIEWER 角色；被移除且已不在任何其它等级的用户回收该角色。
+
+
+      tags: []
+      parameters:
+        - name: severity
+          in: path
+          description: 级别：ROUTINE/MEDIUM/CRITICAL
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewerLevelBindRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultReviewFlowApproversVO'
       security: []
 components:
   schemas:
@@ -7712,11 +7874,137 @@ components:
           type: string
           description: 创建时间
           default: '##default'
+    RoleVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 角色ID
+          format: int64
+        roleCode:
+          type: string
+          description: 角色编码
+        roleName:
+          type: string
+          description: 角色名称
+        roleType:
+          type: string
+          description: 角色类型：SYSTEM/FUNCTIONAL/REVIEW_TIER
+        status:
+          type: string
+          description: 状态
+        memberCount:
+          type: integer
+          description: 成员数量
+          format: int64
+    RoleMemberVO:
+      type: object
+      properties:
+        userId:
+          type: integer
+          description: 用户ID
+          format: int64
+        username:
+          type: string
+          description: 用户名
+        displayName:
+          type: string
+          description: 显示名称
+        email:
+          type: string
+          description: 邮箱
+        accountStatus:
+          type: string
+          description: 账号状态 enabled/disabled
+        roleCode:
+          type: string
+          description: 当前查询的角色编码
+    SystemStaffVO:
+      type: object
+      properties:
+        display_name:
+          type: string
+          description: 显示名称
+        account_status:
+          type: string
+          description: 账号状态 enabled/disabled
+        last_sign_in:
+          type: string
+          description: 最后登录时间
+        id:
+          type: integer
+          description: ID
+          format: int64
+        username:
+          type: string
+          description: 用户名
+        email:
+          type: string
+          description: 邮箱
+    UserRoleVO:
+      type: object
+      properties:
+        roleCode:
+          type: string
+          description: 角色编码
+        roleName:
+          type: string
+          description: 角色名称
+        roleType:
+          type: string
+          description: 角色类型
+        status:
+          type: string
+          description: 状态
+    ReviewFlowStepVO:
+      type: object
+      properties:
+        stepNo:
+          type: integer
+          description: 步骤序号
+        roleCode:
+          type: string
+          description: 资格角色编码
+        roleName:
+          type: string
+          description: 资格角色名称
+        assigneeUserId:
+          type: integer
+          description: 指派人用户ID
+          format: int64
+        assigneeName:
+          type: string
+          description: 指派人名称
+        assigneeEmail:
+          type: string
+          description: 指派人邮箱
+        assigneeStatus:
+          type: string
+          description: 指派人账号状态 enabled/disabled
+    key: &ref_0
+      type: object
+      properties:
+        sortNo:
+          type: integer
+          description: 审批顺序，从 1 开始
+        userId:
+          type: integer
+          description: 用户ID
+          format: int64
+        name:
+          type: string
+          description: 用户名
+        email:
+          type: string
+          description: 邮箱
+        accountStatus:
+          type: string
+          description: 账号状态 enabled/disabled
     MapObject:
       type: object
       properties:
         key:
-          $ref: '#/components/schemas/key'
+          $ref: '#/components/schemas/key1'
     QueryCondition:
       type: object
       properties:
@@ -7857,6 +8145,77 @@ components:
         code:
           type: string
           description: ''
+    KybBeneficiary:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键ID
+          format: int64
+        caseId:
+          type: integer
+          description: 关联 cus_compliance_case.id
+          format: int64
+        questionnaireId:
+          type: integer
+          description: 关联 cus_kyb_questionnaire.id
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码
+          default: '##default'
+        name:
+          type: string
+          description: 姓名
+          default: '##default'
+        type:
+          type: string
+          description: '类型: ubo/director/shareholder'
+          default: '##default'
+        shareSize:
+          type: number
+          description: 持股比例%
+          default: '##default'
+        country:
+          type: string
+          description: 国籍 ISO3166-1 alpha-3
+          default: '##default'
+        dateOfBirth:
+          type: string
+          description: 出生日期
+          default: '##default'
+        email:
+          type: string
+          description: 邮箱
+          default: '##default'
+        phone:
+          type: string
+          description: 电话
+          default: '##default'
+        applicantId:
+          type: string
+          description: Sumsub individual applicantId（link 后回填）
+          default: '##default'
+        status:
+          type: string
+          description: '状态: PENDING/LINKED/KYC_PASSED'
+          default: '##default'
+        reviewAnswer:
+          type: string
+          description: provider 核验结论 GREEN/RED
+          default: '##default'
+        verifyTime:
+          type: string
+          description: 取得核验结论时间
+          default: '##default'
+        createTime:
+          type: string
+          description: 创建时间
+          default: '##default'
+        updateTime:
+          type: string
+          description: 更新时间
+          default: '##default'
     TravelRulePayload:
       type: object
       properties:
@@ -8021,6 +8380,91 @@ components:
         data:
           $ref: '#/components/schemas/AttestationView'
           description: ''
+    MessageResultListRoleVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleVO'
+            description: 系统角色视图（含成员数量）。
+          description: ''
+    MessageResultSystemStaffVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/SystemStaffVO'
+          description: ''
+    MessageResultListUserRoleVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRoleVO'
+            description: 用户角色视图。
+          description: ''
+    ReviewFlowVO:
+      type: object
+      properties:
+        severity:
+          type: string
+          description: 级别：ROUTINE/MEDIUM/CRITICAL
+        flowName:
+          type: string
+          description: 流程名称
+        timeoutMinutes:
+          type: integer
+          description: 超时分钟数
+        timeoutAction:
+          type: string
+          description: 超时动作：AUTO_RESOLVE/ESCALATE
+        status:
+          type: string
+          description: 状态
+        description:
+          type: string
+          description: 说明
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewFlowStepVO'
+            description: 复核流步骤视图。
+          description: 有序步骤
+    ReviewFlowApproverVO: *ref_0
+    MessageResultListRoleMemberVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleMemberVO'
+            description: 按角色查询到的成员视图。
+          description: ''
     MessageResult?:
       type: object
       properties:
@@ -8033,7 +8477,18 @@ components:
         data:
           description: ''
           type: 'null'
-    QueryParamMerchant: &ref_0
+    AddSystemStaffRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: 显示名称
+        email:
+          type: string
+          description: 邮箱
+      required:
+        - email
+    QueryParamMerchant: &ref_1
       type: object
       properties:
         pageIndex:
@@ -8138,7 +8593,7 @@ components:
 
 
           description: ''
-    QueryParamMerchantBillingRecord: *ref_0
+    QueryParamMerchantBillingRecord: *ref_1
     PageGasHomeTaskVO:
       type: object
       properties:
@@ -8647,6 +9102,117 @@ components:
         countId:
           type: string
           description: ''
+    PageRoleMemberVO:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleMemberVO'
+            description: 按角色查询到的成员视图。
+          description: ''
+        total:
+          type: integer
+          description: ''
+          format: int64
+        size:
+          type: integer
+          description: ''
+          format: int64
+        current:
+          type: integer
+          description: ''
+          format: int64
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+            description: com.baomidou.mybatisplus.core.metadata.OrderItem
+          description: ''
+        optimizeCountSql:
+          type: boolean
+          description: ''
+        searchCount:
+          type: boolean
+          description: ''
+        optimizeJoinOfCountSql:
+          type: boolean
+          description: ''
+        maxLimit:
+          type: integer
+          description: ''
+          format: int64
+        countId:
+          type: string
+          description: ''
+    MessageResultListReviewFlowVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewFlowVO'
+            description: 复核流视图（含有序步骤）。
+          description: ''
+    RoleBindItem:
+      type: object
+      properties:
+        roleCode:
+          type: string
+          description: 角色编码
+        severity:
+          type: string
+          description: 复核等级：仅 COMPLIANCE_REVIEWER 必填（ROUTINE/MEDIUM/CRITICAL），分配后排在末位
+    ReviewFlowApproversVO:
+      type: object
+      properties:
+        severity:
+          type: string
+          description: 级别：ROUTINE/MEDIUM/CRITICAL
+        approvers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewFlowApproverVO'
+            description: 复核流中的复核人视图。
+          description: 该等级的有序复核人，sortNo 即审批顺序
+    MapListReviewFlowApproverVO: &ref_2
+      type: object
+      properties:
+        key:
+          type: array
+          items:
+            $ref: '#/components/schemas/key'
+    MessageResultReviewFlowApproversVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/ReviewFlowApproversVO'
+          description: ''
+    RoleUserBatchRequest:
+      type: object
+      properties:
+        addUserIds:
+          type: array
+          items:
+            type: integer
+          description: 要加入该角色的用户ID：已持有则跳过；不允许 COMPLIANCE_REVIEWER
+        removeUserIds:
+          type: array
+          items:
+            type: integer
+          description: 要从该角色移除的用户ID：未持有则忽略；不允许 COMPLIANCE_REVIEWER
     PasskeyAssertionCompleteRequest:
       type: object
       properties:
@@ -8857,6 +9423,97 @@ components:
         data:
           $ref: '#/components/schemas/PageProjectUnitAccountingRecord'
           description: ''
+    MessageResultPageRoleMemberVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/PageRoleMemberVO'
+          description: ''
+    UserRoleBindRequest:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleBindItem'
+            description: com.cregis.custody.admin.dto.UserRoleBindRequest.RoleBindItem
+          description: 角色列表；sortNo 为该角色内的审批顺序
+    BeneficiaryVerificationView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 受益人ID
+          format: int64
+        name:
+          type: string
+          description: 姓名
+        type:
+          type: string
+          description: '类型: ubo/director/shareholder'
+        shareSize:
+          type: number
+          description: 持股比例%
+        applicantId:
+          type: string
+          description: provider 侧 individual applicant ID
+        verificationStatus:
+          type: string
+          description: '核验状态: Verified / Rejected / Pending'
+        reviewAnswer:
+          type: string
+          description: provider 原始结论 GREEN/RED
+        verifyTime:
+          type: string
+          description: 取得核验结论时间
+    MessageResultReviewFlowVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/ReviewFlowVO'
+          description: ''
+    RoleOverviewVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 角色ID
+          format: int64
+        roleCode:
+          type: string
+          description: 角色编码
+        roleName:
+          type: string
+          description: 角色名称
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleMemberVO'
+            description: 按角色查询到的成员视图。
+          description: 普通角色：角色下的用户；复核角色为 null
+        levels:
+          $ref: '#/components/schemas/MapListReviewFlowApproverVO'
+          description: 复核角色的三级有序人员；普通角色为 null
+    ReviewerLevelBindRequest:
+      type: object
+      properties:
+        userIds:
+          type: array
+          items:
+            type: integer
+          description: 该等级的有序用户ID：顺序即审批顺序；空数组=清空该等级
     GasOperationsFilterOptionsView:
       type: object
       properties:
@@ -9081,6 +9738,59 @@ components:
         endDate:
           type: string
           description: ''
+    AdminMerchantIdentityVerificationView:
+      type: object
+      properties:
+        companyName:
+          type: string
+          description: 企业名称
+        companyVerificationStatus:
+          type: string
+          description: '企业身份核验状态: Verified / Rejected / Pending'
+        dataSource:
+          type: string
+          description: '受益人数据来源: provider code（如 sumsub）/ local'
+        beneficiaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/BeneficiaryVerificationView'
+            description: >-
+              com.cregis.custody.admin.dto.merchant.AdminMerchantIdentityVerificationView.BeneficiaryVerificationView
+
+
+          description: 受益人核验明细
+    ReviewFlowStepRequest:
+      type: object
+      properties:
+        stepNo:
+          type: integer
+          description: 步骤序号，从 1 开始连续
+        roleCode:
+          type: string
+          description: 资格角色编码
+        assigneeUserId:
+          type: integer
+          description: 指派人用户ID（必填）；stepNo 即审批顺序，调整顺序时按新顺序重新提交
+          format: int64
+    MessageResultListRoleOverviewVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleOverviewVO'
+            description: |-
+              角色总览：一个角色及其成员。
+
+              <p>普通角色用{@code members}；复核角色（COMPLIANCE_REVIEWER）用{@code levels}，
+              按 ROUTINE / MEDIUM / CRITICAL 分组，组内按审批顺序排列。</p>
+          description: ''
     GasOperationsCapabilityView:
       type: object
       properties:
@@ -9153,7 +9863,75 @@ components:
         data:
           $ref: '#/components/schemas/PageFeeMonitorMerchantRankingItem'
           description: ''
-    QueryParamMessage: *ref_0
+    QueryParamMessage: *ref_1
+    AdminMerchantKybDetailView:
+      type: object
+      properties:
+        merchantId:
+          type: integer
+          description: 商户ID
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码
+        merchantName:
+          type: string
+          description: 商户名称
+        merchantStatus:
+          type: string
+          description: 商户状态
+          enum:
+            - PENDING
+            - ACTIVE
+            - FROZEN
+            - CANCELLED
+        email:
+          type: string
+          description: 联系邮箱
+        kybCaseId:
+          type: integer
+          description: KYB 案件ID
+          format: int64
+        kybCaseNo:
+          type: string
+          description: KYB 案件编号
+        kybStatus:
+          type: string
+          description: KYB 状态
+          enum:
+            - DRAFT
+            - PENDING_SCREENING
+            - SUBMITTED
+            - NEED_SUPPLEMENT
+            - APPROVED
+            - REJECTED
+            - ADMIN_REJECTED
+            - CANCELLED
+        kybStageLabel:
+          type: string
+          description: KYB 当前阶段展示文案
+        appliedAt:
+          type: string
+          description: 问卷提交时间
+        questionnaire:
+          $ref: '#/components/schemas/KybQuestionnaire'
+          description: 资格筛查问卷
+        beneficiaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/KybBeneficiary'
+            description: |-
+              KYB 受益人（UBO/董事/股东）明细。
+
+              <p>对应表{@code cus_kyb_beneficiary}。admin 通过后 linkBeneficiary 时回填
+              {@link #applicantId}（Sumsub individual applicantId）并更新状态。</p>
+          description: 受益人明细
+        complianceStatus:
+          $ref: '#/components/schemas/AdminMerchantComplianceStatusView'
+          description: 企业合规状态(Compliance Status tab)
+        identityVerification:
+          $ref: '#/components/schemas/AdminMerchantIdentityVerificationView'
+          description: 企业身份核验(Identity Verification & Screening tab)
     PiiRequestRequest:
       type: object
       properties:
@@ -9274,7 +10052,7 @@ components:
         keyword:
           type: string
           description: ''
-    QueryParamMerchantStaff: *ref_0
+    QueryParamMerchantStaff: *ref_1
     OnchainScreeningItem:
       type: object
       properties:
@@ -9306,6 +10084,21 @@ components:
             本行筛查结论：CLEAR / HIT / UNKNOWN / NOT_REQUIRED。入金取交易级结论；出金取两侧更严重的一档（一高一低即 HIT，哪侧高风险看两个 *Level 字段）
 
 
+    ReviewFlowUpdateRequest:
+      type: object
+      properties:
+        timeoutMinutes:
+          type: integer
+          description: 超时分钟数
+        timeoutAction:
+          type: string
+          description: 超时动作：AUTO_RESOLVE/ESCALATE
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewFlowStepRequest'
+            description: 复核流步骤保存请求。
+          description: 有序步骤，stepNo 从 1 开始连续；每步必须指定 assigneeUserId，调整审批顺序时按新顺序重新提交
     GasAccountDetailView:
       type: object
       properties:
@@ -9694,69 +10487,6 @@ components:
         countId:
           type: string
           description: ''
-    KybBeneficiary:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: 主键ID
-          format: int64
-        caseId:
-          type: integer
-          description: 关联 cus_compliance_case.id
-          format: int64
-        questionnaireId:
-          type: integer
-          description: 关联 cus_kyb_questionnaire.id
-          format: int64
-        ecode:
-          type: string
-          description: 商户编码
-          default: '##default'
-        name:
-          type: string
-          description: 姓名
-          default: '##default'
-        type:
-          type: string
-          description: '类型: ubo/director/shareholder'
-          default: '##default'
-        shareSize:
-          type: number
-          description: 持股比例%
-          default: '##default'
-        country:
-          type: string
-          description: 国籍 ISO3166-1 alpha-3
-          default: '##default'
-        dateOfBirth:
-          type: string
-          description: 出生日期
-          default: '##default'
-        email:
-          type: string
-          description: 邮箱
-          default: '##default'
-        phone:
-          type: string
-          description: 电话
-          default: '##default'
-        applicantId:
-          type: string
-          description: Sumsub individual applicantId（link 后回填）
-          default: '##default'
-        status:
-          type: string
-          description: '状态: PENDING/LINKED/KYC_PASSED'
-          default: '##default'
-        createTime:
-          type: string
-          description: 创建时间
-          default: '##default'
-        updateTime:
-          type: string
-          description: 更新时间
-          default: '##default'
     TravelRuleSummaryView:
       type: object
       properties:
@@ -9862,41 +10592,6 @@ components:
         data:
           $ref: '#/components/schemas/PageProjectUnitFundRecord'
           description: ''
-    key:
-      type: object
-      properties:
-        coinId:
-          type: string
-          description: 币种ID
-          default: '##default'
-        totalBalance:
-          type: string
-          description: 总余额
-          default: '##default'
-        freezeBalance:
-          type: string
-          description: 冻结余额
-          default: '##default'
-        holdBalance:
-          type: string
-          description: 隔离余额
-          default: '##default'
-        availableBalance:
-          type: string
-          description: 可用余额
-          default: '##default'
-        totalIncome:
-          type: string
-          description: 总入金
-          default: '##default'
-        totalOutcome:
-          type: string
-          description: 总出金
-          default: '##default'
-        statDate:
-          type: string
-          description: 统计日期
-          default: '##default'
     MessageResultPageFeeMonitorMerchantFeeDailyItem:
       type: object
       properties:
@@ -9909,77 +10604,6 @@ components:
         data:
           $ref: '#/components/schemas/PageFeeMonitorMerchantFeeDailyItem'
           description: ''
-    AdminMerchantKybDetailView:
-      type: object
-      properties:
-        merchantId:
-          type: integer
-          description: 商户ID
-          format: int64
-        ecode:
-          type: string
-          description: 商户编码
-        merchantName:
-          type: string
-          description: 商户名称
-        merchantStatus:
-          type: string
-          description: 商户状态
-          enum:
-            - PENDING
-            - ACTIVE
-            - FROZEN
-            - CANCELLED
-        merchantType:
-          type: string
-          description: 商户类型
-          enum:
-            - NON_FINANCIAL_CORPORATE
-            - REGULATED_VASP
-            - INTERNAL_SYSTEM
-        email:
-          type: string
-          description: 联系邮箱
-        industryType:
-          type: string
-          description: 行业类型
-        kybCaseId:
-          type: integer
-          description: KYB 案件ID
-          format: int64
-        kybCaseNo:
-          type: string
-          description: KYB 案件编号
-        kybStatus:
-          type: string
-          description: KYB 状态
-          enum:
-            - DRAFT
-            - PENDING_SCREENING
-            - SUBMITTED
-            - NEED_SUPPLEMENT
-            - APPROVED
-            - REJECTED
-            - CANCELLED
-        kybStageLabel:
-          type: string
-          description: KYB 当前阶段展示文案
-        appliedAt:
-          type: string
-          description: 问卷提交时间
-        questionnaire:
-          $ref: '#/components/schemas/KybQuestionnaire'
-          description: 资格筛查问卷
-        beneficiaries:
-          type: array
-          items:
-            $ref: '#/components/schemas/KybBeneficiary'
-            description: |-
-              KYB 受益人（UBO/董事/股东）明细。
-
-              <p>对应表{@code cus_kyb_beneficiary}。admin 通过后 linkBeneficiary 时回填
-              {@link #applicantId}（Sumsub individual applicantId）并更新状态。</p>
-          description: 受益人明细
     PageRiskRule:
       type: object
       properties:
@@ -10098,13 +10722,7 @@ components:
         comment:
           type: string
           description: ''
-    MapListAccountStatResult:
-      type: object
-      properties:
-        key:
-          type: array
-          items:
-            $ref: '#/components/schemas/key'
+    MapListAccountStatResult: *ref_2
     MessageResultListFeeMonitorNativeCoinConsumptionItem:
       type: object
       properties:
@@ -10299,7 +10917,7 @@ components:
               </ul>
           description: 受益人明细
           default: '##default'
-    QueryParamRiskRule: *ref_0
+    QueryParamRiskRule: *ref_1
     TimelineNodeView:
       type: object
       properties:
@@ -11311,7 +11929,7 @@ components:
         data:
           $ref: '#/components/schemas/GasTopUpResponseView'
           description: ''
-    QueryParamRiskEvaluation: *ref_0
+    QueryParamRiskEvaluation: *ref_1
     GasConfigurationUpdateRequest:
       type: object
       properties:
@@ -11491,33 +12109,10 @@ components:
         data:
           $ref: '#/components/schemas/TransactionLensItemView'
           description: ''
-    QueryParamSystemUser: *ref_0
-    AddSystemStaffRequest:
+    key1:
       type: object
-      properties:
-        username:
-          type: string
-          description: 用户名
-        displayName:
-          type: string
-          description: 显示名称
-        email:
-          type: string
-          description: 邮箱
-        roleCode:
-          type: string
-          description: 角色编码
-        initialRoleCode:
-          type: string
-          description: 初始角色编码
-        authorizedDomainIds:
-          type: array
-          items:
-            type: string
-          description: 初始授权页面域
-        defaultEntryId:
-          type: string
-          description: 默认进入位
+      properties: {}
+    QueryParamSystemUser: *ref_1
     MessageResultComplianceTabView:
       type: object
       properties:
@@ -11614,7 +12209,6 @@ components:
 
 
           description: ''
-    QueryParamSystemRole: *ref_0
     MessageResultTravelRuleTabView:
       type: object
       properties:
@@ -11627,31 +12221,6 @@ components:
         data:
           $ref: '#/components/schemas/TravelRuleTabView'
           description: ''
-    SystemRole:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: 主键ID
-          format: int64
-        roleCode:
-          type: string
-          description: 角色编码
-        roleName:
-          type: string
-          description: 角色名称
-        roleType:
-          type: string
-          description: 角色类型
-        status:
-          type: string
-          description: 状态
-        createTime:
-          type: string
-          description: 创建时间
-        updateTime:
-          type: string
-          description: 更新时间
     ApproverView:
       type: object
       properties:
@@ -11668,14 +12237,6 @@ components:
         updatedAt:
           type: string
           description: ''
-    RolePermissionUpdateRequest:
-      type: object
-      properties:
-        permissionCodes:
-          type: array
-          items:
-            type: string
-          description: 权限编码列表
     SignoffTabView:
       type: object
       properties:
@@ -11984,7 +12545,7 @@ components:
         data:
           $ref: '#/components/schemas/FactorView'
           description: ''
-    QueryParamSystemPermissionChange: *ref_0
+    QueryParamSystemPermissionChange: *ref_1
     PermissionChangeApplyRequest:
       type: object
       properties:
@@ -12065,7 +12626,7 @@ components:
           type: string
           description: 订单状态:SUCCESS/FAILED/CONFIRMING
           default: '##default'
-    QueryParamSystemConfig: *ref_0
+    QueryParamSystemConfig: *ref_1
     SystemConfig:
       type: object
       properties:
@@ -12308,7 +12869,7 @@ components:
         inputSnapshot:
           $ref: '#/components/schemas/TestInputSnapshot'
           description: ''
-    QueryParamMerchantGasFulfillRecord: *ref_0
+    QueryParamMerchantGasFulfillRecord: *ref_1
     DeployContractRequest:
       type: object
       properties:
