@@ -3,22 +3,34 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { fetchCoinList, type CoinOnChainView } from '@/api/coin'
 
+/** 缓存有效期（10 分钟） */
+const COIN_CACHE_TTL_MS = 10 * 60 * 1000
+
 export const useCoinStore = defineStore(
   'coins',
   () => {
     const list = ref<CoinOnChainView[]>([])
     const loaded = ref(false)
     const loading = ref(false)
+    /** 上次拉取时间戳，用于判断缓存是否过期 */
+    const fetchedAt = ref(0)
 
     async function ensureLoaded(): Promise<void> {
       if (loaded.value || loading.value) return
+
+      // 检查缓存是否过期
+      if (fetchedAt.value && Date.now() - fetchedAt.value > COIN_CACHE_TTL_MS) {
+        // 缓存过期，重置状态重新拉取
+        loaded.value = false
+        list.value = []
+        fetchedAt.value = 0
+      }
+
       loading.value = true
       try {
         const data = await fetchCoinList()
-        // 防御：确保赋值的是数组（后端可能包裹在 MessageResult 中）。
-        // 注意：这里保留软删除记录 —— 历史流水/余额仍可能引用它们（如 SIT 上的 ETH），
-        // 过滤掉会导致精度查不到、金额被当成 0 精度展示。需要「可选币种」时用 activeList。
         list.value = Array.isArray(data) ? data : []
+        fetchedAt.value = Date.now()
         loaded.value = true
       } catch {
         list.value = []
@@ -107,6 +119,7 @@ export const useCoinStore = defineStore(
       activeList,
       loaded,
       loading,
+      fetchedAt,
       ensureLoaded,
       getCoin,
       getDecimals,
@@ -118,5 +131,10 @@ export const useCoinStore = defineStore(
       getMainCoinDecimals
     }
   },
-  { persist: false }
+  {
+    persist: {
+      key: 'coins',
+      storage: localStorage
+    }
+  }
 )

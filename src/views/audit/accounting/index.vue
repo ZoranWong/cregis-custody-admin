@@ -99,6 +99,7 @@
           :end-placeholder="$t('accounting.to')"
           value-format="YYYY-MM-DD"
           format="YYYY-MM-DD"
+          :disabled-date="disabledDate"
           class="!w-64"
         />
       </div>
@@ -336,6 +337,11 @@
                   <span v-else class="font-mono text-xs text-g-600">—</span>
                 </template>
               </el-table-column>
+              <el-table-column label="Biz ID" width="180">
+                <template #default>
+                  <span class="font-mono text-xs text-g-600">—</span>
+                </template>
+              </el-table-column>
               <el-table-column :label="$t('accounting.createdAt')" width="150">
                 <template #default="{ row }">
                   <span class="text-xs text-g-500">{{ formatTime(row.createTime) }}</span>
@@ -423,10 +429,10 @@
   const merchantLoading = ref(false)
   let merchantDebounce: ReturnType<typeof setTimeout> | null = null
 
-  // 默认选中「本月」，与看板默认展示的最近一个月对齐
+  // 默认选中「最近 7 天」
   const defaultRange = (() => {
     const end = new Date()
-    const start = new Date(end.getFullYear(), end.getMonth(), 1)
+    const start = new Date(end.getTime() - 7 * 86_400_000)
     const pad = (n: number) => String(n).padStart(2, '0')
     const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
     return [fmt(start), fmt(end)] as [string, string]
@@ -440,6 +446,13 @@
   })
   const dateRange = ref<[string, string] | null>([...defaultRange])
   const granularity = ref<TrendGranularity>('daily')
+
+  /** 日期选择器禁用规则：不可选未来日期 */
+  function disabledDate(time: Date): boolean {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return time.getTime() > today.getTime()
+  }
 
   /** 已应用的条件：筛选变化但未点 Apply 时，看板保持上一次结果（对齐原型） */
   const applied = reactive({
@@ -690,8 +703,12 @@
   }
 
   function txActivity(row: AccountingRecordView | FundRecordView): string {
-    if ('activity' in row && row.activity) return activityLabel(row.activity)
-    return activityLabel(row.direction === 'IN' ? 'TRANSFER_IN' : 'TRANSFER_OUT')
+    if ('activity' in row && row.activity) {
+      if (row.activity === 'TRANSFER_IN') return 'Payin'
+      if (row.activity === 'TRANSFER_OUT') return 'Payout'
+      return activityLabel(row.activity)
+    }
+    return row.direction === 'IN' ? 'Payin' : 'Payout'
   }
 
   /** 账户名称格式化：已知类型首字母大写，其余原样显示 */
@@ -830,6 +847,8 @@
       const res = await fetchDailyBalances({
         ecode: applied.merchantCode || undefined,
         treasuryUnitId: applied.treasuryUnitId || undefined,
+        cusAccountId:
+          applied.cusAccountId && applied.cusAccountId > 0 ? applied.cusAccountId : undefined,
         coinIds: coinId ? [coinId] : undefined,
         network,
         startDate: from,
