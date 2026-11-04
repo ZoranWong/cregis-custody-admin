@@ -145,16 +145,16 @@ export function merchantStatusOf(input: {
   /** 用于告警定位的商户编码 */
   ecode?: string | null
 }): MerchantStatus | null {
-  const resolved = resolveMerchantStatus(input)
   const apiStatus = normalize(input.apiStatus)
   const api = isKnownMerchantStatus(apiStatus) ? (apiStatus as MerchantStatus) : null
+  const resolved = resolveMerchantStatus(input)
 
-  if (resolved && api && resolved !== api) {
-    console.warn(
-      `[merchantStatus] ${input.ecode || ''} 前端复算 ${resolved} 与接口 enterpriseStatus ${api} 不一致`
-    )
-  }
-  return resolved ?? api
+  // 接口下发的 enterpriseStatus 为权威来源；前端复算仅作无接口值时的兜底
+  if (api) return api
+  if (resolved) return resolved
+
+  console.warn(`[merchantStatus] ${input.ecode || ''} 前端复算与接口 enterpriseStatus 均为空`)
+  return null
 }
 
 /** 对外状态是否已定案（拒绝 / 取消），用于「重新申请」等后续流程判断 */
