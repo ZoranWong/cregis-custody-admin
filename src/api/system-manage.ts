@@ -425,6 +425,18 @@ function normalizeApprover(raw: Record<string, unknown>): ReviewFlowApprover {
 }
 
 /**
+ * 查询指定角色的成员列表
+ * GET /system/role/{roleCode}/users
+ */
+export async function fetchRoleUsers(roleCode: string): Promise<RoleMemberView[]> {
+  const raw = (await apiRequest(`/system/role/${encodeURIComponent(roleCode)}/users?pageSize=200`, {
+    method: 'GET'
+  })) as Record<string, unknown>
+  const records = raw?.records as Record<string, unknown>[] | undefined
+  return Array.isArray(records) ? records.map(normalizeRoleMember) : []
+}
+
+/**
  * 批量调整角色成员（不处理 COMPLIANCE_REVIEWER）
  * PUT /system/role/{roleCode}/users
  */

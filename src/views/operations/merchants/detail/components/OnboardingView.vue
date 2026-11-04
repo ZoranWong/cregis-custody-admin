@@ -16,7 +16,12 @@
     <div v-if="stage && stage !== 'DONE'" class="art-card overflow-hidden">
       <div class="p-4 border-b border-[var(--default-border)] flex items-center justify-between">
         <h2 class="text-sm font-semibold text-g-900">{{ currentStepTitle }}</h2>
-        <ArtStatusTag :status="stepBadgeTone" :text="stepBadgeLabel" />
+        <div class="flex items-center gap-2">
+          <el-button v-if="canDecideInitial" size="small" @click="showQuestionnaireEdit = true">
+            {{ $t('merchantDetail.editQuestionnaire') }}
+          </el-button>
+          <ArtStatusTag :status="stepBadgeTone" :text="stepBadgeLabel" />
+        </div>
       </div>
 
       <!-- 步骤一：资格筛查（已拒绝时首屏即为拒绝提示，与终审一致） -->
@@ -75,7 +80,7 @@
             <div class="verification-note-desc">{{ kybPanel.desc }}</div>
 
             <template v-if="kybPanel.waitingCustomer">
-              <!-- 已生成：链接 + 有效期 + 复制 / 重新生成 -->
+              <!-- 已生成：链接 + 有效期 + 复制 -->
               <template v-if="sdkLink">
                 <div class="verification-link-box">
                   <div class="verification-link-row">
@@ -106,15 +111,6 @@
                     {{ $t('merchantDetail.verificationCustomerEmail') }}:
                     <strong>{{ detail.email || '--' }}</strong>
                   </span>
-                  <el-button
-                    size="small"
-                    :loading="sdkLinkLoading"
-                    :disabled="sdkLinkLoading"
-                    @click="handleGenerateSdkLink"
-                  >
-                    <ArtSvgIcon icon="ri:send-plane-line" class="text-icon-sm mr-1" />
-                    {{ $t('merchantDetail.regenerateLink') }}
-                  </el-button>
                 </div>
               </template>
 
@@ -302,13 +298,20 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 问卷编辑弹窗 -->
+    <QuestionnaireEditForm
+      v-model:visible="showQuestionnaireEdit"
+      :ecode="detail.ecode"
+      :questionnaire="detail.questionnaire"
+      @saved="handleQuestionnaireSaved"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue'
+  import { computed, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useNow } from '@vueuse/core'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import {
     approveKybFinalReview,
@@ -326,12 +329,6 @@
     type ReviewStage
   } from '@/features/merchant/merchantStepper'
   import {
-    clearKybSdkLink,
-    readKybSdkLink,
-    saveKybSdkLink,
-    type CachedKybSdkLink
-  } from '@/features/merchant/kybSdkLink'
-  import {
     MerchantStatus,
     merchantStatusOf,
     resolveMerchantRejectReason
@@ -340,6 +337,7 @@
   import PrescreeningPanel from './PrescreeningPanel.vue'
   import IdentityVerificationPanel from './IdentityVerificationPanel.vue'
   import AgreementsPanel from './AgreementsPanel.vue'
+  import QuestionnaireEditForm from './QuestionnaireEditForm.vue'
 
   defineOptions({ name: 'MerchantOnboardingView' })
 
@@ -353,33 +351,29 @@
 
   const completedTab = ref('prescreening')
   const showRejectDialog = ref(false)
+  const showQuestionnaireEdit = ref(false)
   const rejectReason = ref('')
   const rejectStage = ref<'INITIAL' | 'FINAL'>('INITIAL')
   const approving = ref(false)
   const rejecting = ref(false)
   const refreshing = ref(false)
 
-  // ─── KYB 验证链接（按 ecode 缓存，默认 30 分钟过期）───
-  // 先同步初始化，避免首帧把缓存中的链接误判成「尚未生成」而出现文案闪烁
-  const sdkLink = ref<CachedKybSdkLink | null>(readKybSdkLink(props.detail.ecode))
+  // ─── KYB 验证链接（直接使用详情接口返回的数据）───
   const sdkLinkLoading = ref(false)
-  // 只用于在缓存过期后切回「生成链接」提示态，展示的是绝对过期时间，无需秒级刷新
-  const now = useNow({ interval: 15_000 })
 
-  /** 进入详情 / 切换商户 / 定时检查时，从缓存同步链接状态 */
-  watch(
-    () => [props.detail.ecode, now.value] as const,
-    () => {
-      const cached = readKybSdkLink(props.detail.ecode)
-      if (!cached) {
-        if (sdkLink.value) clearKybSdkLink(props.detail.ecode)
-        sdkLink.value = null
-        return
-      }
-      // 只在链接变化（首次进入 / 重新生成）时更新，避免定时检查触发重渲染
-      if (sdkLink.value?.url !== cached.url) sdkLink.value = cached
+  /** 详情接口返回的有效 SDK 链接（未过期） */
+  const sdkLink = computed(() => {
+    const link = props.detail.kybSdkLink
+    if (!link?.url || !link?.expiresAt) return null
+    const expiresAt = new Date(link.expiresAt).getTime()
+    if (expiresAt <= Date.now()) return null
+    return {
+      url: link.url,
+      externalUserId: link.externalUserId,
+      createdAt: new Date(link.issuedAt).getTime(),
+      expiresAt
     }
-  )
+  })
 
   const kybState = computed(() => props.detail.kybStatus?.toUpperCase() || '')
 
@@ -650,31 +644,16 @@
 
   /**
    * 生成 KYB 验证链接并发送邮件。
-   * 已有有效链接时视为「重新生成」，先二次确认（旧链接会失效）。
+   * 仅在无有效链接时调用，生成后触发详情重载以同步接口数据。
    */
   async function handleGenerateSdkLink() {
     const email = props.detail.email || '--'
-    if (sdkLink.value) {
-      try {
-        await ElMessageBox.confirm(
-          t('merchantDetail.regenerateLinkConfirm', { email }),
-          t('merchantDetail.regenerateLink'),
-          { type: 'warning' }
-        )
-      } catch {
-        return
-      }
-    }
 
     sdkLinkLoading.value = true
     try {
-      const link = await createKybSdkLink(props.detail.ecode)
-      // 接口字段缺失时兜底，避免缓存出无 url 的记录后按钮一直显示「重新生成」
-      sdkLink.value = saveKybSdkLink(props.detail.ecode, {
-        url: link?.url || '',
-        externalUserId: link?.externalUserId || props.detail.ecode
-      })
+      await createKybSdkLink(props.detail.ecode)
       ElMessage.success(t('merchantDetail.generateLinkSuccess', { email }))
+      await props.reload()
     } catch (error) {
       ElMessage.error(
         t('merchantDetail.generateLinkFailed', {
@@ -712,6 +691,11 @@
     } finally {
       refreshing.value = false
     }
+  }
+
+  /** 问卷编辑保存后重载详情 */
+  async function handleQuestionnaireSaved() {
+    await props.reload()
   }
 
   /** 时间格式化：接口时间保留原样截断；本地时间戳（毫秒）按本地时区展示 */

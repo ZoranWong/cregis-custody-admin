@@ -324,6 +324,13 @@ export interface AdminMerchantKybDetailView {
   rejectedAt?: string | null
   /** 三方审核评论（Sumsub reviewComment）；接口未下发时为 null / undefined */
   reviewComment?: string | null
+  /** KYB 验证链接（后端返回，含过期时间） */
+  kybSdkLink?: {
+    url: string
+    externalUserId: string
+    issuedAt: string
+    expiresAt: string
+  } | null
 }
 
 /**
@@ -397,6 +404,30 @@ export async function rejectKybFinalReview(ecode: string, reason?: string): Prom
     method: 'POST',
     body: reason ? { reason } : {}
   })
+}
+
+// ─── 修改问卷 BD 推荐人信息 ───
+
+/** 修改问卷 BD 推荐人请求体 */
+export interface AdminMerchantQuestionnaireBdRequest {
+  /** 是否由 BD 团队推荐；false 表示清空推荐人信息 */
+  bdReferral: boolean
+  /** BD 推荐人后台用户 ID（o_sys_user.id）；bdReferral=true 时必填 */
+  bdUserId?: number
+}
+
+/**
+ * 修改问卷 BD 推荐人信息（仅入驻中可改）
+ * POST /merchant/{ecode}/questionnaire/bd-referral
+ */
+export async function updateQuestionnaireBdReferral(
+  ecode: string,
+  data: AdminMerchantQuestionnaireBdRequest
+): Promise<KybQuestionnaire> {
+  return (await apiRequest<KybQuestionnaire>(
+    `/merchant/${encodeURIComponent(ecode)}/questionnaire/bd-referral`,
+    { method: 'POST', body: data }
+  )) as KybQuestionnaire
 }
 
 // ─── KYB 受益人同步（POST /merchant/{ecode}/kyb/beneficiaries/refresh）───
@@ -553,6 +584,39 @@ export async function fetchMerchantOptions(): Promise<Array<{ label: string; val
   } catch {
     return []
   }
+}
+
+/**
+ * 修改问卷业务答案请求体（仅入驻中可改）
+ * POST /merchant/{ecode}/questionnaire
+ */
+export interface AdminMerchantQuestionnaireUpdateRequest {
+  investorType?: 'INSTITUTIONAL_INVESTOR' | 'QUALIFIED_INVESTOR'
+  legalName?: string
+  primaryActivity?: string
+  companyAddress?: string
+  website?: string
+  bdReferral?: boolean
+  bdUserId?: number
+  authorisedPerson?: boolean
+  netAssetsMet?: boolean
+  directorsVaKnowledge?: boolean
+  riskDisclosureAccepted?: boolean
+  privacyPolicyAccepted?: boolean
+}
+
+/**
+ * 修改问卷业务答案（仅入驻中可改）
+ * 整体覆盖最新问卷的业务答案，同步案件最近提交 payload；仅企业状态为 PENDING 时允许。
+ */
+export async function updateQuestionnaire(
+  ecode: string,
+  data: AdminMerchantQuestionnaireUpdateRequest
+): Promise<KybQuestionnaire> {
+  return (await apiRequest<KybQuestionnaire>(
+    `/merchant/${encodeURIComponent(ecode)}/questionnaire`,
+    { method: 'POST', body: data }
+  )) as KybQuestionnaire
 }
 
 // ─── Legacy API Functions (for backward compatibility) ───
