@@ -37,6 +37,8 @@ const EXPLICIT_ALLOWLIST = new Set<string>([
   'width',
   'index',
   'menu-width',
+  // 步骤条：组件内局部变量（定义在 .step-flow 上，主 36px / 子 24px）
+  'step-size',
   // 第三方编辑器 / 模板遗留，待 S2 收敛
   'art-gray-50',
   'art-bg-color',

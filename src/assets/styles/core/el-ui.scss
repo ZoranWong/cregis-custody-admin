@@ -366,32 +366,45 @@ html.dark .el-card {
    * 用 .el-tag.el-tag--{effect}.el-tag--{type} 三个类，与 EP 的 dark 规则同特异性，
    * 靠「本文件在 EP 之后加载」取胜。
    */
+  /*
+   * 三槽位：文字 / 描边 / 底色。
+   *
+   * 底色必须一起绑：EP 的 info 基色是灰色，light 底会落到
+   * `--el-color-info-light-9`（灰底），与我们的蓝色描边、蓝色文字拼在一起
+   * 「蓝字 + 灰底」显得脏 —— 这正是此前状态标签看起来配色不对的原因。
+   */
   $tag-types: (
     primary: (
       var(--theme-text),
-      var(--theme-border)
+      var(--theme-border),
+      var(--el-color-primary-light-9)
     ),
     success: (
       var(--tone-done-text),
-      var(--tone-done-border)
+      var(--tone-done-border),
+      var(--tone-done-bg)
     ),
     warning: (
       var(--tone-progress-text),
-      var(--tone-progress-border)
+      var(--tone-progress-border),
+      var(--tone-progress-bg)
     ),
     danger: (
       var(--tone-error-text),
-      var(--tone-error-border)
+      var(--tone-error-border),
+      var(--tone-error-bg)
     ),
     info: (
       var(--tone-info-text),
-      var(--tone-info-border)
+      var(--tone-info-border),
+      var(--tone-info-bg)
     )
   );
 
   @each $type, $pair in $tag-types {
     $text: nth($pair, 1);
     $border: nth($pair, 2);
+    $bg: nth($pair, 3);
 
     /*
      * !important 是必需的，不是保守写法：
@@ -405,6 +418,11 @@ html.dark .el-card {
       --el-tag-border-color: #{$border} !important;
     }
 
+    // light 底：用 tone 底色（EP 的 info 底是灰色，与 tone 语义不一致）
+    &.el-tag--light.el-tag--#{$type} {
+      --el-tag-bg-color: #{$bg} !important;
+    }
+
     // dark：文字压实心底本已达标，保持 EP 的白字；仅统一描边
     &.el-tag--dark.el-tag--#{$type} {
       --el-tag-border-color: #{$border} !important;
@@ -413,6 +431,7 @@ html.dark .el-card {
     &.el-tag--plain.el-tag--#{$type} {
       --el-tag-text-color: #{$text} !important;
       --el-tag-border-color: #{$border} !important;
+      --el-tag-bg-color: #{$bg} !important;
     }
   }
 

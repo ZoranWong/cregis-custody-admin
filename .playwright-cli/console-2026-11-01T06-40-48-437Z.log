@@ -1,0 +1,6 @@
+[     515ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[     560ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    1310ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615

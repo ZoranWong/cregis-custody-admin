@@ -1,0 +1,14 @@
+[     333ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[     367ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[     986ms] [LOG] 🍍 "merchantList" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  583057ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:8766/@vite/client:864
+[  583935ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  584133ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  584774ms] [LOG] 🍍 "merchantList" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1963772ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8766/CRM/merchant/list:0

@@ -7,7 +7,7 @@
 import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
 
-export type MerchantListTab = 'applications' | 'list'
+export type MerchantListTab = 'applications' | 'list' | 'rejections'
 
 export interface MerchantApplicationState {
   /** 商户名模糊搜索 */
@@ -22,6 +22,16 @@ export interface MerchantListState {
   /** 商户名模糊搜索 */
   merchantName: string
   sort: 'recent' | 'name_asc'
+  page: number
+  pageSize: number
+}
+
+/** 拒绝记录（Reject History）：按拒绝来源筛选，全部在前端聚合 */
+export interface MerchantRejectionsState {
+  /** 商户名模糊搜索 */
+  merchantName: string
+  /** 拒绝来源：INITIAL_REJECTED / FINAL_REJECTED / KYB_REJECTED，空串为全部 */
+  rejectType: string
   page: number
   pageSize: number
 }
@@ -43,9 +53,17 @@ export const useMerchantListStore = defineStore('merchantList', () => {
     pageSize: 10
   })
 
+  const rejections = reactive<MerchantRejectionsState>({
+    merchantName: '',
+    rejectType: '',
+    page: 1,
+    pageSize: 10
+  })
+
   return {
     activeTab,
     applications,
-    list
+    list,
+    rejections
   }
 })

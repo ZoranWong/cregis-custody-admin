@@ -181,6 +181,20 @@
           @remove="removeFromSection"
           @add="addToSection"
         />
+
+        <!-- Business Development（普通角色：成员增删，与 System Administrators 同一套编辑流程） -->
+        <RoleSectionCard
+          :title-display="$t('system.businessDevelopers')"
+          :role-code="BUSINESS_DEVELOPER_ROLE"
+          :is-editing="editingSection === BUSINESS_DEVELOPER_ROLE"
+          :members="businessDeveloperMembers"
+          :available="businessDeveloperAvailable"
+          @start-edit="startSectionEdit(BUSINESS_DEVELOPER_ROLE)"
+          @cancel-edit="cancelSectionEdit"
+          @save="saveSectionEdit"
+          @remove="removeFromSection"
+          @add="addToSection"
+        />
       </template>
 
       <!-- Governance Notice -->
@@ -236,6 +250,7 @@
   const SYSTEM_ADMIN_ROLE = 'SYSTEM_ADMIN'
   const COMPLIANCE_OFFICER_ROLE = 'COMPLIANCE_OFFICER'
   const TRAVEL_RULE_ROLE = 'TRAVEL_RULE_RESOLVER'
+  const BUSINESS_DEVELOPER_ROLE = 'BUSINESS_DEVELOPER'
 
   // ─── Members Tab (real API) ───
   const {
@@ -432,6 +447,8 @@
   const officerAvailable = computed(() => getAvailableForRole(COMPLIANCE_OFFICER_ROLE))
   const travelRuleMembers = computed(() => buildRoleMembers(TRAVEL_RULE_ROLE))
   const travelRuleAvailable = computed(() => getAvailableForRole(TRAVEL_RULE_ROLE))
+  const businessDeveloperMembers = computed(() => buildRoleMembers(BUSINESS_DEVELOPER_ROLE))
+  const businessDeveloperAvailable = computed(() => getAvailableForRole(BUSINESS_DEVELOPER_ROLE))
 </script>
 
 <style scoped>

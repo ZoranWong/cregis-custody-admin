@@ -1,0 +1,7 @@
+[     378ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[     481ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[     922ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    5777ms] [WARNING] [intlify] Not found 'merchantDetail.primaryActivity_测试' key in 'en' locale messages. @ http://127.0.0.1:8766/node_modules/.vite/deps/vue-i18n.js?v=d32786bb:26

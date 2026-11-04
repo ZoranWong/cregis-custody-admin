@@ -49,6 +49,9 @@
                   <span class="font-medium text-g-800">{{ row.merchantName }}</span>
                 </template>
               </el-table-column>
+              <el-table-column :label="$t('merchantList.type')" min-width="160">
+                <template #default="{ row }">{{ typeLabel(row as MerchantRecord) }}</template>
+              </el-table-column>
               <el-table-column :label="$t('merchantList.email')" min-width="180">
                 <template #default="{ row }">{{ row.email || '-' }}</template>
               </el-table-column>
@@ -62,12 +65,12 @@
                   <span class="text-xs text-g-600">{{ formatDateTime(row.createTime) }}</span>
                 </template>
               </el-table-column>
-              <!-- 申请列表展示 KYB 阶段（kybStatus），不是商户 status -->
+              <!-- 申请列表同样展示统一的商户对外状态（resolveMerchantStatus 计算） -->
               <el-table-column :label="$t('merchantList.status')" width="160">
                 <template #default="{ row }">
                   <ArtStatusTag
-                    :status="kybStatusTone(row.kybStatus)"
-                    :text="kybStatusLabel(row.kybStatus)"
+                    :status="merchantStatusTone(row as MerchantRecord)"
+                    :text="merchantStatusLabel(row as MerchantRecord)"
                   />
                 </template>
               </el-table-column>
@@ -93,7 +96,7 @@
         </div>
       </el-tab-pane>
 
-      <!-- Tab 2: Merchant List (non-PENDING) -->
+      <!-- Tab 2: Merchant List（status != PENDING 且 status != CANCELLED） -->
       <el-tab-pane :label="$t('merchantList.merchantList')" name="list">
         <!-- Filter Bar -->
         <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -104,7 +107,7 @@
             class="!w-40"
           >
             <el-option :label="$t('merchantList.allStatus')" value="" />
-            <!-- 取值与接口 status 字段一致（MerchantStatus） -->
+            <!-- 取值与接口 status 字段一致（MerchantSelfStatus） -->
             <el-option
               v-for="option in MERCHANT_STATUS_OPTIONS"
               :key="option.value"
@@ -150,12 +153,15 @@
                 </template>
               </el-table-column>
               <el-table-column :label="$t('merchantList.type')" min-width="160">
-                <template #default="{ row }">{{ entityTypeLabel(row.entityType) }}</template>
+                <template #default="{ row }">{{ typeLabel(row as MerchantRecord) }}</template>
               </el-table-column>
-              <!-- 商户列表展示商户 status（非 KYB 阶段） -->
-              <el-table-column :label="$t('merchantList.status')" min-width="120">
+              <!-- 商户列表：统一由商户自身状态 + 最新 KYB Case 计算对外状态 -->
+              <el-table-column :label="$t('merchantList.status')" min-width="140">
                 <template #default="{ row }">
-                  <ArtStatusTag :status="statusTone(row.status)" :text="statusLabel(row.status)" />
+                  <ArtStatusTag
+                    :status="merchantStatusTone(row as MerchantRecord)"
+                    :text="merchantStatusLabel(row as MerchantRecord)"
+                  />
                 </template>
               </el-table-column>
               <el-table-column :label="$t('merchantList.screening')" min-width="120">
@@ -192,6 +198,99 @@
           </template>
         </div>
       </el-tab-pane>
+
+      <!-- Tab 3: Reject History（初审 / 复审 / KYB 拒绝） -->
+      <el-tab-pane :label="$t('merchantList.rejectHistory')" name="rejections">
+        <!-- Filter Bar -->
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <el-select
+            v-model="store.rejections.rejectType"
+            :placeholder="$t('merchantList.rejectType')"
+            clearable
+            class="!w-44"
+          >
+            <el-option :label="$t('merchantList.allRejectTypes')" value="" />
+            <el-option
+              v-for="option in REJECT_TYPE_OPTIONS"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
+          <el-input
+            v-model="store.rejections.merchantName"
+            :placeholder="$t('merchantList.searchPlaceholder')"
+            clearable
+            class="flex-1 !min-w-[200px]"
+          >
+            <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
+          </el-input>
+        </div>
+
+        <!-- Rejections Table -->
+        <div class="art-card overflow-hidden">
+          <template v-if="rejectLoading">
+            <el-skeleton :rows="8" animated class="p-5" />
+          </template>
+          <template v-else>
+            <el-table
+              :data="rejectPageRows"
+              highlight-current-row
+              style="cursor: pointer"
+              @row-click="openDetail"
+            >
+              <template #empty>
+                <div class="p-10 text-center text-g-500">{{ $t('common.noData') }}</div>
+              </template>
+              <el-table-column :label="$t('merchantList.name')" min-width="180">
+                <template #default="{ row }">
+                  <span class="font-medium text-g-800">{{ row.merchantName }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('merchantList.type')" min-width="150">
+                <template #default="{ row }">{{ typeLabel(row as MerchantRecord) }}</template>
+              </el-table-column>
+              <el-table-column :label="$t('merchantList.rejectType')" min-width="140">
+                <template #default="{ row }">
+                  <ArtStatusTag
+                    :status="merchantStatusTone(row as MerchantRecord)"
+                    :text="merchantStatusLabel(row as MerchantRecord)"
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('merchantList.rejectReason')" min-width="260">
+                <template #default="{ row }">
+                  <span class="text-xs text-g-600 kyb-reason-cell">
+                    {{ rejectReasonOf(row as MerchantRecord) }}
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('merchantList.updatedAt')" min-width="160">
+                <template #default="{ row }">
+                  <span class="text-xs text-g-600">{{ formatDateTime(row.updateTime) }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <!-- Pagination（服务端不支持按 KYB 状态筛选，分页在前端完成） -->
+            <div
+              class="flex items-center justify-between px-4 py-3 border-t border-[var(--default-border)]"
+            >
+              <span class="text-xs text-g-500">
+                {{ rejectTotal }} {{ $t('merchantList.totalRecords') }}
+              </span>
+              <el-pagination
+                v-model:current-page="store.rejections.page"
+                v-model:page-size="store.rejections.pageSize"
+                :total="rejectTotal"
+                :page-sizes="[10, 20, 50]"
+                background
+                layout="prev, pager, next, sizes"
+              />
+            </div>
+          </template>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -204,7 +303,13 @@
   import type { MerchantRecord } from '@/api/merchant'
   import { entityTypeLabel } from '@/utils/entityType'
   import { useMerchantListStore, type MerchantListTab } from '@/store/modules/merchantList'
-  import { KybStatus, MerchantStatus } from '@/enums/merchantEnum'
+  import { MerchantSelfStatus } from '@/enums/merchantEnum'
+  import {
+    MERCHANT_STATUS_LABEL_KEYS,
+    MERCHANT_STATUS_TONE,
+    MerchantStatus,
+    merchantStatusOf
+  } from '@/utils/merchantStatus'
 
   defineOptions({ name: 'MerchantManagement' })
 
@@ -213,12 +318,19 @@
   const { t } = useI18n()
   const store = useMerchantListStore()
 
-  const TABS: MerchantListTab[] = ['applications', 'list']
+  const TABS: MerchantListTab[] = ['applications', 'list', 'rejections']
 
+  /** 商户列表 tab 的状态筛选（PENDING 在申请、CANCELLED 在拒绝记录，不在此列） */
   const MERCHANT_STATUS_OPTIONS = computed(() => [
-    { value: MerchantStatus.Active, label: t('merchantList.statusActive') },
-    { value: MerchantStatus.Frozen, label: t('merchantList.statusFrozen') },
-    { value: MerchantStatus.Cancelled, label: t('merchantList.statusCancelled') }
+    { value: MerchantSelfStatus.Active, label: t('merchantList.statusActive') },
+    { value: MerchantSelfStatus.Frozen, label: t('merchantList.statusFrozen') }
+  ])
+
+  /** 拒绝记录按拒绝来源筛选（三种拒绝状态互不合并） */
+  const REJECT_TYPE_OPTIONS = computed(() => [
+    { value: MerchantStatus.InitialRejected, label: t('merchantStatus.initialRejected') },
+    { value: MerchantStatus.FinalRejected, label: t('merchantStatus.finalRejected') },
+    { value: MerchantStatus.KybRejected, label: t('merchantStatus.kybRejected') }
   ])
 
   // ─── 数据 ───
@@ -229,6 +341,17 @@
   const listLoading = ref(false)
   const merchants = ref<MerchantRecord[]>([])
   const listPagination = reactive({ total: 0 })
+
+  /**
+   * 拒绝记录 = 商户自身状态 CANCELLED（服务端过滤）。
+   * 拒绝来源（初审 / 复审 / KYB）由统一状态细分，但后端不支持按
+   * kybStatus / enterpriseStatus 过滤（传这些 key 会 500），
+   * 所以先分页拉全量 CANCELLED 商户，再在前端按来源筛选 + 分页。
+   */
+  const rejectLoading = ref(false)
+  const rejectAll = ref<MerchantRecord[]>([])
+  const rejectTotal = ref(0)
+  const rejectPageRows = ref<MerchantRecord[]>([])
 
   // ─── URL tab 同步（必须在 watch(activeTab) 之前定义）───
   const activeTab = computed<MerchantListTab>({
@@ -251,7 +374,7 @@
       const response = await fetchMerchantList({
         pageNum: store.applications.page,
         pageSize: store.applications.pageSize,
-        status: MerchantStatus.Pending,
+        status: MerchantSelfStatus.Pending,
         merchantName: store.applications.merchantName || undefined,
         sort: 'createTime_desc'
       })
@@ -268,11 +391,12 @@
   async function loadMerchants() {
     listLoading.value = true
     try {
+      // 商户列表 = status != PENDING 且 status != CANCELLED
+      // （入驻申请归 applications，已取消归 reject history）
       const response = await fetchMerchantList({
         pageNum: store.list.page,
         pageSize: store.list.pageSize,
-        status: MerchantStatus.Pending,
-        statusOper: '!=',
+        statusExcludes: [MerchantSelfStatus.Pending, MerchantSelfStatus.Cancelled],
         statusSecondary: store.list.status || undefined,
         merchantName: store.list.merchantName || undefined,
         sort: store.list.sort === 'recent' ? 'updateTime_desc' : 'merchantName_asc'
@@ -287,9 +411,64 @@
     }
   }
 
+  /** 拉取全量 CANCELLED 商户（每页 500，最多 20 页）后在前端过滤 */
+  async function loadCancelledMerchants(): Promise<MerchantRecord[]> {
+    const pageSize = 500
+    const maxPages = 20
+    const collected: MerchantRecord[] = []
+    for (let pageNum = 1; pageNum <= maxPages; pageNum += 1) {
+      const response = await fetchMerchantList({
+        pageNum,
+        pageSize,
+        status: MerchantSelfStatus.Cancelled,
+        sort: 'updateTime_desc'
+      })
+      collected.push(...response.records)
+      if (response.records.length < pageSize || collected.length >= (response.total || 0)) break
+    }
+    return collected
+  }
+
+  async function loadRejections() {
+    rejectLoading.value = true
+    try {
+      rejectAll.value = await loadCancelledMerchants()
+      applyRejectPage()
+    } catch (error) {
+      console.error('Failed to load reject history:', error)
+      rejectAll.value = []
+      rejectPageRows.value = []
+      rejectTotal.value = 0
+    } finally {
+      rejectLoading.value = false
+    }
+  }
+
+  /** 按拒绝来源 + 名称过滤，再按当前页切片 */
+  function applyRejectPage() {
+    const type = store.rejections.rejectType
+    const keyword = store.rejections.merchantName.trim().toLowerCase()
+    const filtered = rejectAll.value.filter((row) => {
+      // 以商户自身状态 CANCELLED 为准；来源细分用统一状态（初审 / 复审 / KYB）
+      if ((row.status || '').toUpperCase() !== MerchantSelfStatus.Cancelled) return false
+      const status = rowMerchantStatus(row)
+      if (type && status !== type) return false
+      if (keyword && !(row.merchantName || '').toLowerCase().includes(keyword)) return false
+      return true
+    })
+    rejectTotal.value = filtered.length
+    const pageSize = store.rejections.pageSize
+    // 过滤后总页数变少时，把当前页夹到最后一页，避免停在空白页
+    const lastPage = Math.max(1, Math.ceil(filtered.length / pageSize))
+    if (store.rejections.page > lastPage) store.rejections.page = lastPage
+    const start = (store.rejections.page - 1) * pageSize
+    rejectPageRows.value = filtered.slice(start, start + pageSize)
+  }
+
   function loadActiveTab() {
     if (activeTab.value === 'applications') void loadApplications()
-    else void loadMerchants()
+    else if (activeTab.value === 'list') void loadMerchants()
+    else void loadRejections()
   }
 
   // ─── watch 驱动搜索：输入即搜（防抖）+ IME 天然支持 ───
@@ -323,6 +502,15 @@
     () => {
       store.list.page = 1
       void loadMerchants()
+    }
+  )
+
+  // 拒绝记录：名称过滤在前端，输入同样防抖后只重算当前页
+  watchWithDebounce(
+    () => store.rejections.merchantName,
+    () => {
+      store.rejections.page = 1
+      applyRejectPage()
     }
   )
 
@@ -372,10 +560,24 @@
     }
   )
 
+  // 拒绝记录：页码 / 拒绝来源变化 → 只在本地重算切片
+  watch(
+    () => [store.rejections.page, store.rejections.rejectType],
+    () => applyRejectPage()
+  )
+  watch(
+    () => store.rejections.pageSize,
+    () => {
+      store.rejections.page = 1
+      applyRejectPage()
+    }
+  )
+
   // 切换 tab 时按需加载
   watch(activeTab, (tab) => {
     if (tab === 'applications' && applications.value.length === 0) void loadApplications()
     if (tab === 'list' && merchants.value.length === 0) void loadMerchants()
+    if (tab === 'rejections' && rejectAll.value.length === 0) void loadRejections()
   })
 
   // ─── URL tab 同步 ───
@@ -385,49 +587,47 @@
     router.push({ name: 'merchant-detail', params: { merchantId: row.code } })
   }
 
-  function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' | null {
-    if (status === MerchantStatus.Active) return 'success'
-    if (status === MerchantStatus.Frozen) return 'warning'
-    if (status === MerchantStatus.Cancelled) return 'danger'
-    return null
+  /**
+   * 商户对外状态（列表两栏共用）。
+   *
+   * 计算规则集中在 utils/merchantStatus.ts：FROZEN 优先，其次最新 KYB Case，
+   * 最后按商户自身状态兜底。未定义组合（无 KYB 的 CANCELLED）回退展示商户自身状态，
+   * 避免出现空白状态列。
+   */
+  function rowMerchantStatus(row: MerchantRecord): MerchantStatus | null {
+    return merchantStatusOf({
+      merchantStatus: row.status,
+      latestKybStatus: row.kybStatus,
+      // 接口已直接下发聚合状态：复算未覆盖时用它兜底，并做一致性告警
+      apiStatus: row.enterpriseStatus,
+      ecode: row.code
+    })
   }
 
-  function statusLabel(status: string): string {
-    if (status === MerchantStatus.Active) return t('merchantList.statusActive')
-    if (status === MerchantStatus.Frozen) return t('merchantList.statusFrozen')
-    if (status === MerchantStatus.Cancelled) return t('merchantList.statusCancelled')
-    return status || '-'
+  function merchantStatusTone(row: MerchantRecord) {
+    const status = rowMerchantStatus(row)
+    return status ? MERCHANT_STATUS_TONE[status] : null
   }
 
-  /** KYB 阶段（申请 tab）：展示 kybStatus */
-  function kybStatusTone(
-    kybStatus?: string | null
-  ): 'success' | 'warning' | 'danger' | 'info' | null {
-    if (kybStatus === KybStatus.Approved) return 'success'
-    if (
-      kybStatus === KybStatus.Rejected ||
-      kybStatus === KybStatus.AdminRejected ||
-      kybStatus === KybStatus.Cancelled
-    ) {
-      return 'danger'
-    }
-    if (kybStatus === KybStatus.Submitted || kybStatus === KybStatus.NeedSupplement) return 'info'
-    if (kybStatus === KybStatus.PendingScreening || kybStatus === KybStatus.Draft) return 'warning'
-    return null
+  function merchantStatusLabel(row: MerchantRecord): string {
+    const status = rowMerchantStatus(row)
+    if (status) return t(MERCHANT_STATUS_LABEL_KEYS[status])
+    return row.status || '-'
   }
 
-  function kybStatusLabel(kybStatus?: string | null): string {
-    const map: Record<string, string> = {
-      [KybStatus.Draft]: t('merchantList.kybDraft'),
-      [KybStatus.PendingScreening]: t('merchantList.kybPendingScreening'),
-      [KybStatus.Submitted]: t('merchantList.kybSubmitted'),
-      [KybStatus.NeedSupplement]: t('merchantList.kybNeedSupplement'),
-      [KybStatus.Approved]: t('merchantList.kybApproved'),
-      [KybStatus.Rejected]: t('merchantList.kybRejected'),
-      [KybStatus.AdminRejected]: t('merchantList.kybAdminRejected'),
-      [KybStatus.Cancelled]: t('merchantList.kybCancelled')
-    }
-    return (kybStatus && map[kybStatus]) || kybStatus || '-'
+  /**
+   * Type 列对齐原型（Institutional / Qualified Investor）。
+   *
+   * 优先用 merchant.investorType（后端已下发）；缺失时回退问卷主体类型、
+   * 再回退三方企业标识，避免该列大面积为空。
+   */
+  function typeLabel(row: MerchantRecord): string {
+    const investor = (row.investorType || '').toUpperCase()
+    if (investor === 'QUALIFIED_INVESTOR') return t('merchantList.typeQualified')
+    if (investor === 'INSTITUTIONAL_INVESTOR') return t('merchantList.typeInstitutional')
+    if (row.entityType) return entityTypeLabel(row.entityType)
+    if ((row.source || '').toUpperCase() === 'THIRD_PARTY') return t('merchantList.typeThirdParty')
+    return '-'
   }
 
   function screeningTone(row: MerchantRecord): 'success' | 'danger' | null {
@@ -448,6 +648,18 @@
     return t('merchantList.screeningClear')
   }
 
+  /**
+   * 拒绝原因：列表接口不下发原因字段，按来源给出可解释的兜底文案；
+   * 详细原因在详情页（初审用问卷 screeningReason，终审/KYB 用案件字段）。
+   */
+  function rejectReasonOf(row: MerchantRecord): string {
+    const status = rowMerchantStatus(row)
+    if (status === MerchantStatus.InitialRejected) return t('merchantList.rejectReasonInitial')
+    if (status === MerchantStatus.FinalRejected) return t('merchantList.rejectReasonFinal')
+    if (status === MerchantStatus.KybRejected) return t('merchantList.rejectReasonKyb')
+    return '-'
+  }
+
   function formatDateTime(v?: string | null): string {
     if (!v) return '-'
     return v.replace('T', ' ').slice(0, 19)
@@ -459,5 +671,13 @@
 <style scoped>
   .merchant-tabs {
     margin-top: 0;
+  }
+
+  /* 拒绝原因可能较长：最多两行，超出省略 */
+  .kyb-reason-cell {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 </style>

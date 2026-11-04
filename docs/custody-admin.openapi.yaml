@@ -2462,6 +2462,74 @@ paths:
 
 
       security: []
+  /merchant/{ecode}/kyb/final-approval/reject:
+    post:
+      summary: KYB 终审拒绝
+      deprecated: false
+      description: |-
+        终审拒绝（KYB provider 通过后的最终审批）
+        KYB 终审拒绝
+        provider 审核通过后由 admin 最终审批拒绝，企业置为 CANCELLED
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminKybCaseDecisionRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultKybCaseView'
+      security: []
+  /merchant/{ecode}/kyb/final-approval/approve:
+    post:
+      summary: KYB 终审通过
+      deprecated: false
+      description: |-
+        终审通过（KYB provider 通过后的最终审批）
+        KYB 终审通过
+        provider 审核通过后由 admin 最终审批；通过后企业激活并创建金库
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultKybCaseView'
+      security: []
   /api/v1/admin/system-monitor/overview:
     get:
       summary: Get System Monitor overview
@@ -6834,7 +6902,7 @@ paths:
       security: []
     put:
       summary: 保存复核流
-      deprecated: false
+      deprecated: true
       description: >-
         保存复核流
         
@@ -6908,6 +6976,439 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResultReviewFlowApproversVO'
+      security: []
+  /cold/task/page/tasks:
+    get:
+      summary: 分页查询冷钱包签名通过的任务
+      deprecated: false
+      description: |-
+        分页查询冷钱包签名通过的任务，返回结果关联企业名。
+        分页查询冷钱包签名通过的任务
+        只查询 cold = true 且 state = SIGN_SUCCEED 的任务，并关联 cus_merchant 返回企业名
+      tags: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码，默认 1
+          required: false
+          example: 1
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          description: 每页数量，默认 10
+          required: false
+          example: 10
+          schema:
+            type: integer
+        - name: ecode
+          in: query
+          description: 企业code，为空则查询全部企业
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResult%3F'
+                description: 冷钱包任务分页数据
+      security: []
+  /cold/task/transfer/detail/{taskId}:
+    post:
+      summary: 查询付款任务明细
+      deprecated: false
+      description: |-
+        查询付款任务明细
+        根据任务ID列表返回任务聚合详情
+      tags: []
+      parameters:
+        - name: taskId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResult%3F'
+      security: []
+  /cold/task/getSubTaskUsersByTaskId:
+    get:
+      summary: 获取子任务审批人列表
+      deprecated: false
+      description: |-
+        获取子任务审批人列表
+        根据任务ID返回子任务参与者及其审批状态
+      tags: []
+      parameters:
+        - name: taskId
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultListSubTaskAttendeeDto'
+      security: []
+  /cold/task/flush:
+    post:
+      summary: 冷钱包取件
+      deprecated: false
+      description: |-
+        取件：把 core2 里所有待处理动作打成一份 bundle，补齐 nonce/gas，返回可直接交给冷机的原文。
+
+        <p>同一 batchId 重复调用幂等，返回首次结果且不会再向 core2 取件 —— flush 超时或响应丢失时
+        直接重发同一个 batchId 即可。换新 batchId 且存在未交付 bundle 时返回 130029。</p>
+        冷钱包取件
+        按 batchId 取件生成 bundle；同 batchId 幂等，换新 batchId 撞未交付 bundle 返回 130029
+      tags: []
+      parameters:
+        - name: operator
+          in: query
+          description: 操作者，可空；缺省由 trust-vault 记为 {@code ip:<来源IP>}，仅作对账线索
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultMapObject'
+                description: >-
+                  {@code data.bundle} 原样交付冷机，{@code data.state} 为 ENRICHED 表示可交付、EMPTY 表示没活
+
+
+      security: []
+  /cold/task/receipt:
+    post:
+      summary: 冷钱包回执导入
+      deprecated: false
+      description: |-
+        回执：把冷机产出的回执原文透传给 trust-vault，由其校验后广播并通知 core2。
+
+        <p>回执原文必须逐字节透传：签名覆盖全部字段，任何重新序列化（字段顺序、数字格式变化）
+        都会导致验签或 core2 校验失败，所以这里收 String 而不是对象。</p>
+
+        <p>同一份回执重投返回{@code duplicate:true} + 首次结果；{@code core2_applied=false}
+        不代表被拒，只代表 core2 暂未确认、广播尚未发生，不要重送冷机。</p>
+        冷钱包回执导入
+        透传回执原文，需带 X-Cold-Signature 头；同内容重投返回 duplicate=true
+      tags: []
+      parameters:
+        - name: importedBy
+          in: query
+          description: 导入人，可空；缺省由 trust-vault 记为 {@code ip:<来源IP>}
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MapObject'
+              description: 回执原文
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResult%3F'
+      security: []
+  /cold/task/operations/his:
+    get:
+      summary: 操作历史
+      deprecated: false
+      description: 操作历史
+      tags: []
+      parameters:
+        - name: bundleId
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultMapObject'
+      security: []
+  /cold/task/batches/{bundleId}/retry:
+    post:
+      summary: 冷钱包批次重试
+      deprecated: false
+      description: |-
+        重试：只有{@code state=FAILED} 的批次可以重试，其余状态一律返回 130027。
+
+        <p>重试不是「再 flush 一次」，trust-vault 按失败原因分流：没取到 bundle 则重新取件；
+        取到了但补齐失败（130020）则用落库原文重建、只重跑补齐，不会重取 bundle。
+        130020 重试前必须先把订单侧缺失的链上参数补上，否则是同一个错。</p>
+        冷钱包批次重试
+        仅 state=FAILED 可重试，其余返回 130027；batchId 不变，attempt_no 递增
+      tags: []
+      parameters:
+        - name: bundleId
+          in: path
+          description: 批次号，必须是已存在的 FAILED 批次
+          required: true
+          schema:
+            type: string
+        - name: operator
+          in: query
+          description: 操作者，可空；缺省由 trust-vault 记为 {@code ip:<来源IP>}
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultMapObject'
+                description: 响应体与 flush 相同，{@code attempt_no} 递增，batchId 不变
+      security: []
+  /merchant/{ecode}/kyb/beneficiaries/refresh:
+    post:
+      summary: 刷新受益人
+      deprecated: false
+      description: |-
+        手动刷新受益人：强制从 Sumsub 拉取一次并落库。
+        刷新受益人
+        强制从 Sumsub 拉取受益人资料并落库，用于 KYB 通过后补件/重审场景
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultKybApplicantProfileResult'
+      security: []
+  /merchant/{ecode}/documents:
+    post:
+      summary: 保存企业文档
+      deprecated: false
+      description: |-
+        保存企业文档
+        保存通用上传接口返回的文件URL并绑定企业
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantDocumentCreateRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultMerchantDocumentView'
+      security: []
+    get:
+      summary: 查询企业文档
+      deprecated: false
+      description: |-
+        查询企业文档
+        分页查询有效的合同/订单文档
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: docType
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: ''
+          required: true
+          example: 1
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: ''
+          required: true
+          example: 20
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultPageMerchantDocumentView'
+      security: []
+  /merchant/{ecode}/documents/{id}:
+    delete:
+      summary: 作废企业文档
+      deprecated: false
+      description: |-
+        作废企业文档
+        软删除，文件与审计记录保留
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultBoolean'
       security: []
 components:
   schemas:
@@ -7381,6 +7882,17 @@ components:
           type: string
           description: 商户名称
           default: '##default'
+        source:
+          type: string
+          description: 商户来源:PLATFORM/THIRD_PARTY，与企业名共同唯一
+          enum:
+            - PLATFORM
+            - THIRD_PARTY
+          default: '##default'
+        alias:
+          type: string
+          description: 别名，三方平台的企业外部标识
+          default: '##default'
         status:
           type: string
           description: 商户状态
@@ -7390,6 +7902,13 @@ components:
             - FROZEN
             - CANCELLED
           default: '##default'
+        investorType:
+          type: string
+          description: 投资人类别:INSTITUTIONAL_INVESTOR/QUALIFIED_INVESTOR
+          enum:
+            - INSTITUTIONAL_INVESTOR
+            - QUALIFIED_INVESTOR
+          default: '##default'
         kybStatus:
           type: string
           description: KYB状态（来自合规案件，非表字段）
@@ -7398,10 +7917,26 @@ components:
             - PENDING_SCREENING
             - SUBMITTED
             - NEED_SUPPLEMENT
+            - PENDING_FINAL_REVIEW
             - APPROVED
             - REJECTED
             - ADMIN_REJECTED
+            - FINAL_REJECTED
             - CANCELLED
+          default: '##default'
+        enterpriseStatus:
+          type: string
+          description: 企业聚合状态（商户状态 + 最新KYB状态，与 console 一致，非表字段）
+          enum:
+            - PENDING_INITIAL_REVIEW
+            - KYB_IN_PROGRESS
+            - PENDING_FINAL_REVIEW
+            - ACTIVE
+            - INITIAL_REJECTED
+            - FINAL_REJECTED
+            - KYB_REJECTED
+            - CANCELLED
+            - FROZEN
           default: '##default'
         email:
           type: string
@@ -7418,6 +7953,22 @@ components:
         registrationNumber:
           type: string
           description: 注册号
+          default: '##default'
+        originatorAddressLine:
+          type: string
+          description: 出金Travel Rule IVMS101发起方地址行(街道/门牌)
+          default: '##default'
+        originatorTownName:
+          type: string
+          description: 出金Travel Rule IVMS101发起方城市
+          default: '##default'
+        originatorCountrySubdivision:
+          type: string
+          description: 出金Travel Rule IVMS101发起方州/省
+          default: '##default'
+        originatorPostCode:
+          type: string
+          description: 出金Travel Rule IVMS101发起方邮编
           default: '##default'
         dateOfIncorporation:
           type: string
@@ -7447,6 +7998,185 @@ components:
           type: string
           description: 更新时间
           default: '##default'
+    KybQuestionnaire:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键ID
+          format: int64
+        caseId:
+          type: integer
+          description: 关联 cus_compliance_case.id
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码(merchant.code，问卷与企业关联键)
+          default: '##default'
+        investorType:
+          type: string
+          description: 投资人类别:INSTITUTIONAL_INVESTOR/QUALIFIED_INVESTOR
+          enum:
+            - INSTITUTIONAL_INVESTOR
+            - QUALIFIED_INVESTOR
+          default: '##default'
+        legalName:
+          type: string
+          description: 法定名称
+          default: '##default'
+        primaryActivity:
+          type: string
+          description: 主营业务
+          default: '##default'
+        companyAddress:
+          type: string
+          description: 公司法定地址（原型 Company Legal Address）
+          default: '##default'
+        website:
+          type: string
+          description: 官网
+          default: '##default'
+        bdReferral:
+          type: boolean
+          description: 是否由 BD 团队推荐
+          default: false
+        bdUserId:
+          type: integer
+          description: BD 推荐人后台用户 ID
+          format: int64
+        bdName:
+          type: string
+          description: BD 推荐人姓名快照
+          default: '##default'
+        bdEmail:
+          type: string
+          description: BD 推荐人邮箱快照
+          default: '##default'
+        authorisedPerson:
+          type: boolean
+          description: 是否是代表企业的授权人
+          default: false
+        netAssetsMet:
+          type: boolean
+          description: 是否满足净资产要求（仅 Qualified Investor）
+          default: false
+        directorsVaKnowledge:
+          type: boolean
+          description: 董事是否具备虚拟资产相关知识（仅 Qualified Investor）
+          default: false
+        riskDisclosureAccepted:
+          type: boolean
+          description: 是否已阅读并同意风险揭示书
+          default: false
+        riskDisclosureAcceptedAt:
+          type: string
+          description: 风险揭示书同意时间
+          default: '##default'
+        privacyPolicyAccepted:
+          type: boolean
+          description: 是否已阅读并同意隐私政策
+          default: false
+        privacyPolicyAcceptedAt:
+          type: string
+          description: 隐私政策同意时间
+          default: '##default'
+        screeningStatus:
+          type: string
+          description: '筛查状态: PENDING/APPROVED/REJECTED'
+          default: '##default'
+        screeningReason:
+          type: string
+          description: 筛查驳回原因
+          default: '##default'
+        screeningNote:
+          type: string
+          description: 筛查备注
+          default: '##default'
+        reviewedBy:
+          type: integer
+          description: 审核人 userId
+          format: int64
+        reviewedAt:
+          type: string
+          description: 审核时间
+          default: '##default'
+        version:
+          type: integer
+          description: 版本号（驳回重填递增）
+        createTime:
+          type: string
+          description: 创建时间
+          default: '##default'
+        updateTime:
+          type: string
+          description: 更新时间
+          default: '##default'
+    KybProfilePayload:
+      type: object
+      properties:
+        investorType:
+          type: string
+          description: 投资人类别:INSTITUTIONAL_INVESTOR/QUALIFIED_INVESTOR
+          enum:
+            - INSTITUTIONAL_INVESTOR
+            - QUALIFIED_INVESTOR
+          default: '##default'
+        legalName:
+          type: string
+          description: 主体法定名称
+          default: '##default'
+          example: Acme Asset Management Ltd.
+        businessActivity:
+          type: string
+          description: 主营业务（原型 Business Activity）
+          default: '##default'
+          example: Cryptocurrency Exchange
+        companyAddress:
+          type: string
+          description: 公司法定地址（原型 Company Legal Address，单字段）
+          default: '##default'
+          example: 8 Marina View, Singapore
+        website:
+          type: string
+          description: 官网地址
+          default: '##default'
+          example: https://acme.example
+        bdReferral:
+          type: boolean
+          description: 是否由 BD 团队推荐
+          default: false
+        bdUserId:
+          type: integer
+          description: BD 推荐人后台用户 ID
+          format: int64
+        bdName:
+          type: string
+          description: BD 推荐人姓名快照
+          default: '##default'
+        bdEmail:
+          type: string
+          description: BD 推荐人邮箱快照
+          default: '##default'
+        authorisedPerson:
+          type: boolean
+          description: 是否是代表企业的授权人
+          default: false
+        netAssetsMet:
+          type: boolean
+          description: 是否满足净资产要求（仅 Qualified Investor）
+          default: false
+        directorsVaKnowledge:
+          type: boolean
+          description: 董事是否具备虚拟资产相关知识（仅 Qualified Investor）
+          default: false
+        riskDisclosureAccepted:
+          type: boolean
+          description: 是否已阅读并同意风险揭示书
+          default: false
+        privacyPolicyAccepted:
+          type: boolean
+          description: 是否已阅读并同意隐私政策
+          default: false
     PiiFieldView:
       type: object
       properties:
@@ -7981,30 +8711,76 @@ components:
         assigneeStatus:
           type: string
           description: 指派人账号状态 enabled/disabled
-    key: &ref_0
+    KybBeneficiaryView:
       type: object
       properties:
-        sortNo:
+        beneficiaryId:
+          type: string
+          description: provider 侧受益人记录 ID（非 applicantId）
+        applicantId:
+          type: string
+          description: provider 侧为该受益人自动创建的 individual applicant ID
+        types:
+          type: array
+          items:
+            type: string
+          description: 受益人类型：ubo / director / shareholder（provider 侧为数组）
+        shareSize:
+          type: number
+          description: 持股比例%（provider 未采集时为 null）
+        submitted:
+          type: boolean
+          description: 受益人资料是否已提交
+        firstName:
+          type: string
+          description: 名
+        lastName:
+          type: string
+          description: 姓
+        reviewAnswer:
+          type: string
+          description: 该受益人自身 applicant 的审核结论：GREEN / RED / UNKNOWN，未取到时为 null
+    MerchantDocumentView:
+      type: object
+      properties:
+        id:
           type: integer
-          description: 审批顺序，从 1 开始
-        userId:
-          type: integer
-          description: 用户ID
+          description: 主键ID
           format: int64
-        name:
+        ecode:
           type: string
-          description: 用户名
-        email:
+          description: 企业编码
+        docType:
           type: string
-          description: 邮箱
-        accountStatus:
+          description: 文档类型:CONTRACT/MOU/LOI/ORDER/OTHER
+        docTypeLabel:
           type: string
-          description: 账号状态 enabled/disabled
-    MapObject:
-      type: object
-      properties:
-        key:
-          $ref: '#/components/schemas/key1'
+          description: 文档类型展示文案
+        title:
+          type: string
+          description: 文档标题
+        fileName:
+          type: string
+          description: 原始文件名
+        fileUrl:
+          type: string
+          description: 绝对访问URL
+        contentType:
+          type: string
+          description: MIME
+        fileSize:
+          type: integer
+          description: 文件字节数
+          format: int64
+        remark:
+          type: string
+          description: 备注
+        uploader:
+          type: string
+          description: 上传人
+        uploadedAt:
+          type: string
+          description: 上传时间
     QueryCondition:
       type: object
       properties:
@@ -8145,77 +8921,6 @@ components:
         code:
           type: string
           description: ''
-    KybBeneficiary:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: 主键ID
-          format: int64
-        caseId:
-          type: integer
-          description: 关联 cus_compliance_case.id
-          format: int64
-        questionnaireId:
-          type: integer
-          description: 关联 cus_kyb_questionnaire.id
-          format: int64
-        ecode:
-          type: string
-          description: 商户编码
-          default: '##default'
-        name:
-          type: string
-          description: 姓名
-          default: '##default'
-        type:
-          type: string
-          description: '类型: ubo/director/shareholder'
-          default: '##default'
-        shareSize:
-          type: number
-          description: 持股比例%
-          default: '##default'
-        country:
-          type: string
-          description: 国籍 ISO3166-1 alpha-3
-          default: '##default'
-        dateOfBirth:
-          type: string
-          description: 出生日期
-          default: '##default'
-        email:
-          type: string
-          description: 邮箱
-          default: '##default'
-        phone:
-          type: string
-          description: 电话
-          default: '##default'
-        applicantId:
-          type: string
-          description: Sumsub individual applicantId（link 后回填）
-          default: '##default'
-        status:
-          type: string
-          description: '状态: PENDING/LINKED/KYC_PASSED'
-          default: '##default'
-        reviewAnswer:
-          type: string
-          description: provider 核验结论 GREEN/RED
-          default: '##default'
-        verifyTime:
-          type: string
-          description: 取得核验结论时间
-          default: '##default'
-        createTime:
-          type: string
-          description: 创建时间
-          default: '##default'
-        updateTime:
-          type: string
-          description: 更新时间
-          default: '##default'
     TravelRulePayload:
       type: object
       properties:
@@ -8449,7 +9154,25 @@ components:
             $ref: '#/components/schemas/ReviewFlowStepVO'
             description: 复核流步骤视图。
           description: 有序步骤
-    ReviewFlowApproverVO: *ref_0
+    ReviewFlowApproverVO:
+      type: object
+      properties:
+        sortNo:
+          type: integer
+          description: 审批顺序，从 1 开始
+        userId:
+          type: integer
+          description: 用户ID
+          format: int64
+        name:
+          type: string
+          description: 用户名
+        email:
+          type: string
+          description: 邮箱
+        accountStatus:
+          type: string
+          description: 账号状态 enabled/disabled
     MessageResultListRoleMemberVO:
       type: object
       properties:
@@ -8464,6 +9187,78 @@ components:
           items:
             $ref: '#/components/schemas/RoleMemberVO'
             description: 按角色查询到的成员视图。
+          description: ''
+    SubTaskAttendeeDto:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: |-
+            审批状态
+            审批状态:0-待审批，1-同意，2-拒绝
+        userId:
+          type: integer
+          description: 用户 ID
+          format: int64
+        updateTime:
+          type: string
+          description: |-
+            更新时间
+            签名时间
+          default: '##default'
+        username:
+          type: string
+          description: 用户名
+          default: '##default'
+        email:
+          type: string
+          description: 邮箱
+          default: '##default'
+        pk:
+          type: string
+          description: 公钥
+          default: '##default'
+    KybApplicantProfileResult:
+      type: object
+      properties:
+        providerCode:
+          type: string
+          description: provider code（如 "sumsub"）
+        applicantId:
+          type: string
+          description: 公司 applicant ID
+        companyName:
+          type: string
+          description: 申报的公司名
+        registrationNumber:
+          type: string
+          description: 申报的注册号
+        country:
+          type: string
+          description: 申报的国家（alpha-3）
+        beneficiaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/KybBeneficiaryView'
+            description: |-
+              KYB 受益人在 provider 侧的明细。
+
+              <p>来源：公司 applicant 的{@code fixedInfo.companyInfo.beneficiaries[]}，
+              每个受益人在 provider 侧有独立的 individual applicant。
+
+              <p>字段按最小 PII 口径裁剪：不承载 email/phone/生日/税号/证件等敏感项。
+          description: 受益人明细；provider 未返回时为 null
+    MessageResultMerchantDocumentView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/MerchantDocumentView'
           description: ''
     MessageResult?:
       type: object
@@ -8488,7 +9283,7 @@ components:
           description: 邮箱
       required:
         - email
-    QueryParamMerchant: &ref_1
+    QueryParamMerchant: &ref_0
       type: object
       properties:
         pageIndex:
@@ -8593,7 +9388,7 @@ components:
 
 
           description: ''
-    QueryParamMerchantBillingRecord: *ref_1
+    QueryParamMerchantBillingRecord: *ref_0
     PageGasHomeTaskVO:
       type: object
       properties:
@@ -8798,18 +9593,6 @@ components:
           format: int64
         countId:
           type: string
-          description: ''
-    MessageResultMapObject:
-      type: object
-      properties:
-        code:
-          type: integer
-          description: ''
-        message:
-          type: string
-          description: ''
-        data:
-          $ref: '#/components/schemas/MapObject'
           description: ''
     SaResult:
       type: object
@@ -9181,7 +9964,7 @@ components:
             $ref: '#/components/schemas/ReviewFlowApproverVO'
             description: 复核流中的复核人视图。
           description: 该等级的有序复核人，sortNo 即审批顺序
-    MapListReviewFlowApproverVO: &ref_2
+    MapListReviewFlowApproverVO: &ref_1
       type: object
       properties:
         key:
@@ -9213,6 +9996,67 @@ components:
           items:
             type: integer
           description: 要从该角色移除的用户ID：未持有则忽略；不允许 COMPLIANCE_REVIEWER
+    MessageResultListSubTaskAttendeeDto:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubTaskAttendeeDto'
+            description: |-
+              子任务审批人信息 DTO
+              用于返回子任务参与者的审批状态和基本信息
+          description: ''
+    MessageResultKybApplicantProfileResult:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/KybApplicantProfileResult'
+          description: ''
+    MerchantDocumentCreateRequest:
+      type: object
+      properties:
+        docType:
+          type: string
+          description: 文档类型:CONTRACT/MOU/LOI/ORDER/OTHER
+          enum:
+            - CONTRACT
+            - MOU
+            - LOI
+            - NDA
+            - ORDER
+            - PO
+            - ANNEX
+            - OTHER
+          example: CONTRACT
+        title:
+          type: string
+          description: 标题，可空
+          example: Custody Service Agreement
+        fileUrl:
+          type: string
+          description: 上传接口返回的绝对URL
+        fileName:
+          type: string
+          description: 上传接口返回的原始文件名，可空
+        remark:
+          type: string
+          description: 备注，可空
+    key:
+      type: object
+      properties: {}
     PasskeyAssertionCompleteRequest:
       type: object
       properties:
@@ -9351,6 +10195,167 @@ components:
         data:
           $ref: '#/components/schemas/PageMerchant'
           description: ''
+    KybCaseView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 内部 case ID
+          format: int64
+        caseNo:
+          type: string
+          description: case 编号
+          default: '##default'
+        providerCode:
+          type: string
+          description: Provider 编码
+          default: '##default'
+        providerLabel:
+          type: string
+          description: Provider 展示文案
+          default: '##default'
+        merchantId:
+          type: integer
+          description: 商户ID
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码
+          default: '##default'
+        subjectName:
+          type: string
+          description: 主体名称
+          default: '##default'
+        status:
+          type: string
+          description: KYB状态
+          enum:
+            - DRAFT
+            - PENDING_SCREENING
+            - SUBMITTED
+            - NEED_SUPPLEMENT
+            - PENDING_FINAL_REVIEW
+            - APPROVED
+            - REJECTED
+            - ADMIN_REJECTED
+            - FINAL_REJECTED
+            - CANCELLED
+          default: '##default'
+        statusLabel:
+          type: string
+          description: KYB状态展示文案
+          default: '##default'
+        levelName:
+          type: string
+          description: Provider level name
+          default: '##default'
+        primaryAction:
+          type: string
+          description: 主动作
+          enum:
+            - LAUNCH_SESSION
+            - WAIT_SCREENING
+            - RESUBMIT
+            - WAIT_REVIEW
+            - COMPLETED
+            - CONTACT_SUPPORT
+          default: '##default'
+        primaryActionLabel:
+          type: string
+          description: 主动作展示文案
+          default: '##default'
+        primaryActionTarget:
+          type: string
+          description: 主动作目标接口
+          default: '##default'
+        currentStage:
+          type: string
+          description: 当前阶段
+          enum:
+            - COLLECTING_INFORMATION
+            - SCREENING
+            - AWAITING_REVIEW
+            - COMPLIANCE_REVIEW
+            - SUPPLEMENT_REQUIRED
+            - VERIFIED
+            - REJECTED
+            - CANCELLED
+          default: '##default'
+        currentStageLabel:
+          type: string
+          description: 当前阶段展示文案
+          default: '##default'
+        bannerTitle:
+          type: string
+          description: 顶部状态标题
+          default: '##default'
+        bannerSubtitle:
+          type: string
+          description: 顶部状态摘要
+          default: '##default'
+        statusSummary:
+          type: string
+          description: 状态摘要
+          default: '##default'
+        nextActionHint:
+          type: string
+          description: 下一步动作提示
+          default: '##default'
+        submittedAt:
+          type: string
+          description: 首次提交时间
+          default: '##default'
+        resubmittedAt:
+          type: string
+          description: 最近补件重提时间
+          default: '##default'
+        screeningReason:
+          type: string
+          description: 预筛查拒绝原因
+          default: '##default'
+        finalReviewReason:
+          type: string
+          description: 终审拒绝原因
+          default: '##default'
+        supplementReason:
+          type: string
+          description: 最近补件原因
+          default: '##default'
+        lastResubmitNote:
+          type: string
+          description: 最近补件备注
+          default: '##default'
+        supplementSummary:
+          type: string
+          description: 补件摘要
+          default: '##default'
+        profileSyncedAt:
+          type: string
+          description: 受益人/申报资料同步完成时间
+          default: '##default'
+        latestEventAt:
+          type: string
+          description: 最近事件时间
+          default: '##default'
+        closedAt:
+          type: string
+          description: 关闭时间
+          default: '##default'
+        payload:
+          $ref: '#/components/schemas/KybProfilePayload'
+          description: 最近提交 payload
+          default: '##default'
+        latestSession:
+          $ref: '#/components/schemas/KybSessionSummaryView'
+          description: 最近会话摘要
+          default: '##default'
+        progressEntries:
+          type: array
+          items:
+            $ref: '#/components/schemas/KybProgressEntryView'
+            description: 商户侧 KYB 进度时间线条目。
+          description: 进度时间线
+          default: '##default'
     PiiValidationView:
       type: object
       properties:
@@ -9472,6 +10477,27 @@ components:
         verifyTime:
           type: string
           description: 取得核验结论时间
+    AdminMerchantIdentityVerificationView:
+      type: object
+      properties:
+        companyName:
+          type: string
+          description: 企业名称
+        companyVerificationStatus:
+          type: string
+          description: '企业身份核验状态: Verified / Rejected / Pending'
+        dataSource:
+          type: string
+          description: '受益人数据来源: provider code（如 sumsub）/ local'
+        beneficiaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/BeneficiaryVerificationView'
+            description: >-
+              com.cregis.custody.admin.dto.merchant.AdminMerchantIdentityVerificationView.BeneficiaryVerificationView
+
+
+          description: 受益人核验明细
     MessageResultReviewFlowVO:
       type: object
       properties:
@@ -9514,6 +10540,11 @@ components:
           items:
             type: integer
           description: 该等级的有序用户ID：顺序即审批顺序；空数组=清空该等级
+    MapObject: &ref_2
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/key'
     GasOperationsFilterOptionsView:
       type: object
       properties:
@@ -9654,6 +10685,82 @@ components:
         deviceName:
           type: string
           description: 设备名称
+    AdminMerchantKybDetailView:
+      type: object
+      properties:
+        merchantId:
+          type: integer
+          description: 商户ID
+          format: int64
+        ecode:
+          type: string
+          description: 商户编码
+        merchantName:
+          type: string
+          description: 商户名称
+        merchantStatus:
+          type: string
+          description: 商户状态
+          enum:
+            - PENDING
+            - ACTIVE
+            - FROZEN
+            - CANCELLED
+        enterpriseStatus:
+          type: string
+          description: >-
+            企业聚合状态，与 console /merchant/status 的 status 一致:PENDING_INITIAL_REVIEW/KYB_IN_PROGRESS/PENDING_FINAL_REVIEW/ACTIVE/INITIAL_REJECTED/FINAL_REJECTED/KYB_REJECTED/CANCELLED/FROZEN
+
+
+          enum:
+            - PENDING_INITIAL_REVIEW
+            - KYB_IN_PROGRESS
+            - PENDING_FINAL_REVIEW
+            - ACTIVE
+            - INITIAL_REJECTED
+            - FINAL_REJECTED
+            - KYB_REJECTED
+            - CANCELLED
+            - FROZEN
+        email:
+          type: string
+          description: 联系邮箱
+        kybCaseId:
+          type: integer
+          description: KYB 案件ID
+          format: int64
+        kybCaseNo:
+          type: string
+          description: KYB 案件编号
+        kybStatus:
+          type: string
+          description: KYB 状态
+          enum:
+            - DRAFT
+            - PENDING_SCREENING
+            - SUBMITTED
+            - NEED_SUPPLEMENT
+            - PENDING_FINAL_REVIEW
+            - APPROVED
+            - REJECTED
+            - ADMIN_REJECTED
+            - FINAL_REJECTED
+            - CANCELLED
+        kybStageLabel:
+          type: string
+          description: KYB 当前阶段展示文案
+        appliedAt:
+          type: string
+          description: 问卷提交时间
+        questionnaire:
+          $ref: '#/components/schemas/KybQuestionnaire'
+          description: 资格筛查问卷
+        complianceStatus:
+          $ref: '#/components/schemas/AdminMerchantComplianceStatusView'
+          description: 企业合规状态(Compliance Status tab)
+        identityVerification:
+          $ref: '#/components/schemas/AdminMerchantIdentityVerificationView'
+          description: 企业身份核验(Identity Verification & Screening tab)
     MessageResultPiiValidationView:
       type: object
       properties:
@@ -9738,27 +10845,6 @@ components:
         endDate:
           type: string
           description: ''
-    AdminMerchantIdentityVerificationView:
-      type: object
-      properties:
-        companyName:
-          type: string
-          description: 企业名称
-        companyVerificationStatus:
-          type: string
-          description: '企业身份核验状态: Verified / Rejected / Pending'
-        dataSource:
-          type: string
-          description: '受益人数据来源: provider code（如 sumsub）/ local'
-        beneficiaries:
-          type: array
-          items:
-            $ref: '#/components/schemas/BeneficiaryVerificationView'
-            description: >-
-              com.cregis.custody.admin.dto.merchant.AdminMerchantIdentityVerificationView.BeneficiaryVerificationView
-
-
-          description: 受益人核验明细
     ReviewFlowStepRequest:
       type: object
       properties:
@@ -9790,6 +10876,49 @@ components:
 
               <p>普通角色用{@code members}；复核角色（COMPLIANCE_REVIEWER）用{@code levels}，
               按 ROUTINE / MEDIUM / CRITICAL 分组，组内按审批顺序排列。</p>
+          description: ''
+    PageMerchantDocumentView:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/MerchantDocumentView'
+            description: 企业合同/商务订单文档视图。
+          description: ''
+        total:
+          type: integer
+          description: ''
+          format: int64
+        size:
+          type: integer
+          description: ''
+          format: int64
+        current:
+          type: integer
+          description: ''
+          format: int64
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+            description: com.baomidou.mybatisplus.core.metadata.OrderItem
+          description: ''
+        optimizeCountSql:
+          type: boolean
+          description: ''
+        searchCount:
+          type: boolean
+          description: ''
+        optimizeJoinOfCountSql:
+          type: boolean
+          description: ''
+        maxLimit:
+          type: integer
+          description: ''
+          format: int64
+        countId:
+          type: string
           description: ''
     GasOperationsCapabilityView:
       type: object
@@ -9863,75 +10992,19 @@ components:
         data:
           $ref: '#/components/schemas/PageFeeMonitorMerchantRankingItem'
           description: ''
-    QueryParamMessage: *ref_1
-    AdminMerchantKybDetailView:
+    QueryParamMessage: *ref_0
+    MessageResultMapObject:
       type: object
       properties:
-        merchantId:
+        code:
           type: integer
-          description: 商户ID
-          format: int64
-        ecode:
+          description: ''
+        message:
           type: string
-          description: 商户编码
-        merchantName:
-          type: string
-          description: 商户名称
-        merchantStatus:
-          type: string
-          description: 商户状态
-          enum:
-            - PENDING
-            - ACTIVE
-            - FROZEN
-            - CANCELLED
-        email:
-          type: string
-          description: 联系邮箱
-        kybCaseId:
-          type: integer
-          description: KYB 案件ID
-          format: int64
-        kybCaseNo:
-          type: string
-          description: KYB 案件编号
-        kybStatus:
-          type: string
-          description: KYB 状态
-          enum:
-            - DRAFT
-            - PENDING_SCREENING
-            - SUBMITTED
-            - NEED_SUPPLEMENT
-            - APPROVED
-            - REJECTED
-            - ADMIN_REJECTED
-            - CANCELLED
-        kybStageLabel:
-          type: string
-          description: KYB 当前阶段展示文案
-        appliedAt:
-          type: string
-          description: 问卷提交时间
-        questionnaire:
-          $ref: '#/components/schemas/KybQuestionnaire'
-          description: 资格筛查问卷
-        beneficiaries:
-          type: array
-          items:
-            $ref: '#/components/schemas/KybBeneficiary'
-            description: |-
-              KYB 受益人（UBO/董事/股东）明细。
-
-              <p>对应表{@code cus_kyb_beneficiary}。admin 通过后 linkBeneficiary 时回填
-              {@link #applicantId}（Sumsub individual applicantId）并更新状态。</p>
-          description: 受益人明细
-        complianceStatus:
-          $ref: '#/components/schemas/AdminMerchantComplianceStatusView'
-          description: 企业合规状态(Compliance Status tab)
-        identityVerification:
-          $ref: '#/components/schemas/AdminMerchantIdentityVerificationView'
-          description: 企业身份核验(Identity Verification & Screening tab)
+          description: ''
+        data:
+          $ref: '#/components/schemas/MapObject'
+          description: ''
     PiiRequestRequest:
       type: object
       properties:
@@ -10052,7 +11125,7 @@ components:
         keyword:
           type: string
           description: ''
-    QueryParamMerchantStaff: *ref_1
+    QueryParamMerchantStaff: *ref_0
     OnchainScreeningItem:
       type: object
       properties:
@@ -10099,6 +11172,18 @@ components:
             $ref: '#/components/schemas/ReviewFlowStepRequest'
             description: 复核流步骤保存请求。
           description: 有序步骤，stepNo 从 1 开始连续；每步必须指定 assigneeUserId，调整审批顺序时按新顺序重新提交
+    MessageResultPageMerchantDocumentView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/PageMerchantDocumentView'
+          description: ''
     GasAccountDetailView:
       type: object
       properties:
@@ -10130,131 +11215,6 @@ components:
         avgFeePerTxUsdt:
           type: number
           description: ''
-    KybQuestionnaire:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: 主键ID
-          format: int64
-        caseId:
-          type: integer
-          description: 关联 cus_compliance_case.id
-          format: int64
-        ecode:
-          type: string
-          description: 商户编码(merchant.code，问卷与企业关联键)
-          default: '##default'
-        legalName:
-          type: string
-          description: 法定名称
-          default: '##default'
-        dbaName:
-          type: string
-          description: DBA/商号
-          default: '##default'
-        jurisdiction:
-          type: string
-          description: 注册司法辖区 ISO3166-1
-          default: '##default'
-        countryCode:
-          type: string
-          description: 国家代码
-          default: '##default'
-        dateOfIncorporation:
-          type: string
-          description: 注册日期
-          default: '##default'
-        registrationNumber:
-          type: string
-          description: 注册号
-          default: '##default'
-        taxId:
-          type: string
-          description: 税号(TIN/EIN)
-          default: '##default'
-        entityType:
-          type: string
-          description: 实体类型
-          default: '##default'
-        publiclyTraded:
-          type: boolean
-          description: 是否上市 1/0
-          default: false
-        employeeCount:
-          type: string
-          description: 员工数区间
-          default: '##default'
-        primaryActivity:
-          type: string
-          description: 主营业务
-          default: '##default'
-        website:
-          type: string
-          description: 官网
-          default: '##default'
-        businessDescription:
-          type: string
-          description: 业务描述
-          default: '##default'
-        beneficiaryCount:
-          type: integer
-          description: UBO数量(≥25%)
-        pepStatus:
-          type: string
-          description: '是否PEP: YES/NO/UNSURE'
-          default: '##default'
-        annualVolumeUsd:
-          type: string
-          description: 年交易量区间
-          default: '##default'
-        sourceOfFunds:
-          type: string
-          description: 资金来源
-          default: '##default'
-        useCase:
-          type: string
-          description: 用途
-          default: '##default'
-        regulated:
-          type: boolean
-          description: 是否持牌 1/0
-          default: false
-        regulatoryAction:
-          type: boolean
-          description: 是否有监管处罚 1/0
-          default: false
-        screeningStatus:
-          type: string
-          description: '筛查状态: PENDING/APPROVED/REJECTED'
-          default: '##default'
-        screeningReason:
-          type: string
-          description: 筛查驳回原因
-          default: '##default'
-        screeningNote:
-          type: string
-          description: 筛查备注
-          default: '##default'
-        reviewedBy:
-          type: integer
-          description: 审核人 userId
-          format: int64
-        reviewedAt:
-          type: string
-          description: 审核时间
-          default: '##default'
-        version:
-          type: integer
-          description: 版本号（驳回重填递增）
-        createTime:
-          type: string
-          description: 创建时间
-          default: '##default'
-        updateTime:
-          type: string
-          description: 更新时间
-          default: '##default'
     RiskRule:
       type: object
       properties:
@@ -10722,7 +11682,7 @@ components:
         comment:
           type: string
           description: ''
-    MapListAccountStatResult: *ref_2
+    MapListAccountStatResult: *ref_1
     MessageResultListFeeMonitorNativeCoinConsumptionItem:
       type: object
       properties:
@@ -10741,36 +11701,6 @@ components:
 
 
           description: ''
-    KybBeneficiaryInfo:
-      type: object
-      properties:
-        name:
-          type: string
-          description: 受益人姓名
-        type:
-          type: string
-          description: 受益人类型：ubo（实际控制人）/ director（董事）/ shareholder（股东）
-        shareSize:
-          type: number
-          description: 持股比例（百分比，如 60.0 表示 60%）
-        country:
-          type: string
-          description: 国籍（ISO 3166-1 alpha-3，如 CHN）
-        dateOfBirth:
-          type: string
-          description: 出生日期（ISO 8601 格式，如 1990-01-15）
-        email:
-          type: string
-          description: 联系邮箱
-        phone:
-          type: string
-          description: 联系电话
-        applicantId:
-          type: string
-          description: |-
-            已有 KYC applicant ID。
-            如果受益人已完成个人 KYC 并持有 Sumsub applicantId，可直接关联；
-            留空则 Sumsub 根据上述个人信息自动创建 individual applicant。
     CommunicationRoundView:
       type: object
       properties:
@@ -10812,112 +11742,7 @@ components:
         data:
           $ref: '#/components/schemas/MapListAccountStatResult'
           description: ''
-    KybProfilePayload:
-      type: object
-      properties:
-        legalName:
-          type: string
-          description: 主体法定名称
-          default: '##default'
-          example: Acme Asset Management Ltd.
-        dbaName:
-          type: string
-          description: DBA/商号
-          default: '##default'
-          example: Acme
-        jurisdiction:
-          type: string
-          description: 注册司法辖区 ISO3166-1
-          default: '##default'
-          example: SG
-        dateOfIncorporation:
-          type: string
-          description: 注册日期
-          default: '##default'
-          example: '2021-03-15'
-        registrationNumber:
-          type: string
-          description: 注册号
-          default: '##default'
-          example: 202108152R
-        taxId:
-          type: string
-          description: 税号(TIN/EIN)
-          default: '##default'
-          example: SG-UEN-202108152R
-        entityType:
-          type: string
-          description: 实体类型
-          default: '##default'
-          example: llc
-        publiclyTraded:
-          type: boolean
-          description: 是否上市
-          default: false
-        employeeCount:
-          type: string
-          description: 员工数区间
-          default: '##default'
-          example: 11-50
-        primaryActivity:
-          type: string
-          description: 主营业务
-          default: '##default'
-          example: exchange
-        website:
-          type: string
-          description: 官网地址
-          default: '##default'
-          example: https://acme.example
-        businessDescription:
-          type: string
-          description: 业务描述
-          default: '##default'
-        beneficiaryCount:
-          type: integer
-          description: UBO数量(≥25%)
-        pepStatus:
-          type: string
-          description: 是否PEP
-          default: '##default'
-          example: 'NO'
-        annualVolumeUsd:
-          type: string
-          description: 年交易量区间
-          default: '##default'
-          example: 10m-100m
-        sourceOfFunds:
-          type: string
-          description: 资金来源
-          default: '##default'
-        useCase:
-          type: string
-          description: 用途
-          default: '##default'
-        regulated:
-          type: boolean
-          description: 是否持牌/受监管
-          default: false
-        regulatoryAction:
-          type: boolean
-          description: 是否有监管处罚
-          default: false
-        beneficiaries:
-          type: array
-          items:
-            $ref: '#/components/schemas/KybBeneficiaryInfo'
-            description: |-
-              KYB 受益人信息。
-
-              <p>对应 Sumsub API 中{@code beneficiaries[]} 数组元素的结构。
-              支持两种关联模式：
-              <ul>
-                <li>已有 KYC applicant：填写{@link #applicantId} 直接关联</li>
-                <li>新受益人：填写姓名、国籍等个人信息，Sumsub 自动创建 individual applicant</li>
-              </ul>
-          description: 受益人明细
-          default: '##default'
-    QueryParamRiskRule: *ref_1
+    QueryParamRiskRule: *ref_0
     TimelineNodeView:
       type: object
       properties:
@@ -11104,11 +11929,7 @@ components:
 
 
           description: ''
-    MapAccountStatResult:
-      type: object
-      properties:
-        key:
-          $ref: '#/components/schemas/key'
+    MapAccountStatResult: *ref_2
     KybProgressEntryView:
       type: object
       properties:
@@ -11230,151 +12051,6 @@ components:
         ecode:
           type: string
           description: ''
-    KybCaseView:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: 内部 case ID
-          format: int64
-        caseNo:
-          type: string
-          description: case 编号
-          default: '##default'
-        providerCode:
-          type: string
-          description: Provider 编码
-          default: '##default'
-        providerLabel:
-          type: string
-          description: Provider 展示文案
-          default: '##default'
-        merchantId:
-          type: integer
-          description: 商户ID
-          format: int64
-        ecode:
-          type: string
-          description: 商户编码
-          default: '##default'
-        subjectName:
-          type: string
-          description: 主体名称
-          default: '##default'
-        status:
-          type: string
-          description: KYB状态
-          enum:
-            - DRAFT
-            - PENDING_SCREENING
-            - SUBMITTED
-            - NEED_SUPPLEMENT
-            - APPROVED
-            - REJECTED
-            - CANCELLED
-          default: '##default'
-        statusLabel:
-          type: string
-          description: KYB状态展示文案
-          default: '##default'
-        levelName:
-          type: string
-          description: Provider level name
-          default: '##default'
-        primaryAction:
-          type: string
-          description: 主动作
-          enum:
-            - LAUNCH_SESSION
-            - WAIT_SCREENING
-            - RESUBMIT
-            - WAIT_REVIEW
-            - COMPLETED
-            - CONTACT_SUPPORT
-          default: '##default'
-        primaryActionLabel:
-          type: string
-          description: 主动作展示文案
-          default: '##default'
-        primaryActionTarget:
-          type: string
-          description: 主动作目标接口
-          default: '##default'
-        currentStage:
-          type: string
-          description: 当前阶段
-          enum:
-            - COLLECTING_INFORMATION
-            - SCREENING
-            - AWAITING_REVIEW
-            - SUPPLEMENT_REQUIRED
-            - VERIFIED
-            - REJECTED
-            - CANCELLED
-          default: '##default'
-        currentStageLabel:
-          type: string
-          description: 当前阶段展示文案
-          default: '##default'
-        bannerTitle:
-          type: string
-          description: 顶部状态标题
-          default: '##default'
-        bannerSubtitle:
-          type: string
-          description: 顶部状态摘要
-          default: '##default'
-        statusSummary:
-          type: string
-          description: 状态摘要
-          default: '##default'
-        nextActionHint:
-          type: string
-          description: 下一步动作提示
-          default: '##default'
-        submittedAt:
-          type: string
-          description: 首次提交时间
-          default: '##default'
-        resubmittedAt:
-          type: string
-          description: 最近补件重提时间
-          default: '##default'
-        supplementReason:
-          type: string
-          description: 最近补件原因
-          default: '##default'
-        lastResubmitNote:
-          type: string
-          description: 最近补件备注
-          default: '##default'
-        supplementSummary:
-          type: string
-          description: 补件摘要
-          default: '##default'
-        latestEventAt:
-          type: string
-          description: 最近事件时间
-          default: '##default'
-        closedAt:
-          type: string
-          description: 关闭时间
-          default: '##default'
-        payload:
-          $ref: '#/components/schemas/KybProfilePayload'
-          description: 最近提交 payload
-          default: '##default'
-        latestSession:
-          $ref: '#/components/schemas/KybSessionSummaryView'
-          description: 最近会话摘要
-          default: '##default'
-        progressEntries:
-          type: array
-          items:
-            $ref: '#/components/schemas/KybProgressEntryView'
-            description: 商户侧 KYB 进度时间线条目。
-          description: 进度时间线
-          default: '##default'
     MessageResultRuleView:
       type: object
       properties:
@@ -11929,7 +12605,7 @@ components:
         data:
           $ref: '#/components/schemas/GasTopUpResponseView'
           description: ''
-    QueryParamRiskEvaluation: *ref_1
+    QueryParamRiskEvaluation: *ref_0
     GasConfigurationUpdateRequest:
       type: object
       properties:
@@ -12109,10 +12785,7 @@ components:
         data:
           $ref: '#/components/schemas/TransactionLensItemView'
           description: ''
-    key1:
-      type: object
-      properties: {}
-    QueryParamSystemUser: *ref_1
+    QueryParamSystemUser: *ref_0
     MessageResultComplianceTabView:
       type: object
       properties:
@@ -12545,7 +13218,7 @@ components:
         data:
           $ref: '#/components/schemas/FactorView'
           description: ''
-    QueryParamSystemPermissionChange: *ref_1
+    QueryParamSystemPermissionChange: *ref_0
     PermissionChangeApplyRequest:
       type: object
       properties:
@@ -12626,7 +13299,7 @@ components:
           type: string
           description: 订单状态:SUCCESS/FAILED/CONFIRMING
           default: '##default'
-    QueryParamSystemConfig: *ref_1
+    QueryParamSystemConfig: *ref_0
     SystemConfig:
       type: object
       properties:
@@ -12869,7 +13542,7 @@ components:
         inputSnapshot:
           $ref: '#/components/schemas/TestInputSnapshot'
           description: ''
-    QueryParamMerchantGasFulfillRecord: *ref_1
+    QueryParamMerchantGasFulfillRecord: *ref_0
     DeployContractRequest:
       type: object
       properties:
