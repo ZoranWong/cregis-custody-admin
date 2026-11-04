@@ -65,13 +65,10 @@
                   <span class="text-xs text-g-600">{{ formatDateTime(row.createTime) }}</span>
                 </template>
               </el-table-column>
-              <!-- 申请列表同样展示统一的商户对外状态（resolveMerchantStatus 计算） -->
+              <!-- 申请列表：统一显示进行中状态（黄色），因为都是未完成审核的申请 -->
               <el-table-column :label="$t('merchantList.status')" min-width="180">
                 <template #default="{ row }">
-                  <ArtStatusTag
-                    :status="merchantStatusTone(row as MerchantRecord)"
-                    :text="merchantStatusLabel(row as MerchantRecord)"
-                  />
+                  <ArtStatusTag status="warning" :text="appStatusText(row as MerchantRecord)" />
                 </template>
               </el-table-column>
             </el-table>
@@ -613,6 +610,16 @@
     const status = rowMerchantStatus(row)
     if (status) return t(MERCHANT_STATUS_LABEL_KEYS[status])
     return row.status || '-'
+  }
+
+  /**
+   * 申请列表统一显示进行中状态（黄色）。
+   * 文字按实际阶段区分（待初审 / KYB中 / 待终审等），颜色统一 warning。
+   */
+  function appStatusText(row: MerchantRecord): string {
+    const status = rowMerchantStatus(row)
+    if (status) return t(MERCHANT_STATUS_LABEL_KEYS[status])
+    return t(MERCHANT_STATUS_LABEL_KEYS[MerchantStatus.PendingInitialReview])
   }
 
   /**
