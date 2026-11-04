@@ -263,9 +263,30 @@
                 $t('txLens.detail.reject')
               }}</el-button>
             </div>
+
+            <!-- 网络协商 pending 状态：手动 Accept/Reject（对接 /compliance/notifications/{id}/accept|reject） -->
+            <div v-if="showNetworkPendingButtons" class="flex items-center gap-3 mb-4 flex-wrap">
+              <el-button type="primary" size="small" :loading="acting" @click="handleNetworkAccept">
+                {{ $t('txLens.detail.accept') }}
+              </el-button>
+              <el-button
+                type="danger"
+                plain
+                size="small"
+                :loading="acting"
+                @click="handleNetworkReject"
+              >
+                {{ $t('txLens.detail.reject') }}
+              </el-button>
+              <span class="text-xs text-g-400">
+                {{ $t('txLens.detail.networkPendingHint') }}
+              </span>
+            </div>
+
             <div class="text-caption font-bold text-g-700 uppercase tracking-wider mb-3">
               {{ $t('txLens.detail.networkTrace') }}
             </div>
+
             <div
               v-if="!networkTrace.length"
               class="flex items-center gap-2 px-4 py-3 bg-[var(--el-color-info-light-9)] border border-[var(--el-color-info-light-5)] rounded-lg"
@@ -414,6 +435,7 @@
     fetchInboundNotifications,
     confirmVaspMismatch,
     rejectTransaction,
+    rejectInboundNotification,
     fetchTravelRuleAttestations,
     uploadFile,
     createTravelRuleAttestation
@@ -773,6 +795,25 @@
     return !!status && PENDING_REVIEW_STATUSES.includes(status)
   })
 
+  /**
+   * Network Negotiation pending 状态：手动 Accept/Reject。
+   * 显示条件：
+   *   1. 入金交易（direction === 'incoming'）
+   *   2. Travel Rule 信息完整（ivms101Valid = true）
+   *   3. 没有 IVMS101 校验错误
+   *   4. 尚未处理（status 为 CREATED/PII_APPENDED/UNMATCHED）
+   */
+  const showNetworkPendingButtons = computed(() => {
+    if (props.direction !== 'incoming') return false
+    const d = props.data
+    if (!d) return false
+    // IVMS101 校验通过（信息完整且无错误）
+    if (d.ivms101Valid !== true) return false
+    // 尚未处理的状态
+    const status = d.status
+    return !!status && PENDING_REVIEW_STATUSES.includes(status)
+  })
+
   // 无 Travel Rule 通知时的提示文案（出金=未发送，入金=未收到）
   const emptyHint = computed(() => {
     const outgoing = props.direction === 'outgoing'
@@ -941,6 +982,74 @@
   function handleReject() {
     // TODO: 接口就绪后恢复 rejectInboundNotification 调用
     ElMessage.info(t('txLens.detail.rejectPending'))
+  }
+
+  /**
+   * Network Negotiation pending：手动 Accept（对接 /compliance/notifications/{id}/accept）
+   * 按钮旁附提示：当前为方便测试，未来由规则自动同意/拒绝。
+   */
+  async function handleNetworkAccept() {
+    if (!notificationId.value) {
+      ElMessage.warning(t('txLens.detail.notificationNotLoaded'))
+      return
+    }
+    try {
+      await ElMessageBox.confirm(
+        t('txLens.detail.networkPendingAcceptConfirm'),
+        t('txLens.detail.accept'),
+        {
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
+          type: 'warning'
+        }
+      )
+    } catch {
+      return
+    }
+    acting.value = true
+    try {
+      await acceptInboundNotification(notificationId.value)
+      ElMessage.success(t('txLens.detail.accept') + ' OK')
+      emit('reviewed')
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : 'Failed to accept')
+    } finally {
+      acting.value = false
+    }
+  }
+
+  /**
+   * Network Negotiation pending：手动 Reject（对接 /compliance/notifications/{id}/reject）
+   * 按钮旁附提示：当前为方便测试，未来由规则自动同意/拒绝。
+   */
+  async function handleNetworkReject() {
+    if (!notificationId.value) {
+      ElMessage.warning(t('txLens.detail.notificationNotLoaded'))
+      return
+    }
+    try {
+      await ElMessageBox.confirm(
+        t('txLens.detail.networkPendingRejectConfirm'),
+        t('txLens.detail.reject'),
+        {
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
+          type: 'warning'
+        }
+      )
+    } catch {
+      return
+    }
+    acting.value = true
+    try {
+      await rejectInboundNotification(notificationId.value)
+      ElMessage.success(t('txLens.detail.reject') + ' OK')
+      emit('reviewed')
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : 'Failed to reject')
+    } finally {
+      acting.value = false
+    }
   }
 
   /** Generate Share Link / Upload Proof：功能未实现，按按钮给出具体提示 */
