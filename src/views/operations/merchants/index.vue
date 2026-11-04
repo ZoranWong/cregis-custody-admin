@@ -66,11 +66,11 @@
                 </template>
               </el-table-column>
               <!-- 申请列表同样展示统一的商户对外状态（resolveMerchantStatus 计算） -->
-              <el-table-column :label="$t('merchantList.status')" width="160">
+              <el-table-column :label="$t('merchantList.status')" min-width="180">
                 <template #default="{ row }">
                   <ArtStatusTag
-                    :status="merchantStatusTone(row as MerchantRecord)"
-                    :text="merchantStatusLabel(row as MerchantRecord)"
+                    :status="appStatusTone(row as MerchantRecord)"
+                    :text="appStatusLabel(row as MerchantRecord)"
                   />
                 </template>
               </el-table-column>
@@ -613,6 +613,30 @@
     const status = rowMerchantStatus(row)
     if (status) return t(MERCHANT_STATUS_LABEL_KEYS[status])
     return row.status || '-'
+  }
+
+  /**
+   * 申请列表状态：优先按 KYB Case 状态区分阶段，避免全部显示同一个颜色。
+   * 申请列表全部为 PENDING 商户，但 KYB 内部状态可能不同（待初审/KYB中/待终审/拒绝等）。
+   */
+  function appStatusTone(row: MerchantRecord) {
+    const status = rowMerchantStatus(row)
+    if (status) return MERCHANT_STATUS_TONE[status]
+    // 无 KYB 时按商户自身状态兜底
+    const self = (row.status || '').toUpperCase()
+    if (self === MerchantSelfStatus.Frozen) return 'warning'
+    if (self === MerchantSelfStatus.Active) return 'success'
+    return 'warning'
+  }
+
+  function appStatusLabel(row: MerchantRecord): string {
+    const status = rowMerchantStatus(row)
+    if (status) return t(MERCHANT_STATUS_LABEL_KEYS[status])
+    // 无 KYB 时用商户自身状态兜底
+    const self = (row.status || '').toUpperCase()
+    if (self === MerchantSelfStatus.Frozen) return t('merchantStatus.frozen')
+    if (self === MerchantSelfStatus.Active) return t('merchantStatus.active')
+    return t(MERCHANT_STATUS_LABEL_KEYS[MerchantStatus.PendingInitialReview])
   }
 
   /**
