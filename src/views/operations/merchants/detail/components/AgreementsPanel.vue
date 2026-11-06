@@ -1,4 +1,4 @@
-<!-- 终审材料（Agreements）：按类别上传 / 查看 / 作废企业合同等文档 -->
+<!-- 终审材料（Agreements）：按类别上传 / 查看企业合同等文档 -->
 <template>
   <div v-loading="loading" class="flex flex-col">
     <div
@@ -28,17 +28,6 @@
           >
             {{ $t('merchantDetail.agreementDownload') }}
           </a>
-          <el-button
-            v-if="editable"
-            link
-            type="danger"
-            size="small"
-            class="!px-0"
-            :loading="deletingId === doc.id"
-            @click="removeDoc(doc)"
-          >
-            {{ $t('merchantDetail.agreementDelete') }}
-          </el-button>
         </div>
 
         <div v-if="filesOf(cat).length === 0" class="text-xs text-g-400 mt-2">
@@ -66,11 +55,10 @@
 <script setup lang="ts">
   import { onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { ElMessage } from 'element-plus'
   import { uploadFile } from '@/api/compliance'
   import {
     createMerchantDocument,
-    deleteMerchantDocument,
     fetchMerchantDocuments,
     type MerchantDocumentView
   } from '@/api/merchant'
@@ -81,7 +69,7 @@
   const props = withDefaults(
     defineProps<{
       ecode: string
-      /** 终审进行中可上传/作废；已入驻后只读 */
+      /** 是否允许上传/补充材料 */
       editable?: boolean
     }>(),
     { editable: false }
@@ -148,7 +136,6 @@
   const loading = ref(false)
   const documents = ref<MerchantDocumentView[]>([])
   const uploadingKey = ref('')
-  const deletingId = ref<number | null>(null)
   const inputRefs = new Map<string, HTMLInputElement>()
 
   function setInputRef(key: string, el: unknown) {
@@ -211,28 +198,6 @@
       if (succeeded > 0) await load()
     } finally {
       uploadingKey.value = ''
-    }
-  }
-
-  async function removeDoc(doc: MerchantDocumentView) {
-    try {
-      await ElMessageBox.confirm(
-        t('merchantDetail.agreementConfirmDelete', { name: doc.title || doc.fileName || '' }),
-        t('merchantDetail.agreementDelete'),
-        { type: 'warning' }
-      )
-    } catch {
-      return
-    }
-    deletingId.value = doc.id
-    try {
-      await deleteMerchantDocument(props.ecode, doc.id)
-      ElMessage.success(t('merchantDetail.agreementDeleteSuccess'))
-      await load()
-    } catch {
-      ElMessage.error(t('merchantDetail.agreementDeleteFailed'))
-    } finally {
-      deletingId.value = null
     }
   }
 

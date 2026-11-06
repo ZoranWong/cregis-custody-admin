@@ -142,7 +142,11 @@
 
     <!-- Tab 2: Pre-screening -->
     <el-tab-pane :label="$t('merchantDetail.tabPrescreening')" name="prescreening">
-      <PrescreeningPanel :questionnaire="detail.questionnaire" />
+      <PrescreeningPanel
+        :questionnaire="detail.questionnaire"
+        :editable="true"
+        @edit-bd="openBdEditor"
+      />
     </el-tab-pane>
 
     <!-- Tab 3: Identity Verification & Screening -->
@@ -164,7 +168,8 @@
 
     <!-- Tab 4: Agreements -->
     <el-tab-pane :label="$t('merchantDetail.tabAgreements')" name="agreements">
-      <AgreementsPanel :ecode="detail.ecode" />
+      <div class="text-xs text-g-600 mb-3">{{ $t('merchantDetail.agreementsHint') }}</div>
+      <AgreementsPanel :ecode="detail.ecode" :editable="true" />
     </el-tab-pane>
 
     <!-- Tab 5: Team Members -->
@@ -213,6 +218,14 @@
       </div>
     </el-tab-pane>
   </el-tabs>
+
+  <!-- BD 推荐人编辑弹窗 -->
+  <BdReferralEditor
+    ref="bdEditorRef"
+    :ecode="detail.ecode"
+    :questionnaire="detail.questionnaire"
+    :on-success="reload"
+  />
 </template>
 
 <script setup lang="ts">
@@ -234,6 +247,7 @@
   import PrescreeningPanel from './PrescreeningPanel.vue'
   import IdentityVerificationPanel from './IdentityVerificationPanel.vue'
   import AgreementsPanel from './AgreementsPanel.vue'
+  import BdReferralEditor from './BdReferralEditor.vue'
 
   defineOptions({ name: 'MerchantOverviewView' })
 
@@ -436,6 +450,13 @@
 
   function handleReverifyRescreen() {
     ElMessage.warning(t('merchantDetail.reverifyRescreenUnavailable'))
+  }
+
+  // ─── BD Referral 编辑 ───
+  const bdEditorRef = ref<InstanceType<typeof BdReferralEditor> | null>(null)
+
+  function openBdEditor() {
+    bdEditorRef.value?.open()
   }
 
   function merchantSelfStatusLabel(s: string): string {

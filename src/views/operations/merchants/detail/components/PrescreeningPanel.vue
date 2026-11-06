@@ -59,7 +59,12 @@
     <div>
       <div class="screening-grid">
         <div class="summary-card">
-          <div class="summary-card-title">{{ $t('merchantDetail.qBdReferral') }}</div>
+          <div class="summary-card-title flex items-center justify-between">
+            <span>{{ $t('merchantDetail.qBdReferral') }}</span>
+            <el-button v-if="editable" size="small" text type="primary" @click="handleEditBd">
+              <ArtSvgIcon icon="ri:edit-line" class="text-icon-sm" />
+            </el-button>
+          </div>
           <div class="summary-card-value">{{ bdReferralText }}</div>
         </div>
         <div class="summary-card">
@@ -134,9 +139,19 @@
       questionnaire?: KybQuestionnaire | null
       beneficiaries?: KybBeneficiary[]
       showBeneficiaries?: boolean
+      /** 是否显示编辑按钮（仅已入驻商户的 Pre-screening tab 启用） */
+      editable?: boolean
     }>(),
-    { questionnaire: null, beneficiaries: () => [], showBeneficiaries: false }
+    { questionnaire: null, beneficiaries: () => [], showBeneficiaries: false, editable: false }
   )
+
+  const emit = defineEmits<{
+    'edit-bd': []
+  }>()
+
+  function handleEditBd() {
+    emit('edit-bd')
+  }
 
   const { t } = useI18n()
   const countryStore = useCountryStore()
