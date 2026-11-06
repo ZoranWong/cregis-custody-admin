@@ -326,7 +326,7 @@
     acceptInboundNotification,
     fetchInboundNotifications,
     confirmVaspMismatch,
-    rejectTransaction,
+    rejectVaspMismatch,
     rejectInboundNotification,
     fetchTravelRuleAttestations,
     uploadFile,
@@ -471,7 +471,10 @@
     }
     cancelling.value = true
     try {
-      await rejectTransaction(props.orderId, { note: reason || undefined })
+      await rejectVaspMismatch(props.orderId, {
+        operator: operator.value,
+        note: reason || undefined
+      })
       ElMessage.success(t('txLens.detail.rejectDone'))
       emit('reviewed')
     } catch (err) {
@@ -558,8 +561,38 @@
     }
   }
 
-  function handleReject() {
-    ElMessage.info(t('txLens.detail.rejectPending'))
+  /** 拒绝 VASP 不一致：终结该笔交易及其 Travel Rule（仅 VASP_MISMATCH_PENDING 可用） */
+  async function handleReject() {
+    if (!props.orderId) return
+    let reason = ''
+    try {
+      const input = await ElMessageBox.prompt(
+        t('txLens.detail.rejectReasonHint'),
+        t('txLens.detail.reject'),
+        {
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
+          inputPlaceholder: t('txLens.detail.cancelReasonPlaceholder'),
+          type: 'warning'
+        }
+      )
+      reason = String(input.value || '').trim()
+    } catch {
+      return
+    }
+    rejecting.value = true
+    try {
+      await rejectVaspMismatch(props.orderId, {
+        operator: operator.value,
+        note: reason || undefined
+      })
+      ElMessage.success(t('txLens.detail.rejectDone'))
+      emit('reviewed')
+    } catch (err) {
+      ElMessage.error(err instanceof Error ? err.message : t('txLens.detail.actionFailed'))
+    } finally {
+      rejecting.value = false
+    }
   }
 
   async function handleNetworkAccept() {
