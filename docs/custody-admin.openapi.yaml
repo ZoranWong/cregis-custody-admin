@@ -5,6 +5,36 @@ info:
   version: 1.0.0
 tags: []
 paths:
+  /v1/auth/email/code/send:
+    post:
+      summary: 发送邮箱验证码
+      deprecated: false
+      description: |-
+        发送邮箱验证码
+        忘记密码时向员工邮箱发送验证码
+      tags: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailCodeDto'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResult%3F'
+      security: []
   /system/config/page:
     post:
       summary: 配置分页
@@ -7283,6 +7313,119 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessageResultKybApplicantProfileResult'
       security: []
+  /merchant/{ecode}/kyb/sdk-link:
+    post:
+      summary: 生成KYB验证链接并发送邮件
+      deprecated: false
+      description: |-
+        为指定企业生成 KYB 验证链接并发送邮件。
+        生成KYB验证链接并发送邮件
+        为指定企业生成 Sumsub WebSDK 直达链接，并把链接发送到企业邮箱；返回链接供运营直接使用
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultMerchantSdkLinkView'
+      security: []
+  /merchant/{ecode}/questionnaire:
+    post:
+      summary: 修改问卷业务答案
+      deprecated: false
+      description: >-
+        修改问卷业务答案（仅入驻中可改）
+        
+        修改问卷业务答案
+        
+        整体覆盖最新问卷的业务答案（含 BD 推荐人、资格题与同意项），同步案件最近提交 payload；仅企业状态为 PENDING（入驻中）时允许。法定名称变更时同步商户名称并做平台内重名校验；审批结论字段（screening_*）不在修改范围内。
+
+
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminMerchantQuestionnaireUpdateRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultKybQuestionnaire'
+      security: []
+  /merchant/{ecode}/questionnaire/bd-referral:
+    post:
+      summary: 修改问卷 BD 推荐人信息
+      deprecated: false
+      description: >-
+        修改问卷 BD 推荐人信息（仅入驻中可改）
+        
+        修改问卷 BD 推荐人信息
+        
+        仅企业状态为 PENDING（入驻中）时允许；bdReferral=true 时按 bdUserId 校验后台 BD 角色并回填姓名/邮箱快照，false 则清空推荐人信息。问卷与案件最近提交 payload 同步更新。
+
+
+      tags: []
+      parameters:
+        - name: ecode
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          description: ''
+          example: '{{token}}'
+          schema:
+            type: string
+            default: '{{token}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminMerchantQuestionnaireBdRequest'
+              description: ''
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResultKybQuestionnaire'
+      security: []
   /merchant/{ecode}/documents:
     post:
       summary: 保存企业文档
@@ -8781,6 +8924,17 @@ components:
         uploadedAt:
           type: string
           description: 上传时间
+    MerchantSdkLinkView:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Sumsub WebSDK 直达链接，前端跳转到此 URL 开始 KYB 认证
+          default: '##default'
+        externalUserId:
+          type: string
+          description: 业务系统用户 ID（商户 ecode）
+          default: '##default'
     QueryCondition:
       type: object
       properties:
@@ -9259,6 +9413,30 @@ components:
           description: ''
         data:
           $ref: '#/components/schemas/MerchantDocumentView'
+          description: ''
+    MessageResultMerchantSdkLinkView:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/MerchantSdkLinkView'
+          description: ''
+    MessageResultKybQuestionnaire:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: ''
+        message:
+          type: string
+          description: ''
+        data:
+          $ref: '#/components/schemas/KybQuestionnaire'
           description: ''
     MessageResult?:
       type: object
@@ -10054,6 +10232,59 @@ components:
         remark:
           type: string
           description: 备注，可空
+    AdminMerchantQuestionnaireUpdateRequest:
+      type: object
+      properties:
+        investorType:
+          type: string
+          description: 投资人类别:INSTITUTIONAL_INVESTOR/QUALIFIED_INVESTOR
+          enum:
+            - INSTITUTIONAL_INVESTOR
+            - QUALIFIED_INVESTOR
+        legalName:
+          type: string
+          description: 主体法定名称
+        primaryActivity:
+          type: string
+          description: 主营业务（原型 Business Activity）
+        companyAddress:
+          type: string
+          description: 公司法定地址（原型 Company Legal Address，单字段）
+        website:
+          type: string
+          description: 官网地址
+        bdReferral:
+          type: boolean
+          description: 是否由 BD 团队推荐；false/null 表示清空推荐人信息
+        bdUserId:
+          type: integer
+          description: BD 推荐人后台用户 ID（o_sys_user.id）；bdReferral=true 时必填
+          format: int64
+        authorisedPerson:
+          type: boolean
+          description: 是否是代表企业的授权人
+        netAssetsMet:
+          type: boolean
+          description: 是否满足净资产要求（仅 Qualified Investor）
+        directorsVaKnowledge:
+          type: boolean
+          description: 董事是否具备虚拟资产相关知识（仅 Qualified Investor）
+        riskDisclosureAccepted:
+          type: boolean
+          description: 是否已阅读并同意风险揭示书；翻转为 true 时接受时间取当前时间，false/null 清空接受时间
+        privacyPolicyAccepted:
+          type: boolean
+          description: 是否已阅读并同意隐私政策；翻转为 true 时接受时间取当前时间，false/null 清空接受时间
+    AdminMerchantQuestionnaireBdRequest:
+      type: object
+      properties:
+        bdReferral:
+          type: boolean
+          description: 是否由 BD 团队推荐；false 表示清空推荐人信息
+        bdUserId:
+          type: integer
+          description: BD 推荐人后台用户 ID（o_sys_user.id）；bdReferral=true 时必填
+          format: int64
     key:
       type: object
       properties: {}
@@ -12785,6 +13016,17 @@ components:
         data:
           $ref: '#/components/schemas/TransactionLensItemView'
           description: ''
+    SendEmailCodeDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 邮箱
+          default: '##default'
+        scene:
+          type: string
+          description: 场景：register/forgetPassword/resetPassword 等
+          default: '##default'
     QueryParamSystemUser: *ref_0
     MessageResultComplianceTabView:
       type: object
