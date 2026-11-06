@@ -207,6 +207,7 @@
       "networkPendingAcceptConfirm": "Accept this Travel Rule exchange? The counterparty PII will be authorized.",
       "networkPendingRejectConfirm": "Reject this Travel Rule exchange? The counterparty PII will be declined.",
       "notificationNotLoaded": "Notification ID not loaded yet, please wait a moment and retry.",
+      "noNotificationRecord": "No Travel Rule notification received from counterparty yet. Please wait for counterparty submission before processing.",
       "pendingReview": "Pending compliance review",
       "approve": "Approve",
       "reject": "Reject",

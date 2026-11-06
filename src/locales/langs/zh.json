@@ -207,6 +207,7 @@
       "networkPendingAcceptConfirm": "确认接受此 Travel Rule 交换？将授权对手方 PII 信息。",
       "networkPendingRejectConfirm": "确认拒绝此 Travel Rule 交换？将拒绝对手方 PII 信息。",
       "notificationNotLoaded": "通知 ID 尚未加载完成，请稍后重试。",
+      "noNotificationRecord": "尚未收到对手方发送的 Travel Rule 通知。请等待对手方提交后再进行处理。",
       "pendingReview": "待合规审查",
       "approve": "批准",
       "reject": "拒绝",
