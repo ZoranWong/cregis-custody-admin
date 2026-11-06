@@ -196,12 +196,6 @@
           @add="addToSection"
         />
       </template>
-
-      <!-- Governance Notice -->
-      <div class="governance-notice">
-        <strong>{{ $t('system.governanceTitle') }}:</strong>
-        {{ $t('system.governanceNotice') }}
-      </div>
     </template>
     <el-dialog v-model="inviteDialogOpen" :title="$t('system.inviteMember')" width="500px">
       <el-form label-width="80px">
@@ -679,17 +673,5 @@
 
   .flow-step-content.resolved {
     padding-bottom: 0;
-  }
-
-  /* Governance notice */
-  .governance-notice {
-    max-width: 640px;
-    padding: 10px 14px;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--el-color-warning-dark-2);
-    background: var(--el-color-warning-light-9);
-    border: 1px solid var(--el-color-warning-light-5);
-    border-radius: 8px;
   }
 </style>
