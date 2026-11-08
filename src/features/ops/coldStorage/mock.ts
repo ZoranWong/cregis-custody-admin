@@ -226,6 +226,7 @@ export function queryColdStorageTransfers(params: {
   status?: string
   merchantCode?: string
   coinId?: string
+  type?: string
   keyword?: string
   page?: number
   pageSize?: number
@@ -235,6 +236,7 @@ export function queryColdStorageTransfers(params: {
     if (params.status && r.status !== params.status) return false
     if (params.merchantCode && r.merchantCode !== params.merchantCode) return false
     if (params.coinId && r.coinId !== params.coinId) return false
+    if (params.type && r.type !== params.type) return false
     if (keyword) {
       const hit =
         r.requestId.toLowerCase().includes(keyword) ||

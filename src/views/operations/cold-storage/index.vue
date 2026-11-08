@@ -47,6 +47,17 @@
         <el-option :label="$t('coldStorage.allAssets')" value="" />
         <el-option v-for="c in assetOptions" :key="c" :label="c" :value="c" />
       </el-select>
+      <el-select
+        v-model="filters.type"
+        :placeholder="$t('coldStorage.allTypes')"
+        clearable
+        class="!w-36"
+        @change="reload"
+      >
+        <el-option :label="$t('coldStorage.allTypes')" value="" />
+        <el-option :label="$t('coldStorage.type.transfer')" value="transfer" />
+        <el-option :label="$t('coldStorage.type.config')" value="config" />
+      </el-select>
       <el-input
         v-model="filters.keyword"
         :placeholder="$t('coldStorage.searchPlaceholder')"
@@ -57,6 +68,36 @@
       >
         <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
       </el-input>
+    </div>
+
+    <!-- Batch Actions -->
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <ElButton
+        type="primary"
+        :disabled="pendingRecords.length === 0"
+        :loading="acting"
+        @click="handleExportBatch"
+      >
+        <ArtSvgIcon icon="ri:download-2-line" class="text-icon-sm" />
+        {{ $t('coldStorage.exportBatch') }} ({{ pendingRecords.length }})
+      </ElButton>
+      <ElButton :loading="acting" @click="pickBatchFile">
+        <ArtSvgIcon icon="ri:upload-2-line" class="text-icon-sm" />
+        {{ $t('coldStorage.importSigned') }}
+      </ElButton>
+      <input
+        ref="batchFileInputRef"
+        type="file"
+        accept="application/json,.json"
+        class="hidden"
+        @change="onBatchFileSelected"
+      />
+    </div>
+
+    <!-- Batch Result Cards -->
+    <div v-if="batchResult" class="art-card p-4 mb-4" :class="batchResultClass">
+      <div class="text-sm font-semibold text-g-900">{{ batchResult.title }}</div>
+      <div class="text-xs text-tone-muted-text mt-1">{{ batchResult.meta }}</div>
     </div>
 
     <!-- Table -->
@@ -94,19 +135,20 @@
               </div>
             </template>
           </el-table-column>
+          <el-table-column :label="$t('coldStorage.type')" min-width="110">
+            <template #default="{ row }">
+              <ArtStatusTag
+                :status="row.type === 'transfer' ? 'info' : 'done'"
+                :text="$t(`coldStorage.type.${row.type}`)"
+              />
+            </template>
+          </el-table-column>
           <el-table-column :label="$t('coldStorage.amount')" min-width="150">
             <template #default="{ row }">
               <span class="text-sm font-semibold tabular-nums text-g-900">
                 {{ formatCoinBalance(row.amount, row.decimals) }}
                 <span class="text-xs font-normal text-tone-muted-text">{{ row.coinId }}</span>
               </span>
-            </template>
-          </el-table-column>
-          <el-table-column :label="$t('coldStorage.destination')" min-width="200">
-            <template #default="{ row }">
-              <span class="font-mono text-xs text-g-700">{{
-                compactHex(row.destinationAddress)
-              }}</span>
             </template>
           </el-table-column>
           <el-table-column :label="$t('coldStorage.requested')" width="130">
@@ -151,16 +193,24 @@
 <script setup lang="ts">
   import { computed, onMounted, reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import { formatCoinBalance, formatRelativeTime, compactHex } from '@/utils/format'
-  import { queryColdStorageTransfers, countPendingTransfers } from '@/features/ops/coldStorage/mock'
+  import { useI18n } from 'vue-i18n'
+  import { formatCoinBalance, formatRelativeTime } from '@/utils/format'
+  import {
+    queryColdStorageTransfers,
+    countPendingTransfers,
+    flushColdTasks,
+    receiptColdTasks
+  } from '@/features/ops/coldStorage/mock'
   import type {
     ColdStorageTransferStatus,
-    ColdStorageTransferView
+    ColdStorageTransferView,
+    ColdTaskType
   } from '@/features/ops/coldStorage/types'
 
   defineOptions({ name: 'ColdStorageTransfers' })
 
   const router = useRouter()
+  const { t } = useI18n()
 
   const STATUS_OPTIONS: ColdStorageTransferStatus[] = [
     'pending',
@@ -178,9 +228,30 @@
   const filters = reactive({
     status: '' as ColdStorageTransferStatus | '',
     coinId: '',
+    type: '' as ColdTaskType | '',
     keyword: ''
   })
   const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
+
+  // Batch operation state
+  const acting = ref(false)
+  const batchFileInputRef = ref<HTMLInputElement | null>(null)
+  const pendingRecords = ref<ColdStorageTransferView[]>([])
+  const batchResult = ref<{
+    title: string
+    meta: string
+    type: 'exported' | 'imported' | 'error'
+  } | null>(null)
+
+  const batchResultClass = computed(() => {
+    if (!batchResult.value) return ''
+    const map = {
+      exported: 'border-l-4 border-l-[var(--tone-progress-mark)] bg-tone-progress-bg',
+      imported: 'border-l-4 border-l-[var(--tone-done-mark)] bg-tone-done-bg',
+      error: 'border-l-4 border-l-[var(--tone-error-mark)] bg-tone-error-bg'
+    }
+    return map[batchResult.value.type] || ''
+  })
 
   const assetOptions = computed(() => {
     const set = new Set(records.value.map((r) => r.coinId))
@@ -194,12 +265,15 @@
       const result = await queryColdStorageTransfers({
         status: filters.status || undefined,
         coinId: filters.coinId || undefined,
+        type: filters.type || undefined,
         keyword: filters.keyword || undefined,
         page: pagination.page,
         pageSize: pagination.pageSize
       })
       records.value = result.records
       pagination.total = result.total
+      // Populate pending records for batch operations
+      pendingRecords.value = records.value.filter((r) => r.status === 'pending')
     } catch (caught) {
       loadError.value = caught instanceof Error ? caught.message : 'Unable to load transfers.'
     } finally {
@@ -209,6 +283,7 @@
 
   function reload(): void {
     pagination.page = 1
+    batchResult.value = null
     void loadList()
   }
 
@@ -239,6 +314,62 @@
       .join('')
       .slice(0, 2)
       .toUpperCase()
+  }
+
+  // ─── Batch operation handlers ───
+
+  async function handleExportBatch(): Promise<void> {
+    if (!pendingRecords.value.length) return
+    acting.value = true
+    try {
+      const result = await flushColdTasks()
+      if (result) {
+        batchResult.value = {
+          title: t('coldStorage.batchExported', { batchId: result.batchId }),
+          meta: t('coldStorage.batchExportMeta', {
+            count: result.count,
+            checksum: result.checksum.slice(0, 16)
+          }),
+          type: 'exported'
+        }
+        await loadList()
+      }
+    } finally {
+      acting.value = false
+    }
+  }
+
+  function pickBatchFile(): void {
+    batchFileInputRef.value?.click()
+  }
+
+  async function onBatchFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = ''
+    if (!file) return
+
+    acting.value = true
+    try {
+      const raw = await file.text()
+      const result = await receiptColdTasks(raw)
+      if (result) {
+        batchResult.value = {
+          title: t('coldStorage.batchImported', { batchId: result.batchId }),
+          meta: t('coldStorage.batchImportMeta', { count: result.count }),
+          type: 'imported'
+        }
+        await loadList()
+      }
+    } catch (err) {
+      batchResult.value = {
+        title: 'Import failed',
+        meta: err instanceof Error ? err.message : 'Unknown error',
+        type: 'error'
+      }
+    } finally {
+      acting.value = false
+    }
   }
 
   onMounted(async () => {
