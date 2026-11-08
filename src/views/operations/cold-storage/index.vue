@@ -17,56 +17,6 @@
       </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="flex flex-wrap items-center gap-3 mb-4">
-      <el-select
-        v-model="filters.status"
-        :placeholder="$t('coldStorage.allStatus')"
-        clearable
-        class="!w-44"
-        @change="reload"
-      >
-        <el-option :label="$t('coldStorage.allStatus')" value="" />
-        <el-option
-          v-for="s in STATUS_OPTIONS"
-          :key="s"
-          :label="$t(`coldStorage.status.${s}`)"
-          :value="s"
-        />
-      </el-select>
-      <el-select
-        v-model="filters.coinId"
-        :placeholder="$t('coldStorage.allAssets')"
-        clearable
-        class="!w-36"
-        @change="reload"
-      >
-        <el-option :label="$t('coldStorage.allAssets')" value="" />
-        <el-option v-for="c in assetOptions" :key="c" :label="c" :value="c" />
-      </el-select>
-      <el-select
-        v-model="filters.type"
-        :placeholder="$t('coldStorage.allTypes')"
-        clearable
-        class="!w-36"
-        @change="reload"
-      >
-        <el-option :label="$t('coldStorage.allTypes')" value="" />
-        <el-option :label="$t('coldStorage.typeValues.transfer')" value="transfer" />
-        <el-option :label="$t('coldStorage.typeValues.config')" value="config" />
-      </el-select>
-      <el-input
-        v-model="filters.keyword"
-        :placeholder="$t('coldStorage.searchPlaceholder')"
-        clearable
-        class="flex-1 !min-w-[220px]"
-        @clear="reload"
-        @keyup.enter="reload"
-      >
-        <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
-      </el-input>
-    </div>
-
     <!-- Batch Actions -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <ElButton
@@ -155,14 +105,6 @@
               }}</span>
             </template>
           </el-table-column>
-          <el-table-column :label="$t('coldStorage.statusLabel')" width="160">
-            <template #default="{ row }">
-              <ArtStatusTag
-                :status="statusTone(row.status)"
-                :text="$t(`coldStorage.status.${row.status ?? 'pending'}`)"
-              />
-            </template>
-          </el-table-column>
         </el-table>
 
         <div
@@ -193,36 +135,17 @@
   import { useI18n } from 'vue-i18n'
   import { formatCoinBalance, formatRelativeTime } from '@/utils/format'
   import { fetchColdTaskPage, flushColdTasks, importColdReceipt } from '@/api/coldStorage'
-  import type {
-    ColdStorageTransferStatus,
-    ColdStorageTransferView,
-    ColdTaskType
-  } from '@/features/ops/coldStorage/types'
+  import type { ColdStorageTransferView } from '@/features/ops/coldStorage/types'
 
   defineOptions({ name: 'ColdStorageTransfers' })
 
   const router = useRouter()
   const { t } = useI18n()
 
-  const STATUS_OPTIONS: ColdStorageTransferStatus[] = [
-    'pending',
-    'signed',
-    'broadcast',
-    'confirmed',
-    'failed',
-    'aborted'
-  ]
-
   const loading = ref(false)
   const loadError = ref('')
   const records = ref<ColdStorageTransferView[]>([])
   const pendingCount = ref(0)
-  const filters = reactive({
-    status: '' as ColdStorageTransferStatus | '',
-    coinId: '',
-    type: '' as ColdTaskType | '',
-    keyword: ''
-  })
   const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
 
   // Batch operation state
@@ -245,20 +168,11 @@
     return map[batchResult.value.type] || ''
   })
 
-  const assetOptions = computed(() => {
-    const set = new Set(records.value.map((r) => r.coinId))
-    return Array.from(set).sort()
-  })
-
   async function loadList(): Promise<void> {
     loading.value = true
     loadError.value = ''
     try {
       const result = await fetchColdTaskPage({
-        status: filters.status || undefined,
-        coinId: filters.coinId || undefined,
-        type: filters.type || undefined,
-        keyword: filters.keyword || undefined,
         page: pagination.page,
         pageSize: pagination.pageSize
       })
@@ -288,17 +202,6 @@
 
   function openDetail(row: ColdStorageTransferView): void {
     router.push({ name: 'cold-storage-detail', params: { requestId: row.requestId } })
-  }
-
-  /** 状态 → ArtStatusTag 语义色：pending 待处理、signed 已签名、broadcast 已广播 */
-  function statusTone(
-    status: ColdStorageTransferStatus
-  ): 'success' | 'warning' | 'danger' | 'info' | null {
-    if (status === 'confirmed') return 'success'
-    if (status === 'pending') return 'warning'
-    if (status === 'failed') return 'danger'
-    if (status === 'signed' || status === 'broadcast') return 'info'
-    return null
   }
 
   function initials(name: string): string {
