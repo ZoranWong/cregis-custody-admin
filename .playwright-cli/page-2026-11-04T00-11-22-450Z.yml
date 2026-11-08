@@ -1,0 +1,164 @@
+- generic [active] [ref=e1]:
+    - generic [ref=e3]:
+        - complementary [ref=e4]:
+            - generic [ref=e6]:
+                - generic [ref=e7] [cursor=pointer]:
+                    - img "Cregis" [ref=e8]
+                    - paragraph [ref=e9]: Cregis Custody
+                - menubar [ref=e13]:
+                    - menuitem "Operations" [ref=e14]:
+                        - generic [ref=e15] [cursor=pointer]:
+                            - img [ref=e17]
+                            - generic [ref=e18]: Operations
+                            - img [ref=e20]
+                    - menuitem "Compliance" [expanded] [ref=e22]:
+                        - generic [ref=e23] [cursor=pointer]:
+                            - img [ref=e25]
+                            - generic [ref=e26]: Compliance
+                            - img [ref=e28]
+                        - menu [ref=e30]:
+                            - menuitem "Merchants" [ref=e31] [cursor=pointer]:
+                                - img [ref=e33]
+                                - generic [ref=e34]: Merchants
+                            - menuitem "Transaction Lens" [ref=e35] [cursor=pointer]:
+                                - img [ref=e37]
+                                - generic [ref=e38]: Transaction Lens
+                            - menuitem "Rules" [ref=e39] [cursor=pointer]:
+                                - img [ref=e41]
+                                - generic [ref=e42]: Rules
+                            - menuitem "Compliance Alerts" [ref=e43] [cursor=pointer]:
+                                - img [ref=e45]
+                                - generic [ref=e46]: Compliance Alerts
+                            - menuitem "Travel Rule Events" [ref=e47] [cursor=pointer]:
+                                - img [ref=e49]
+                                - generic [ref=e50]: Travel Rule Events
+                    - menuitem "Audit" [ref=e51]:
+                        - generic [ref=e52] [cursor=pointer]:
+                            - img [ref=e54]
+                            - generic [ref=e55]: Audit
+                            - img [ref=e57]
+                    - menuitem "System Admin" [ref=e59]:
+                        - generic [ref=e60] [cursor=pointer]:
+                            - img [ref=e62]
+                            - generic [ref=e63]: System Admin
+                            - img [ref=e65]
+        - main [ref=e67]:
+            - generic [ref=e69]:
+                - generic [ref=e70]:
+                    - generic [ref=e71]:
+                        - img [ref=e73] [cursor=pointer]
+                        - img [ref=e75] [cursor=pointer]
+                        - navigation "breadcrumb" [ref=e76]:
+                            - list [ref=e77]:
+                                - listitem [ref=e78]:
+                                    - generic [ref=e80] [cursor=pointer]: Compliance
+                                    - generic [ref=e81]: /
+                                - listitem [ref=e82]:
+                                    - generic [ref=e84]: Merchant Detail
+                    - generic [ref=e85]:
+                        - generic [ref=e86] [cursor=pointer]:
+                            - generic [ref=e87]:
+                                - img [ref=e88]
+                                - generic [ref=e89]: Search
+                            - generic [ref=e90]:
+                                - img [ref=e91]
+                                - generic [ref=e92]: k
+                        - img [ref=e94] [cursor=pointer]
+                        - button [ref=e96] [cursor=pointer]:
+                            - img [ref=e97]
+                        - img [ref=e99] [cursor=pointer]
+                        - generic [ref=e101] [cursor=pointer]: SK
+                - generic [ref=e102]:
+                    - list [ref=e104]:
+                        - listitem [ref=e105] [cursor=pointer]:
+                            - img [ref=e106]
+                            - text: Gas Operations
+                            - img [ref=e108]
+                        - listitem [ref=e109] [cursor=pointer]:
+                            - img [ref=e110]
+                            - text: Daily Reconciliation
+                            - img [ref=e112]
+                        - listitem [ref=e113] [cursor=pointer]:
+                            - img [ref=e114]
+                            - text: Daily Reconciliation
+                            - img [ref=e116]
+                        - listitem [ref=e117] [cursor=pointer]:
+                            - img [ref=e118]
+                            - text: Merchant Detail
+                            - img [ref=e120]
+                    - img [ref=e123] [cursor=pointer]
+            - generic [ref=e126]:
+                - generic [ref=e190]:
+                    - generic [ref=e191]:
+                        - generic [ref=e192]:
+                            - heading "cregis07" [level=1] [ref=e193]
+                            - generic [ref=e195]: KYB In Progress
+                        - generic [ref=e196]:
+                            - generic [ref=e197]: 'Investor Type: Qualified Investor'
+                            - generic [ref=e198]: 'Applied At: 2026-11-03 10:21:14'
+                    - button "Back" [ref=e199] [cursor=pointer]:
+                        - generic [ref=e200]:
+                            - img [ref=e201]
+                            - text: Back
+                - generic [ref=e203]:
+                    - generic [ref=e204]:
+                        - heading "Onboarding Progress" [level=2] [ref=e205]
+                        - generic [ref=e206]:
+                            - generic [ref=e207]:
+                                - img [ref=e209]
+                                - generic [ref=e211]: Pre-screening
+                                - generic [ref=e212]: 2026-11-03 10:41:24
+                            - generic [ref=e213]:
+                                - img [ref=e215]
+                                - generic [ref=e217]: KYB
+                                - generic [ref=e218]: Waiting for customer
+                            - generic [ref=e219]:
+                                - generic [ref=e220]: '3'
+                                - generic [ref=e221]: Compliance Review
+                                - generic [ref=e222]: Pending
+                    - generic [ref=e223]:
+                        - generic [ref=e224]:
+                            - heading "KYB" [level=2] [ref=e225]
+                            - generic [ref=e227]: Submitting
+                        - generic [ref=e228]:
+                            - generic [ref=e229]:
+                                - img [ref=e230]
+                                - generic [ref=e232]:
+                                    - generic [ref=e233]: Customer is submitting KYB details
+                                    - generic [ref=e234]: The Sumsub verification link was sent to dinah108@gmail.com and the customer is filling it in. The case moves to third-party review once submitted.
+                                    - generic [ref=e286]:
+                                        - button "Copy Link" [ref=e288] [cursor=pointer]:
+                                            - generic [ref=e289]:
+                                                - img [ref=e290]
+                                                - text: Copy Link
+                                        - generic [ref=e292]: Valid until 2026-11-04 08:41:20
+                                    - generic [ref=e293]:
+                                        - generic [ref=e294]:
+                                            - text: 'Customer Email:'
+                                            - strong [ref=e295]: dinah108@gmail.com
+                                        - button "Regenerate Link" [ref=e296] [cursor=pointer]:
+                                            - generic [ref=e297]:
+                                                - img [ref=e298]
+                                                - text: Regenerate Link
+                            - generic [ref=e242]:
+                                - generic [ref=e243]: Verification Progress
+                                - generic [ref=e244]:
+                                    - generic [ref=e245]:
+                                        - img [ref=e247]
+                                        - generic [ref=e249]: Wait submit
+                                        - generic [ref=e250]: In Progress
+                                    - generic [ref=e251]:
+                                        - generic [ref=e253]: Result
+                                        - generic [ref=e254]: Pending
+                                - button "Refresh" [ref=e256] [cursor=pointer]:
+                                    - generic [ref=e257]:
+                                        - img [ref=e258]
+                                        - text: Refresh
+    - generic [ref=e142]:
+        - generic "Toggle devtools panel" [ref=e143] [cursor=pointer]:
+            - img [ref=e144]
+        - generic "Toggle Component Inspector" [ref=e149] [cursor=pointer]:
+            - img [ref=e150]
+    - alert [ref=e300]:
+        - img [ref=e302]
+        - paragraph [ref=e304]: Verification link generated and emailed to dinah108@gmail.com

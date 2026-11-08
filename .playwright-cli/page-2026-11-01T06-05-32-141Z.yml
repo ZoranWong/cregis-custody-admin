@@ -1,0 +1,108 @@
+- generic [active] [ref=e1]:
+    - generic [ref=e3]:
+        - complementary [ref=e4]:
+            - generic [ref=e6]:
+                - generic [ref=e7] [cursor=pointer]:
+                    - img "Cregis" [ref=e8]
+                    - paragraph [ref=e9]: Cregis Custody
+                - menubar [ref=e13]:
+                    - menuitem "Operations" [ref=e14]:
+                        - generic [ref=e15] [cursor=pointer]:
+                            - img [ref=e17]
+                            - generic [ref=e18]: Operations
+                            - img [ref=e20]
+                    - menuitem "Compliance" [expanded] [ref=e22]:
+                        - generic [ref=e23] [cursor=pointer]:
+                            - img [ref=e25]
+                            - generic [ref=e26]: Compliance
+                            - img [ref=e28]
+                        - menu:
+                            - menuitem "Merchants" [ref=e30] [cursor=pointer]:
+                                - img [ref=e32]
+                                - generic [ref=e33]: Merchants
+                            - menuitem "Transaction Lens" [ref=e34] [cursor=pointer]:
+                                - img [ref=e36]
+                                - generic [ref=e37]: Transaction Lens
+                            - menuitem "Rules" [ref=e38] [cursor=pointer]:
+                                - img [ref=e40]
+                                - generic [ref=e41]: Rules
+                            - menuitem "Compliance Alerts" [ref=e42] [cursor=pointer]:
+                                - img [ref=e44]
+                                - generic [ref=e45]: Compliance Alerts
+                            - menuitem "Travel Rule Events" [ref=e46] [cursor=pointer]:
+                                - img [ref=e48]
+                                - generic [ref=e49]: Travel Rule Events
+                    - menuitem "Audit" [ref=e50]:
+                        - generic [ref=e51] [cursor=pointer]:
+                            - img [ref=e53]
+                            - generic [ref=e54]: Audit
+                            - img [ref=e56]
+                    - menuitem "System Admin" [ref=e58]:
+                        - generic [ref=e59] [cursor=pointer]:
+                            - img [ref=e61]
+                            - generic [ref=e62]: System Admin
+                            - img [ref=e64]
+        - main [ref=e66]:
+            - generic [ref=e68]:
+                - generic [ref=e69]:
+                    - generic [ref=e70]:
+                        - img [ref=e72] [cursor=pointer]
+                        - img [ref=e74] [cursor=pointer]
+                        - navigation "breadcrumb" [ref=e75]:
+                            - list [ref=e76]:
+                                - listitem [ref=e77]:
+                                    - generic [ref=e79] [cursor=pointer]: Compliance
+                                    - generic [ref=e80]: /
+                                - listitem [ref=e81]:
+                                    - generic [ref=e83]: Merchants
+                    - generic [ref=e84]:
+                        - generic [ref=e85] [cursor=pointer]:
+                            - generic [ref=e86]:
+                                - img [ref=e87]
+                                - generic [ref=e88]: Search
+                            - generic [ref=e89]:
+                                - img [ref=e90]
+                                - generic [ref=e91]: k
+                        - img [ref=e93] [cursor=pointer]
+                        - button [ref=e95] [cursor=pointer]:
+                            - img [ref=e96]
+                        - img [ref=e98] [cursor=pointer]
+                        - generic [ref=e100] [cursor=pointer]: SK
+                - generic [ref=e101]:
+                    - list [ref=e103]:
+                        - listitem [ref=e104] [cursor=pointer]:
+                            - img [ref=e105]
+                            - text: Gas Operations
+                            - img [ref=e107]
+                        - listitem [ref=e108] [cursor=pointer]:
+                            - img [ref=e109]
+                            - text: Daily Reconciliation
+                            - img [ref=e111]
+                        - listitem [ref=e112] [cursor=pointer]:
+                            - img [ref=e113]
+                            - text: Daily Reconciliation
+                            - img [ref=e115]
+                        - listitem [ref=e116] [cursor=pointer]:
+                            - img [ref=e117]
+                            - text: Merchants
+                            - img [ref=e119]
+                    - img [ref=e122] [cursor=pointer]
+            - generic [ref=e125]:
+                - generic [ref=e127]:
+                    - heading "Merchant Management" [level=1] [ref=e128]
+                    - paragraph [ref=e129]: Manage merchant applications, onboarding status and compliance screening.
+                - generic [ref=e130]:
+                    - tablist [ref=e134]:
+                        - tab "Applications" [selected] [ref=e136]
+                        - tab "Merchant List" [ref=e137]
+                    - tabpanel "Applications" [ref=e139]:
+                        - generic [ref=e142]:
+                            - img [ref=e144]
+                            - textbox "Search merchant name..." [ref=e145]
+    - generic [ref=e154]:
+        - generic "Toggle devtools panel" [ref=e155] [cursor=pointer]:
+            - img [ref=e156]
+        - generic "Toggle Component Inspector" [ref=e161] [cursor=pointer]:
+            - img [ref=e162]
+    - img [ref=e168]:
+        - img [ref=e169]

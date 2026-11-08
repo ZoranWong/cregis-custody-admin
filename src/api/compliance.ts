@@ -437,6 +437,25 @@ export async function confirmVaspMismatch(orderId: string, operator?: string): P
 }
 
 /**
+ * 拒绝 VASP 不一致（仅订单处于 VASP_MISMATCH_PENDING 时可用）。
+ * 终结该笔出金及其 Travel Rule：订单置 REJECTED，TR 记录置 REJECTED，
+ * activity.travel_rule_status 同步 FAILED。
+ * POST /compliance/transactions/{orderId}/vasp/reject?operator=&note=
+ */
+export async function rejectVaspMismatch(
+  orderId: string,
+  params?: { operator?: string; note?: string }
+): Promise<void> {
+  await apiRequest<void>(
+    `/compliance/transactions/${encodeURIComponent(orderId)}/vasp/reject${queryString({
+      operator: params?.operator,
+      note: params?.note
+    })}`,
+    { method: 'POST', body: {} }
+  )
+}
+
+/**
  * 修正对方 VASP 并重新校验。
  * POST /compliance/transactions/{orderId}/vasp/revise?vaspDid=&vaspName=&operator=
  */

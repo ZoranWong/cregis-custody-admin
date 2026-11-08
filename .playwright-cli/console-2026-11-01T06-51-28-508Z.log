@@ -1,0 +1,24 @@
+[     981ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[    1018ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    1577ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   34089ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[   34114ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   34531ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  102988ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  103013ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  103412ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  799387ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  800139ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  803807ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615

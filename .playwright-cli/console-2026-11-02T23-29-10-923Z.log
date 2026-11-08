@@ -1,0 +1,391 @@
+[    2881ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[    3417ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    4543ms] [LOG] 🍍 "authBootstrap" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    4550ms] [LOG] 🍍 "ui" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    4650ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8766/auth/login?redirect=/operations/gas:0
+[   10251ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[   10375ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   12516ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   14992ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[   15167ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   17293ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   18498ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[   19955ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[   20105ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   21619ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   24216ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[   24400ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   26800ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[   28078ms] [WARNING] [intlify] Not found 'merchantDetail.primaryActivity_exchange' key in 'en' locale messages. @ http://127.0.0.1:8766/node_modules/.vite/deps/vue-i18n.js?v=d32786bb:26
+[   28342ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[   29128ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[   29513ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[   31108ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[   35097ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[   35102ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[   38572ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[   38573ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[   38573ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[   38661ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[   39164ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[   39194ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[   39543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[   39766ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[   41239ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[  512581ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  512843ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  513999ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  515660ms] [WARNING] [intlify] Not found 'merchantDetail.primaryActivity_exchange' key in 'en' locale messages. @ http://127.0.0.1:8766/node_modules/.vite/deps/vue-i18n.js?v=d32786bb:26
+[  526095ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  526548ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  526553ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  526715ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  526718ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[  527259ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  527422ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  527422ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  527747ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  528110ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  528856ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  529050ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  529062ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[  530223ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[  530228ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[  537783ms] [WARNING] [intlify] Not found 'merchantDetail.primaryActivity_exchange' key in 'en' locale messages. @ http://127.0.0.1:8766/node_modules/.vite/deps/vue-i18n.js?v=d32786bb:26
+[  670806ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  670900ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  672938ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  684863ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  685020ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  685023ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  685285ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  685440ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  685573ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  685573ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  685972ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  685977ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ctime-line:0
+[  686206ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  686209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  686221ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[  686738ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  687355ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ctime-line:0
+[  688752ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ctime-line:0
+[  692931ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  693105ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  694224ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  705932ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  706424ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  706432ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  706557ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  706577ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  706709ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  706714ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  706906ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  706908ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  707275ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  707291ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  707489ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[  708402ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[  708433ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[  709243ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[  713366ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  713557ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  714626ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  725797ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  725942ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  726570ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  726898ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  726903ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  726905ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  727022ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  727141ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  727142ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  727152ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  727155ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  727284ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[  728516ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line:0
+[  728875ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line:0
+[  729587ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line:0
+[  733441ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  733638ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  734887ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  736329ms] [WARNING] [intlify] Not found 'merchantDetail.primaryActivity_exchange' key in 'en' locale messages. @ http://127.0.0.1:8766/node_modules/.vite/deps/vue-i18n.js?v=d32786bb:26
+[  745556ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  745818ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  746154ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  746280ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  746655ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  746656ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  746657ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  746661ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  746895ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[  746897ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  746900ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  746903ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  746906ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[  747837ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[  748074ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[  751838ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  752004ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  753037ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  764160ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  764163ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  764172ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  764441ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  764625ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  764977ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  764978ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  765122ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Cerror-warning-line:0
+[  765135ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  765282ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  765283ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  765284ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[  765285ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  766259ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Cerror-warning-line:0
+[  766768ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Cerror-warning-line:0
+[  771876ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  771970ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  773713ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  775933ms] [WARNING] [merchantStatus] 1399 前端复算 FROZEN 与接口 enterpriseStatus ACTIVE 不一致 @ http://127.0.0.1:8766/src/utils/merchantStatus.ts?t=1793533558145:66
+[  785219ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  785221ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  785424ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  785425ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  785665ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[  785891ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  786020ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  786166ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  786167ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  786171ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  786174ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  786177ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  787468ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line:0
+[  787523ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line:0
+[  788187ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line:0
+[  820387ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  820598ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  822145ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  835147ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  835526ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  835528ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  835530ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  835537ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  835717ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  836106ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  836110ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  836116ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  836125ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  836282ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  836512ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[  836526ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[  837729ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[  837743ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[  984596ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[  984704ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  986417ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[  998349ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  998354ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  998359ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[  998961ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  998966ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[  998971ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[  998973ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[  998975ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[  998977ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[  998983ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[  999654ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1000159ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1000182ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[ 1000727ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1001812ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1016824ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[ 1016931ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1018176ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1028940ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1028941ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1028941ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1029964ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[ 1030222ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1030228ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1030229ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1030340ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[ 1031036ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1031400ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1031925ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1031925ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1032050ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[ 1032313ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1033082ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1069892ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[ 1069946ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1071016ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1081936ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1081954ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1081956ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1082097ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1082222ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1082241ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1082359ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[ 1082721ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1082832ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1082977ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[ 1084179ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Csend-plane-line%2Ctime-line:0
+[ 1084289ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1084290ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[ 1085007ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Csend-plane-line%2Ctime-line:0
+[ 1085534ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Csend-plane-line%2Ctime-line:0
+[ 1089309ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[ 1089405ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1090556ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1101194ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1101196ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1101322ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1101950ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1102411ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1102456ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1102460ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1102475ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[ 1103575ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1103701ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[ 1104121ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1104122ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1104123ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[ 1104991ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1105889ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1109537ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[ 1109658ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1110552ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1112343ms] [WARNING] [intlify] Not found 'merchantDetail.primaryActivity_Cryptocurrency Exchange' key in 'en' locale messages. @ http://127.0.0.1:8766/node_modules/.vite/deps/vue-i18n.js?v=d32786bb:26
+[ 1121821ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1122045ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1122046ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1122192ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1122192ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1122193ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[ 1122515ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1122522ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Cfile-warning-line%2Csend-plane-line%2Ctime-line:0
+[ 1122524ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1122524ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1122672ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1122674ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[ 1123543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[ 1125143ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cfile-warning-line%2Csend-plane-line%2Ctime-line:0
+[ 1126259ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cfile-warning-line%2Csend-plane-line%2Ctime-line:0
+[ 1130279ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[ 1130340ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1131443ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1133570ms] [WARNING] [intlify] Not found 'merchantDetail.primaryActivity_exchange' key in 'en' locale messages. @ http://127.0.0.1:8766/node_modules/.vite/deps/vue-i18n.js?v=d32786bb:26
+[ 1142946ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1143125ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1143129ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1143446ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1143691ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1143691ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1143807ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1144073ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1144076ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[ 1144395ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1144540ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[ 1144657ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[ 1144787ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[ 1144926ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[ 1145576ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Cclose-line%2Cerror-warning-line:0
+[ 1149207ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[ 1149281ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1150406ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1161544ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1161545ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1161557ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1162551ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1162552ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1162929ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1163057ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[ 1163907ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1163909ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1164818ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[ 1165220ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1165221ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[ 1165559ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line:0
+[ 1165844ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line:0
+[ 1167075ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line:0
+[ 1227330ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://127.0.0.1:8766/src/utils/sys/console.ts:4
+[ 1227559ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1228710ms] [LOG] 🍍 "country" store installed 🆕 @ http://127.0.0.1:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[ 1240009ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1240010ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1241320ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1241322ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1241323ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/system-uicons.json?icons=inbox:0
+[ 1241893ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1241894ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1242007ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/system-uicons.json?icons=inbox:0
+[ 1242009ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=alert-line%2Carrow-left-s-line%2Carrow-right-s-line%2Ccalculator-line%2Ccalendar-check-line%2Ccheck-fill%2Ccheckbox-line%2Cclose-circle-line%2Cclose-fill%2Cclose-large-fill%2Ccommand-fill%2Cdashboard-line%2Cfile-list-3-line%2Cflashlight-line%2Cfullscreen-fill%2Cglobal-line%2Cheart-3-line%2Clock-2-line%2Clock-line%2Cmail-line%2Cmenu-2-fill%2Cmoney-dollar-circle-line%2Cmoon-line%2Cnotification-3-line%2Cpushpin-2-line%2Crefresh-line%2Csearch-eye-line%2Csearch-line%2Csettings-4-line%2Cstore-line%2Cteam-line:0
+[ 1242013ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=translate-2%2Cuser-3-line%2Cvolume-down-line:0
+[ 1242341ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/iconamoon.json?icons=arrow-down-2-thin:0
+[ 1242342ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/system-uicons.json?icons=inbox:0
+[ 1242909ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.iconify.design/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1242910ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.unisvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0
+[ 1244689ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://api.simplesvg.com/ri.json?icons=arrow-left-line%2Ccheck-line%2Ctime-line:0

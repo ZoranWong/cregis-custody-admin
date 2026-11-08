@@ -123,13 +123,16 @@ export async function fetchFundRecords(query: AccountingRecordQuery = {}): Promi
       orderId: raw.orderId ?? '',
       coinId: raw.coinId ?? '',
       network: raw.network ?? '',
-      fromAddr: raw.fromAddr ?? '',
-      toAddr: raw.toAddr ?? '',
+      // 对齐 AccountingRecordView 字段名：fromAddr → fromAddress, toAddr → toAddress
+      fromAddress: raw.fromAddr ?? '',
+      toAddress: raw.toAddr ?? '',
       direction: raw.direction === 'OUT' ? 'OUT' : 'IN',
       amount: Number(raw.amount ?? 0),
       preBalance: Number(raw.preBalance ?? 0),
       postBalance: Number(raw.postBalance ?? 0),
       fee: raw.fee ?? '',
+      // 对齐 AccountingRecordView 字段名：txType → activity
+      activity: raw.txType ?? '',
       txType: raw.txType ?? '',
       createTime: raw.createTime ?? ''
     })) as FundRecordView[],

@@ -1,0 +1,8 @@
+[    2892ms] [LOG] 
+[32mCregis Custody Admin Portal
+[0m
+ @ http://localhost:8766/src/utils/sys/console.ts:4
+[    3218ms] [LOG] 🍍 "worktabStore" store installed 🆕 @ http://localhost:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    3758ms] [LOG] 🍍 "authBootstrap" store installed 🆕 @ http://localhost:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    3758ms] [LOG] 🍍 "ui" store installed 🆕 @ http://localhost:8766/node_modules/.vite/deps/pinia.js?v=d32786bb:4615
+[    3797ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:8766/auth/login?redirect=/compliance/merchants/1593:0
