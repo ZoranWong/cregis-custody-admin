@@ -2072,7 +2072,19 @@
       "failed": "Failed",
       "aborted": "Aborted"
     },
-    "apiPending": "Backend endpoints for cold storage transfers are not available yet; this page runs on local mock data."
+    "apiPending": "Backend endpoints for cold storage transfers are not available yet; this page runs on local mock data.",
+    "type": "Type",
+    "type.transfer": "Transfer",
+    "type.config": "Config",
+    "allTypes": "All Types",
+    "exportBatch": "Export Batch",
+    "importSigned": "Import Signed File",
+    "batchExported": "Batch {batchId} exported",
+    "batchImported": "Batch {batchId} verified",
+    "batchExportMeta": "{count} transactions · SHA-256 {checksum}… · Ready for airgapped signing",
+    "batchImportMeta": "{count} signed transactions · Checksum verified · Broadcasting to network",
+    "batchEmpty": "No pending requests to export",
+    "importFileHint": "Select the signed batch file from the airgapped system"
   },
   "dailyReconciliation": {
     "pageTitle": "Daily Reconciliation",

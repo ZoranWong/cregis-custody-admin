@@ -2074,7 +2074,19 @@
       "failed": "失败",
       "aborted": "已中止"
     },
-    "apiPending": "冷存储转账后端接口尚未提供，本页目前使用本地 mock 数据。"
+    "apiPending": "冷存储转账后端接口尚未提供，本页目前使用本地 mock 数据。",
+    "type": "类型",
+    "type.transfer": "转账",
+    "type.config": "配置",
+    "allTypes": "全部类型",
+    "exportBatch": "批量导出",
+    "importSigned": "导入签名文件",
+    "batchExported": "批次 {batchId} 已导出",
+    "batchImported": "批次 {batchId} 已验证",
+    "batchExportMeta": "{count} 笔交易 · SHA-256 {checksum}… · 可供离线签名",
+    "batchImportMeta": "{count} 笔已签名交易 · 校验通过 · 正在广播到网络",
+    "batchEmpty": "暂无待导出的请求",
+    "importFileHint": "请选择离线签名系统返回的签名批量文件"
   },
   "dailyReconciliation": {
     "pageTitle": "日终对账",

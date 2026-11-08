@@ -17,6 +17,9 @@ export type ColdStorageTransferStatus =
   | 'failed'
   | 'aborted'
 
+/** 冷钱包任务类型：transfer=转账，config=配置更新 */
+export type ColdTaskType = 'transfer' | 'config'
+
 /** 工作流阶段：导出指令 → 导入签名交易 → 广播上链 */
 export type ColdStorageWorkflowStep = 'export' | 'import' | 'broadcast'
 
@@ -35,6 +38,8 @@ export interface ColdStorageTransferView {
   requestId: string
   merchantName: string
   merchantCode: string
+  /** 任务类型：transfer 有金额转账，config 无金额配置更新 */
+  type: ColdTaskType
   /** 资产符号，如 BTC / USDT */
   coinId: string
   /** 原始金额（最小单位字符串） */
@@ -106,4 +111,57 @@ export interface ColdStorageTransferPage {
   total: number
   current: number
   size: number
+}
+
+// ─── Real API Response Types ───
+
+/** 后端分页查询原始响应（记录字段需要 normalize） */
+export interface ColdTaskPageRaw {
+  records: Record<string, unknown>[]
+  total: number
+  current: number
+  size: number
+  pageCount: number
+}
+
+/** 子任务审批人（SubTaskAttendeeDto） */
+export interface SubTaskAttendee {
+  status: number // 0-待审批，1-同意，2-拒绝
+  userId: number
+  updateTime: string
+  username: string
+  email: string
+  pk: string
+}
+
+/** 付款任务明细原始响应 */
+export interface ColdTaskDetailRaw {
+  taskId: string | number
+  batchId: string
+  state: string
+  type: string // PAYMENT / CONFIG
+  ecode: string
+  merchantName: string
+  coinId: string
+  amount: string
+  decimals: number
+  network: string
+  sourceAddress: string
+  destinationAddress: string
+  createTime: string
+  approvalThreshold: { required: number; total: number }
+  approvers: SubTaskAttendee[]
+}
+
+/** Flush 返回的 bundle 结果 */
+export interface ColdFlushResult {
+  bundle: string
+  state: 'ENRICHED' | 'EMPTY' | string
+  batchId: string
+}
+
+/** 回执导入响应 */
+export interface ColdReceiptResult {
+  duplicate: boolean
+  core2Applied: boolean
 }
