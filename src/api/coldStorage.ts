@@ -15,20 +15,30 @@ import type {
 
 /** 后端 state → 前端归一化状态 */
 function normalizeStatus(rawState: string): ColdStorageTransferStatus {
+  const state = (!rawState ? '' : rawState).toUpperCase()
   // SIGN_SUCCEED 待签名, SIGNED 已签名, BROADCASTED 已广播,
-  // COMPLETED 已确认, FAILED 失败, CANCELLED 已中止
+  // COMPLETED/SUCCESS 已确认, FAILED 失败, CANCELLED/ABORTED 已中止
   const map: Record<string, ColdStorageTransferStatus> = {
     SIGN_SUCCEED: 'pending',
+    WAIT_SIGN: 'pending',
+    PENDING: 'pending',
     SELECTED: 'pending',
+    INIT: 'pending',
     SIGNED: 'signed',
     BROADCASTED: 'broadcast',
     BROADCASTING: 'broadcast',
+    BROADCAST: 'broadcast',
     COMPLETED: 'confirmed',
     SUCCESS: 'confirmed',
+    CONFIRMED: 'confirmed',
     FAILED: 'failed',
-    CANCELLED: 'aborted'
+    FAIL: 'failed',
+    ERROR: 'failed',
+    CANCELLED: 'aborted',
+    CANCELED: 'aborted',
+    ABORTED: 'aborted'
   }
-  return map[rawState] || 'pending'
+  return map[state] || 'pending'
 }
 
 /** 解析币种精度：接口不返回 decimals，需从币种元数据查 */

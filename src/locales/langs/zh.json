@@ -2230,8 +2230,10 @@
     },
     "apiPending": "冷存储转账后端接口尚未提供，本页目前使用本地 mock 数据。",
     "type": "类型",
-    "type.transfer": "转账",
-    "type.config": "配置",
+    "typeValues": {
+      "transfer": "转账",
+      "config": "配置"
+    },
     "allTypes": "全部类型",
     "exportBatch": "批量导出",
     "importSigned": "导入签名文件",

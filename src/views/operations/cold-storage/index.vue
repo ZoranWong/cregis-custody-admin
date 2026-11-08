@@ -52,8 +52,8 @@
         @change="reload"
       >
         <el-option :label="$t('coldStorage.allTypes')" value="" />
-        <el-option :label="$t('coldStorage.type.transfer')" value="transfer" />
-        <el-option :label="$t('coldStorage.type.config')" value="config" />
+        <el-option :label="$t('coldStorage.typeValues.transfer')" value="transfer" />
+        <el-option :label="$t('coldStorage.typeValues.config')" value="config" />
       </el-select>
       <el-input
         v-model="filters.keyword"
@@ -135,8 +135,8 @@
           <el-table-column :label="$t('coldStorage.type')" min-width="110">
             <template #default="{ row }">
               <ArtStatusTag
-                :status="row.type === 'transfer' ? 'info' : 'success'"
-                :text="$t(`coldStorage.type.${row.type}`)"
+                :status="row.type === 'config' ? 'success' : 'info'"
+                :text="$t(`coldStorage.typeValues.${row.type ?? 'transfer'}`)"
               />
             </template>
           </el-table-column>
@@ -159,7 +159,7 @@
             <template #default="{ row }">
               <ArtStatusTag
                 :status="statusTone(row.status)"
-                :text="$t(`coldStorage.status.${row.status}`)"
+                :text="$t(`coldStorage.status.${row.status ?? 'pending'}`)"
               />
             </template>
           </el-table-column>

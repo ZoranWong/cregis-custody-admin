@@ -2228,8 +2228,10 @@
     },
     "apiPending": "Backend endpoints for cold storage transfers are not available yet; this page runs on local mock data.",
     "type": "Type",
-    "type.transfer": "Transfer",
-    "type.config": "Config",
+    "typeValues": {
+      "transfer": "Transfer",
+      "config": "Config"
+    },
     "allTypes": "All Types",
     "exportBatch": "Export Batch",
     "importSigned": "Import Signed File",
