@@ -17,9 +17,6 @@
       </div>
     </div>
 
-    <!-- 后端接口未就绪提示：避免把示例数据误当成真实请求 -->
-    <ArtMockNotice :description="$t('coldStorage.apiPending')" />
-
     <!-- Filter Bar -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <el-select
@@ -195,12 +192,7 @@
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { formatCoinBalance, formatRelativeTime } from '@/utils/format'
-  import {
-    queryColdStorageTransfers,
-    countPendingTransfers,
-    flushColdTasks,
-    receiptColdTasks
-  } from '@/features/ops/coldStorage/mock'
+  import { fetchColdTaskPage, flushColdTasks, importColdReceipt } from '@/api/coldStorage'
   import type {
     ColdStorageTransferStatus,
     ColdStorageTransferView,
@@ -262,7 +254,7 @@
     loading.value = true
     loadError.value = ''
     try {
-      const result = await queryColdStorageTransfers({
+      const result = await fetchColdTaskPage({
         status: filters.status || undefined,
         coinId: filters.coinId || undefined,
         type: filters.type || undefined,
@@ -274,6 +266,8 @@
       pagination.total = result.total
       // Populate pending records for batch operations
       pendingRecords.value = records.value.filter((r) => r.status === 'pending')
+      // Derive pending count from loaded page
+      pendingCount.value = records.value.filter((r) => r.status === 'pending').length
     } catch (caught) {
       loadError.value = caught instanceof Error ? caught.message : 'Unable to load transfers.'
     } finally {
@@ -319,20 +313,31 @@
   // ─── Batch operation handlers ───
 
   async function handleExportBatch(): Promise<void> {
-    if (!pendingRecords.value.length) return
     acting.value = true
     try {
       const result = await flushColdTasks()
       if (result) {
         batchResult.value = {
           title: t('coldStorage.batchExported', { batchId: result.batchId }),
-          meta: t('coldStorage.batchExportMeta', {
-            count: result.count,
-            checksum: result.checksum.slice(0, 16)
-          }),
-          type: 'exported'
+          meta:
+            result.state === 'EMPTY'
+              ? t('coldStorage.batchEmpty')
+              : `Bundle state: ${result.state} · Ready for airgapped signing`,
+          type: result.state === 'EMPTY' ? 'error' : 'exported'
         }
         await loadList()
+      } else {
+        batchResult.value = {
+          title: 'Export returned no result',
+          meta: 'The server returned an empty response.',
+          type: 'error'
+        }
+      }
+    } catch (err) {
+      batchResult.value = {
+        title: 'Export failed',
+        meta: err instanceof Error ? err.message : 'Unknown error',
+        type: 'error'
       }
     } finally {
       acting.value = false
@@ -352,14 +357,24 @@
     acting.value = true
     try {
       const raw = await file.text()
-      const result = await receiptColdTasks(raw)
+      const result = await importColdReceipt({ receipt: raw })
       if (result) {
         batchResult.value = {
-          title: t('coldStorage.batchImported', { batchId: result.batchId }),
-          meta: t('coldStorage.batchImportMeta', { count: result.count }),
+          title: result.duplicate
+            ? 'Duplicate receipt imported'
+            : t('coldStorage.batchImported', { batchId: 'receipt' }),
+          meta: result.core2Applied
+            ? 'Receipt forwarded to core2 for broadcasting'
+            : 'Receipt received (core2 not yet confirmed)',
           type: 'imported'
         }
         await loadList()
+      } else {
+        batchResult.value = {
+          title: 'Import returned no result',
+          meta: 'The server returned an empty response.',
+          type: 'error'
+        }
       }
     } catch (err) {
       batchResult.value = {
@@ -373,9 +388,6 @@
   }
 
   onMounted(async () => {
-    void countPendingTransfers().then((count) => {
-      pendingCount.value = count
-    })
     await loadList()
   })
 </script>

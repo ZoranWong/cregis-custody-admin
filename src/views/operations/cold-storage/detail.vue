@@ -136,7 +136,7 @@
   import { computed, onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { formatCoinBalance, formatRelativeTime, formatTime } from '@/utils/format'
-  import { fetchColdStorageTransfer } from '@/features/ops/coldStorage/mock'
+  import { fetchColdTaskDetail, fetchColdTaskApprovers } from '@/api/coldStorage'
   import type {
     ColdStorageTransferStatus,
     ColdStorageTransferView
@@ -157,12 +157,25 @@
     loading.value = true
     loadError.value = ''
     try {
-      const found = await fetchColdStorageTransfer(requestId.value)
-      if (!found) {
+      const detail = await fetchColdTaskDetail(requestId.value)
+      if (!detail) {
         transfer.value = null
         return
       }
-      transfer.value = found
+      transfer.value = detail
+
+      // Fetch approvers separately
+      const approvers = await fetchColdTaskApprovers(requestId.value)
+      if (approvers.length > 0) {
+        transfer.value.approvers = approvers.map((a) => ({
+          id: String(a.userId),
+          name: a.username,
+          email: a.email,
+          keyRef: a.pk,
+          approved: a.status === 1,
+          approvedAt: a.status === 1 ? a.updateTime : null
+        }))
+      }
     } catch (caught) {
       loadError.value = caught instanceof Error ? caught.message : 'Unable to load transfer.'
     } finally {
