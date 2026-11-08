@@ -257,8 +257,9 @@ export function useTeamManagement() {
     return allMembers.value.filter((m) => !memberIds.has(Number(m.id)))
   }
 
-  /** 开始编辑角色成员 */
+  /** 开始编辑角色成员（COMPLIANCE_REVIEWER 通过复核流入口管理） */
   function startSectionEdit(roleCode: string): void {
+    if (roleCode === 'COMPLIANCE_REVIEWER') return
     editingSection.value = roleCode
     sectionBuffer.value[roleCode] = getRoleMemberIds(roleCode)
   }
@@ -269,10 +270,18 @@ export function useTeamManagement() {
     sectionBuffer.value = {}
   }
 
-  /** 保存角色成员变更 */
+  /** 保存角色成员变更（COMPLIANCE_REVIEWER 通过复核流入口保存） */
   async function saveSectionEdit(): Promise<void> {
     const roleCode = editingSection.value
     if (!roleCode) return
+
+    // COMPLIANCE_REVIEWER 通过复核流入口保存（PUT /system/review-flow/{severity}/reviewers）
+    if (roleCode === 'COMPLIANCE_REVIEWER') {
+      editingSection.value = null
+      sectionBuffer.value = {}
+      return
+    }
+
     const original = getRoleMemberIds(roleCode)
     const buffered = sectionBuffer.value[roleCode] || []
     const originalSet = new Set(original)
