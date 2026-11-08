@@ -81,6 +81,20 @@ function normalizeSubTaskAttendee(raw: Record<string, unknown>): SubTaskAttendee
 
 // ─── API Functions ───
 
+/** 前端归一化状态 → 后端 state */
+function toBackendState(status?: string): string | undefined {
+  if (!status) return undefined
+  const map: Record<string, string> = {
+    pending: 'SIGN_SUCCEED',
+    signed: 'SIGNED',
+    broadcast: 'BROADCASTED',
+    confirmed: 'COMPLETED',
+    failed: 'FAILED',
+    aborted: 'CANCELLED'
+  }
+  return map[status] || status
+}
+
 /** 分页查询冷钱包任务 */
 export async function fetchColdTaskPage(params: {
   page?: number
@@ -97,9 +111,9 @@ export async function fetchColdTaskPage(params: {
       page: params.page || 1,
       pageSize: params.pageSize || 10,
       ecode: params.ecode || undefined,
-      state: params.status || undefined,
+      state: toBackendState(params.status),
       coinId: params.coinId || undefined,
-      type: params.type || undefined,
+      type: params.type === 'transfer' ? 'PAYMENT' : params.type === 'config' ? 'CONFIG' : undefined,
       keyword: params.keyword || undefined
     }
   })) as Record<string, unknown>
