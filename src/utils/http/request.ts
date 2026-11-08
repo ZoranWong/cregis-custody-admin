@@ -195,15 +195,32 @@ export async function apiRequest<T>(
     const token = getPersistedToken()
     if (token) headers.Authorization = `Bearer ${token}`
   }
-  const response = await fetch(`${ADMIN_API_BASE}${path}`, {
-    method: options.method || 'GET',
+
+  // GET/HEAD 不能携带 body（fetch 会直接抛 TypeError）。
+  // 调用方习惯把查询参数放在 body 里，这里统一序列化为 query string。
+  const method = options.method || 'GET'
+  const isBodylessMethod = method === 'GET' || method === 'HEAD'
+  let requestUrl = `${ADMIN_API_BASE}${path}`
+  let requestBody: BodyInit | undefined
+  if (isBodylessMethod) {
+    if (options.body != null && !isFormData) {
+      const params = new URLSearchParams()
+      for (const [key, value] of Object.entries(options.body as Record<string, unknown>)) {
+        if (value == null || value === '') continue
+        params.append(key, String(value))
+      }
+      const qs = params.toString()
+      if (qs) requestUrl += (requestUrl.includes('?') ? '&' : '?') + qs
+    }
+  } else {
+    requestBody =
+      options.body == null ? undefined : isFormData ? (options.body as FormData) : JSON.stringify(options.body)
+  }
+
+  const response = await fetch(requestUrl, {
+    method,
     headers,
-    body:
-      options.body == null
-        ? undefined
-        : isFormData
-          ? (options.body as FormData)
-          : JSON.stringify(options.body)
+    body: requestBody
   })
   const payload = await parseJson(response)
   const envelope =
