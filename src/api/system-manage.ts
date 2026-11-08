@@ -17,6 +17,8 @@ import type {
   ReviewFlowApprover,
   ReviewFlowStep
 } from '@/features/system-admin/types'
+// Re-export for consumers that don't want to import from features/
+export type { RoleMemberView } from '@/features/system-admin/types'
 import type {
   EmployeeAccessBindingView,
   AccessReviewApplyResult,
