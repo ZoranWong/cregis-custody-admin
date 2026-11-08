@@ -80,7 +80,7 @@
                           "
                         >
                           <el-option
-                            v-for="m in flowMembers(flow.severity)"
+                            v-for="m in flowMembers()"
                             :key="m.id"
                             :label="m.name"
                             :value="Number(m.id)"
@@ -180,6 +180,7 @@
 </template>
 
 <script setup lang="ts">
+  import { computed } from 'vue'
   import type { ReviewFlowView, ReviewFlowStep } from '@/features/system-admin/types'
   import type { TeamMember } from '@/features/system-admin/useTeamManagement'
 
@@ -302,13 +303,9 @@
   }
 
   /** All members are eligible for flow steps */
-  function flowMembers(_severity: string): TeamMember[] {
+  function flowMembers(): TeamMember[] {
     return props.allMembers.filter((m) => m.status !== 'Suspended')
   }
-</script>
-
-<script lang="ts">
-  import { computed } from 'vue'
 </script>
 
 <style scoped>
