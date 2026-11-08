@@ -215,18 +215,47 @@
 
   // ─── Batch operation handlers ───
 
+  /** 把 bundle 原文下载为 JSON 文件（交给离线冷机签名） */
+  function downloadBundleJson(bundle: string, batchId: string): string {
+    const fileName = `cold-storage-${batchId.toLowerCase()}.json`
+    // bundle 已是后端返回的原文，尽可能保真：能解析则美化，不能则原样落盘
+    let content = bundle
+    try {
+      content = JSON.stringify(JSON.parse(bundle), null, 2)
+    } catch {
+      /* 非 JSON 原文，保持逐字节透传 */
+    }
+    const blob = new Blob([content], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+    return fileName
+  }
+
   async function handleExportBatch(): Promise<void> {
     acting.value = true
     try {
       const result = await flushColdTasks()
       if (result) {
-        batchResult.value = {
-          title: t('coldStorage.batchExported', { batchId: result.batchId }),
-          meta:
-            result.state === 'EMPTY'
-              ? t('coldStorage.batchEmpty')
-              : `Bundle state: ${result.state} · Ready for airgapped signing`,
-          type: result.state === 'EMPTY' ? 'error' : 'exported'
+        if (result.state === 'EMPTY') {
+          batchResult.value = {
+            title: t('coldStorage.batchExported', { batchId: result.batchId }),
+            meta: t('coldStorage.batchEmpty'),
+            type: 'error'
+          }
+        } else {
+          // 导出即下载 JSON 文件，交给离线冷机签名
+          const fileName = downloadBundleJson(result.bundle, result.batchId)
+          batchResult.value = {
+            title: t('coldStorage.batchExported', { batchId: result.batchId }),
+            meta: `${fileName} · Ready for airgapped signing`,
+            type: 'exported'
+          }
         }
         await loadList()
       } else {

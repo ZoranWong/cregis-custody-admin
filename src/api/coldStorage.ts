@@ -281,6 +281,9 @@ export async function fetchColdTaskApprovers(taskId: string): Promise<SubTaskAtt
 }
 
 /** 冷钱包取件导出（POST /cold/task/flush） */
+/** 冷钱包取件导出（POST /cold/task/flush）
+ * 返回的 bundle 原样交付冷机，可能是 JSON 字符串或对象，统一序列化为字符串。
+ */
 export async function flushColdTasks(params?: {
   operator?: string
 }): Promise<ColdFlushResult | null> {
@@ -295,8 +298,16 @@ export async function flushColdTasks(params?: {
     | undefined
   if (!data) return null
 
+  const rawBundle = data.bundle
+  const bundle =
+    typeof rawBundle === 'string'
+      ? rawBundle
+      : rawBundle != null
+        ? JSON.stringify(rawBundle)
+        : ''
+
   return {
-    bundle: (data.bundle || '') as string,
+    bundle,
     state: (data.state || 'EMPTY') as string,
     batchId: (data.batchId || data.bundleId || '') as string
   }
