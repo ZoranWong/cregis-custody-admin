@@ -384,3 +384,97 @@ export function abortColdStorageTransfer(
 export function countPendingTransfers(): Promise<number> {
   return Promise.resolve(records.filter((r) => r.status === 'pending').length)
 }
+
+/** SHA-256 hash of input text */
+async function sha256Hex(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+/** 批量取件导出（对应 POST /cold/task/flush） */
+export async function flushColdTasks(
+  merchantCode?: string
+): Promise<{ batchId: string; count: number; checksum: string } | null> {
+  const pending = records.filter(
+    (r) => r.status === 'pending' && (!merchantCode || r.merchantCode === merchantCode)
+  )
+  if (!pending.length) return null
+
+  const batchId = `BATCH-${new Date().toISOString().slice(0, 10)}-${String(
+    records.length + 1
+  ).padStart(4, '0')}`
+  const transactions = pending.map((r) => ({
+    requestId: r.requestId,
+    merchant: r.merchantName,
+    type: r.type,
+    amount: r.amount,
+    coinId: r.coinId,
+    decimals: r.decimals,
+    network: r.network,
+    sourceAddress: r.sourceAddress,
+    destinationAddress: r.destinationAddress
+  }))
+
+  const checksum = await sha256Hex(JSON.stringify(transactions))
+
+  // 标记为已导出
+  pending.forEach((r) => {
+    r.exportedFile = { name: `${batchId}-instruction.json`, exportedAt: new Date().toISOString() }
+    r.status = 'signed'
+    r.currentStep = 'import'
+  })
+  persist()
+
+  return { batchId, count: pending.length, checksum }
+}
+
+/** 批量导入回执（对应 POST /cold/task/receipt） */
+export async function receiptColdTasks(
+  fileContent: string
+): Promise<{ batchId: string; count: number } | null> {
+  let batch: unknown
+  try {
+    batch = JSON.parse(fileContent)
+  } catch {
+    throw new Error('INVALID_JSON')
+  }
+
+  const b = batch as Record<string, unknown>
+  if (
+    !b ||
+    typeof b !== 'object' ||
+    !Array.isArray(b.transactions) ||
+    typeof b.batchId !== 'string'
+  ) {
+    throw new Error('INVALID_FORMAT')
+  }
+
+  const batchId = b.batchId as string
+  const txs = b.transactions as Array<{ requestId: string }>
+  const ids = new Set(txs.map((t) => t.requestId))
+
+  // 校验 checksum 如果存在
+  if (typeof b.manifest === 'object' && b.manifest !== null) {
+    const manifest = b.manifest as Record<string, unknown>
+    if (typeof manifest.checksum === 'string' && manifest.checksum.startsWith('sha256:')) {
+      const expected = manifest.checksum.slice(7)
+      const actual = await sha256Hex(JSON.stringify(txs))
+      if (expected !== actual) throw new Error('CHECKSUM_MISMATCH')
+    }
+  }
+
+  let updated = 0
+  records.forEach((r) => {
+    if (r.status === 'signed' && ids.has(r.requestId)) {
+      r.importedFile = { name: `${batchId}-signed.json`, importedAt: new Date().toISOString() }
+      r.status = 'broadcast'
+      r.currentStep = 'broadcast'
+      updated++
+    }
+  })
+  persist()
+
+  return { batchId, count: updated }
+}
