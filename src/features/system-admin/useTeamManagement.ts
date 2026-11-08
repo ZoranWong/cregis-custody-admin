@@ -336,7 +336,11 @@ export function useTeamManagement() {
     flowBuffer.value = {}
   }
 
-  /** 保存复核流 */
+  /** 保存复核流
+   * 当前仅保存复核人（PUT /system/review-flow/{severity}/reviewers）。
+   * timeoutMinutes 和 timeoutAction 为后端默认值，UI 暂不编辑。
+   * 未来如需修改超时配置，应额外调用 updateReviewFlow。
+   */
   async function saveFlowEdit(): Promise<void> {
     const severity = editingFlow.value
     if (!severity) return
