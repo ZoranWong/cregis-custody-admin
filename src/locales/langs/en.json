@@ -2120,13 +2120,10 @@
     "transferNotice": "Select a member as the new owner. This action cannot be undone.",
     "selectMember": "Select Member",
     "confirm": "Confirm",
-    "governanceTitle": "Governance Notice",
-    "governanceNotice": "High-risk changes (password reset, role or domain changes) may trigger re-authentication on the user's next sensitive action.",
     "serviceName": "Service Name",
     "healthStatus": "Health",
     "latency": "Latency",
     "serviceStatus": "Service Status",
-    "rolesMockNotice": "Backend role management is still in development. This tab uses mock data, and role changes will not be saved.",
     "noMembers": "No members assigned yet.",
     "addStep": "Add step"
   },
