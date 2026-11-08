@@ -17,6 +17,9 @@ export type ColdStorageTransferStatus =
   | 'failed'
   | 'aborted'
 
+/** 冷钱包任务类型：transfer=转账，config=配置更新 */
+export type ColdTaskType = 'transfer' | 'config'
+
 /** 工作流阶段：导出指令 → 导入签名交易 → 广播上链 */
 export type ColdStorageWorkflowStep = 'export' | 'import' | 'broadcast'
 
@@ -35,6 +38,8 @@ export interface ColdStorageTransferView {
   requestId: string
   merchantName: string
   merchantCode: string
+  /** 任务类型：transfer 有金额转账，config 无金额配置更新 */
+  type: ColdTaskType
   /** 资产符号，如 BTC / USDT */
   coinId: string
   /** 原始金额（最小单位字符串） */
