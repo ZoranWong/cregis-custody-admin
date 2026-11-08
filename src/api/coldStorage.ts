@@ -13,27 +13,36 @@ import type {
 
 // ─── Normalize Functions ───
 
-/** 后端 state → 前端归一化状态 */
+/** 后端 state → 前端归一化状态
+ * 后端枚举: AUDIT_PASSED / AUDIT_REJECTED / AUDITING / EXPIRED / FAILED /
+ * REJECTED / SIGN_FAILED / SIGN_REJECTED / SIGN_SUCCEED / SIGNING /
+ * VERIFY_FAILED / VERIFY_SUCCEED / WAITING
+ */
 function normalizeStatus(rawState: string): ColdStorageTransferStatus {
   const state = (!rawState ? '' : rawState).toUpperCase()
-  // SIGN_SUCCEED 待签名, SIGNED 已签名, BROADCASTED 已广播,
-  // COMPLETED/SUCCESS 已确认, FAILED 失败, CANCELLED/ABORTED 已中止
   const map: Record<string, ColdStorageTransferStatus> = {
+    // 待处理：等待审批 / 审批中 / 待签名 / 签名中
+    WAITING: 'pending',
+    AUDITING: 'pending',
+    AUDIT_PASSED: 'pending',
+    SIGNING: 'pending',
     SIGN_SUCCEED: 'pending',
-    WAIT_SIGN: 'pending',
-    PENDING: 'pending',
-    SELECTED: 'pending',
-    INIT: 'pending',
+    // 已签名（等待回执）
     SIGNED: 'signed',
+    // 已广播
     BROADCASTED: 'broadcast',
     BROADCASTING: 'broadcast',
     BROADCAST: 'broadcast',
-    COMPLETED: 'confirmed',
-    SUCCESS: 'confirmed',
-    CONFIRMED: 'confirmed',
+    VERIFY_SUCCEED: 'confirmed',
+    // 失败终态
     FAILED: 'failed',
-    FAIL: 'failed',
-    ERROR: 'failed',
+    SIGN_FAILED: 'failed',
+    SIGN_REJECTED: 'failed',
+    VERIFY_FAILED: 'failed',
+    REJECTED: 'failed',
+    AUDIT_REJECTED: 'failed',
+    // 过期视为中止
+    EXPIRED: 'aborted',
     CANCELLED: 'aborted',
     CANCELED: 'aborted',
     ABORTED: 'aborted'
@@ -52,16 +61,28 @@ function resolveDecimals(coinId: string, network: string, raw?: unknown): number
   }
 }
 
-/** 从原始任务对象取目标地址：转账为 payToList[0].to */
+/** 从原始任务对象取目标地址
+ * 详情接口: payToList[0].to
+ * 列表接口: cmdForm.txs[0].params.to
+ */
 function resolveDestination(raw: Record<string, unknown>): string {
   const payToList = raw.payToList as Record<string, unknown>[] | undefined
   if (Array.isArray(payToList) && payToList.length > 0) {
     return String(payToList[0].to || '')
   }
+  const cmdForm = raw.cmdForm as Record<string, unknown> | undefined
+  const txs = cmdForm?.txs as Record<string, unknown>[] | undefined
+  if (Array.isArray(txs) && txs.length > 0) {
+    const params = txs[0].params as Record<string, unknown> | undefined
+    if (params?.to) return String(params.to)
+  }
   return String(raw.destinationAddress || '')
 }
 
-/** 从原始任务对象取源地址：address 或 includes[0] */
+/** 从原始任务对象取源地址
+ * 详情接口: address 或 includes[0]
+ * 列表接口: 无源地址字段（返回空，列表中不展示）
+ */
 function resolveSource(raw: Record<string, unknown>): string {
   if (raw.address) return String(raw.address)
   const includes = raw.includes as unknown[] | undefined
@@ -71,10 +92,33 @@ function resolveSource(raw: Record<string, unknown>): string {
   return String(raw.sourceAddress || '')
 }
 
-/** 业务类型 → transfer/config */
+/** 从原始任务对象取金额
+ * 详情接口: totalAmount / inputAmount
+ * 列表接口: cmdForm.txs[0].params.amount
+ */
+function resolveAmount(raw: Record<string, unknown>): string {
+  if (raw.totalAmount != null) return String(raw.totalAmount)
+  if (raw.inputAmount != null) return String(raw.inputAmount)
+  const cmdForm = raw.cmdForm as Record<string, unknown> | undefined
+  const txs = cmdForm?.txs as Record<string, unknown>[] | undefined
+  if (Array.isArray(txs) && txs.length > 0) {
+    const params = txs[0].params as Record<string, unknown> | undefined
+    if (params?.amount != null) return String(params.amount)
+  }
+  return String(raw.amount ?? '0')
+}
+
+/** 业务类型 → transfer/config
+ * 详情: businessType = TRANSFER
+ * 列表: businessType = SYSTEM/BTC_TRANSFER/... 或 taskType = orders/issues
+ */
 function resolveTaskType(raw: Record<string, unknown>): ColdTaskType {
-  const businessType = String(raw.businessType || raw.type || '').toUpperCase()
-  if (businessType === 'CONFIG' || businessType === 'CONFIGURE') return 'config'
+  const businessType = String(raw.businessType ?? '').toUpperCase()
+  const taskType = String(raw.taskType ?? '').toUpperCase()
+  // issues / 配置类 视为 config；其余资金类视为 transfer
+  if (businessType.includes('CONFIG') || businessType === 'SYSTEM' || taskType === 'ISSUES') {
+    return 'config'
+  }
   return 'transfer'
 }
 
@@ -82,8 +126,7 @@ function normalizeColdTask(raw: Record<string, unknown>): ColdStorageTransferVie
   const status = normalizeStatus(String(raw.state || raw.status || ''))
   const coinId = String(raw.coinId || '')
   const network = String(raw.network || '')
-  // 金额：totalAmount（聚合）优先，其次 inputAmount，最后 amount
-  const amount = String(raw.totalAmount ?? raw.inputAmount ?? raw.amount ?? '0')
+  const amount = resolveAmount(raw)
   const decimals = resolveDecimals(coinId, network, raw.decimals)
   const approversRaw = Array.isArray(raw.approvers)
     ? (raw.approvers as Record<string, unknown>[])
