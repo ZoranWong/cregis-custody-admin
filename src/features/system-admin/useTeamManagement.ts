@@ -24,8 +24,8 @@ export interface TeamMember {
 }
 
 // ─── Owner detection ───
-// Owner 从 roleOverviews 的 SYSTEM_OWNER 角色获取
-// TODO: Backend should provide a dedicated GET /system/owner API
+// Owner 从 roleOverviews 的 SYSTEM_OWNER 角色获取（SYSTEM_OWNER 角色
+// 的唯一成员即为 Owner。当后端提供专用 GET /system/owner API 后可简化）。
 
 function mapStatus(row: EmployeeRowView): 'Active' | 'Pending' | 'Suspended' {
   if (row.accountStatus === 'disabled') return 'Suspended'
