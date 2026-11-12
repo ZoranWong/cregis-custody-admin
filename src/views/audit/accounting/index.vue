@@ -926,8 +926,23 @@
     }
   }
 
-  /** Apply 可用条件：必须选资产；必须选财资单元 */
-  const canApply = computed(() => !!filters.assetKey && !!filters.treasuryUnitId)
+  /** 筛选条件是否与已应用条件不同：条件没变时 Apply 保持置灰，避免重复查询 */
+  const filtersDirty = computed(() => {
+    const [from, to] = dateRange.value ?? defaultRange
+    return (
+      filters.merchantCode !== applied.merchantCode ||
+      filters.treasuryUnitId !== applied.treasuryUnitId ||
+      (filters.cusAccountId ?? 0) !== (applied.cusAccountId ?? 0) ||
+      filters.assetKey !== applied.assetKey ||
+      from !== applied.from ||
+      to !== applied.to
+    )
+  })
+
+  /** Apply 可用条件：必须选资产、必须选财资单元，且筛选条件相对上次应用有变化 */
+  const canApply = computed(
+    () => filtersDirty.value && !!filters.assetKey && !!filters.treasuryUnitId
+  )
 
   async function applyFilters(): Promise<void> {
     if (!canApply.value) return
