@@ -1,4 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
+import { Agent as HttpAgent } from 'node:http'
+import { Agent as HttpsAgent } from 'node:https'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -37,17 +39,23 @@ export default ({ mode }: { mode: string }) => {
       proxy: {
         '/api': {
           target: VITE_API_PROXY_URL,
-          changeOrigin: true
+          changeOrigin: true,
+          agent: createDevProxyAgent(VITE_API_PROXY_URL)
         },
         '/admin': {
           target: backendTarget,
           changeOrigin: true,
+          agent: createDevProxyAgent(backendTarget),
           configure: (proxy) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.removeHeader('origin')
-              console.log(
-                `Proxy request: ${proxyReq.method} ${proxyReq.path} (origin header removed)`
-              )
+            // 原逻辑在 proxyReq 阶段删 origin，但那时 socket 已建立、请求头已写出，删不掉——
+            // 后端实际一直收到 http://127.0.0.1:8766。
+            // 'start' 在 http-proxy 拷贝请求头之前触发，此时改 req.headers 才生效。
+            proxy.on('start', (req) => {
+              const headers = req.headers as Record<string, string | undefined>
+              if (headers.origin) {
+                headers['x-original-origin'] = headers.origin
+                delete headers.origin
+              }
             })
           },
           rewrite: (path) => {
@@ -144,4 +152,13 @@ export default ({ mode }: { mode: string }) => {
 
 function resolvePath(paths: string) {
   return path.resolve(__dirname, paths)
+}
+
+// dev 代理复用到底层的 TCP/TLS 连接。
+// http-proxy 默认 agent:false，每次请求都带 connection: close；
+// 而本地到香港后端单次 TLS 握手就要 1s 左右，首屏十几个接口并发时全部重新握手，卡顿感主要来自这里。
+function createDevProxyAgent(target?: string) {
+  const family = Number(process.env.VITE_PROXY_IP_FAMILY ?? 4) || undefined
+  const Agent = target?.startsWith('https') ? HttpsAgent : HttpAgent
+  return new Agent({ keepAlive: true, keepAliveMsecs: 10_000, maxSockets: 16, family })
 }
