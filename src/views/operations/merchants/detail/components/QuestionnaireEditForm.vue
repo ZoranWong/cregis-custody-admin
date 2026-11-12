@@ -4,8 +4,9 @@
 
   设计参考：cregis-custody-manager/src/v2/pages/auth/components/PrescreeningForm.vue
   - 两类投资者共用模板，仅 Qualified 多两道资格题
-  - Yes/No 使用原生 radio（与原型一致）
-  - 字段顺序：公司信息 → [合格投资者资格] → BD 推荐 → 授权人 → 同意项
+  - 字段顺序：公司信息 → [合格投资者资格] → BD 推荐 → 授权人
+  - 只有公司信息输入框与 BD 推荐/推荐人可编辑；资格题、授权人只读展示（Yes / No / —）
+  - 底部的 Risk Disclosure / Privacy Policy 勾选项不再展示，但提交时原值透传
   - investorType 在编辑时不可切换（由入驻时决定）
 -->
 <template>
@@ -67,51 +68,13 @@
 
         <div class="form-field-card">
           <div class="form-field-label">{{ qualifiedLabels.netAssets }}</div>
-          <div class="yes-no-radio">
-            <label class="yes-no-label">
-              <input
-                type="radio"
-                :name="radioGroup('netAssets')"
-                :checked="form.netAssetsMet === true"
-                @change="form.netAssetsMet = true"
-              />
-              <span class="text-sm text-g-700">Yes</span>
-            </label>
-            <label class="yes-no-label">
-              <input
-                type="radio"
-                :name="radioGroup('netAssets')"
-                :checked="form.netAssetsMet === false"
-                @change="form.netAssetsMet = false"
-              />
-              <span class="text-sm text-g-700">No</span>
-            </label>
-          </div>
+          <div class="readonly-answer">{{ yesNoText(form.netAssetsMet) }}</div>
           <div class="field-note">{{ qualifiedLabels.netAssetsNote }}</div>
         </div>
 
         <div class="form-field-card">
           <div class="form-field-label">{{ qualifiedLabels.directorsVaKnowledge }}</div>
-          <div class="yes-no-radio">
-            <label class="yes-no-label">
-              <input
-                type="radio"
-                :name="radioGroup('directorsVaKnowledge')"
-                :checked="form.directorsVaKnowledge === true"
-                @change="form.directorsVaKnowledge = true"
-              />
-              <span class="text-sm text-g-700">Yes</span>
-            </label>
-            <label class="yes-no-label">
-              <input
-                type="radio"
-                :name="radioGroup('directorsVaKnowledge')"
-                :checked="form.directorsVaKnowledge === false"
-                @change="form.directorsVaKnowledge = false"
-              />
-              <span class="text-sm text-g-700">No</span>
-            </label>
-          </div>
+          <div class="readonly-answer">{{ yesNoText(form.directorsVaKnowledge) }}</div>
         </div>
       </template>
 
@@ -165,46 +128,7 @@
       <!-- ── Authorised Person ── -->
       <div class="form-field-card">
         <div class="form-field-label">{{ authorisedPersonLabel }}</div>
-        <div class="yes-no-radio">
-          <label class="yes-no-label">
-            <input
-              type="radio"
-              name="authorised_person"
-              :checked="form.authorisedPerson === true"
-              @change="form.authorisedPerson = true"
-            />
-            <span class="text-sm text-g-700">Yes</span>
-          </label>
-          <label class="yes-no-label">
-            <input
-              type="radio"
-              name="authorised_person"
-              :checked="form.authorisedPerson === false"
-              @change="form.authorisedPerson = false"
-            />
-            <span class="text-sm text-g-700">No</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- ── Consents ── -->
-      <div class="consent-item">
-        <el-checkbox v-model="form.riskDisclosureAccepted">
-          <span class="consent-text">
-            I confirm that I have read and understood the
-            <a class="consent-link" @click.prevent="showRiskDoc = true">Risk Disclosure Statement</a
-            >.
-          </span>
-        </el-checkbox>
-      </div>
-
-      <div class="consent-item">
-        <el-checkbox v-model="form.privacyPolicyAccepted">
-          <span class="consent-text">
-            I confirm that I have read and understood the
-            <a class="consent-link" @click.prevent="showPrivacyDoc = true">Privacy Policy</a>.
-          </span>
-        </el-checkbox>
+        <div class="readonly-answer">{{ yesNoText(form.authorisedPerson) }}</div>
       </div>
     </el-form>
 
@@ -214,24 +138,6 @@
         {{ $t('merchantDetail.saveQuestionnaire') }}
       </el-button>
     </template>
-
-    <!-- 法律文书弹窗（仅展示用，后台编辑不需同意动作） -->
-    <el-dialog
-      v-model="showRiskDoc"
-      :title="$t('merchantDetail.qRiskDisclosure')"
-      width="560px"
-      append-to-body
-    >
-      <p class="text-sm text-g-500">{{ $t('merchantDetail.legalDocPlaceholder') }}</p>
-    </el-dialog>
-    <el-dialog
-      v-model="showPrivacyDoc"
-      :title="$t('merchantDetail.qPrivacyPolicy')"
-      width="560px"
-      append-to-body
-    >
-      <p class="text-sm text-g-500">{{ $t('merchantDetail.legalDocPlaceholder') }}</p>
-    </el-dialog>
   </el-dialog>
 </template>
 
@@ -263,8 +169,6 @@
 
   const formRef = ref<FormInstance>()
   const submitting = ref(false)
-  const showRiskDoc = ref(false)
-  const showPrivacyDoc = ref(false)
 
   // ─── 表单数据（从问卷快照初始化）───
   const form = reactive<AdminMerchantQuestionnaireUpdateRequest>({
@@ -315,9 +219,11 @@
     return `Are you an authorised person to represent ${company}?`
   })
 
-  /** 生成唯一的 radio group name */
-  function radioGroup(name: string): string {
-    return `yn_${name}_${props.ecode}`
+  /** 只读答案展示：Yes / No / 未填写 */
+  function yesNoText(value: boolean | undefined): string {
+    if (value === true) return 'Yes'
+    if (value === false) return 'No'
+    return '—'
   }
 
   /** BD Referral 切换：选 No 时清空已选推荐人 */
@@ -539,29 +445,10 @@
     accent-color: var(--el-color-primary);
   }
 
-  /* Consent 同意项 */
-  .consent-item {
-    margin-bottom: 8px;
-  }
-
-  .consent-item :deep(.el-checkbox__label) {
-    white-space: normal;
-  }
-
-  .consent-text {
+  /* 只读答案（合格投资者资格题、授权人） */
+  .readonly-answer {
     font-size: 13px;
-    line-height: 1.6;
     color: var(--el-text-color-regular);
-  }
-
-  .consent-link {
-    color: var(--el-color-primary);
-    text-decoration: underline;
-    cursor: pointer;
-  }
-
-  .consent-link:hover {
-    text-decoration-color: currentcolor;
   }
 
   /* 长标签文字换行，避免 Qualified 投资者资格题文字挤压重叠 */
