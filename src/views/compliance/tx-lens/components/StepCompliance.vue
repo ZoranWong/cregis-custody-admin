@@ -590,7 +590,9 @@
    * APPROVED = 审核通过（不显示按钮）
    * REJECTED = 审核拒绝（不显示按钮）
    */
-  const showReviewActions = computed(() => props.data?.dispositionStatus === 'PENDING')
+  const showReviewActions = computed(
+    () => props.data?.dispositionStatus === 'PENDING' || !props.data?.dispositionStatus
+  )
 
   const tabs = [
     { key: 'assessment', label: 'txLens.detail.subTabRiskProfile' },

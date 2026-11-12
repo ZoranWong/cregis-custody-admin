@@ -27,6 +27,9 @@
         <span class="text-g-700 font-medium">{{ currentUnitRow?.unitName }}</span>
       </div>
 
+      <!-- 后端接口未就绪提示 -->
+      <ArtMockNotice :description="$t('dailyReconciliation.apiPending')" />
+
       <!-- Asset / Merchant / Date Header -->
       <div class="art-card p-5 mb-4 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
@@ -133,6 +136,7 @@
     fetchReconciliationAsset,
     fetchReconciliationOverview
   } from '@/features/audit/reconciliation/mock'
+  import { resolveReconciliationAsset } from '@/features/audit/reconciliation/coins'
   import type { ReconciliationAssetView } from '@/features/audit/reconciliation/types'
   import {
     coinColor,
@@ -212,22 +216,31 @@
   }
 
   async function loadAll(): Promise<void> {
-    if (!merchantCode.value || !coinId.value || !network.value) {
-      router.replace({ name: 'DailyReconciliation' })
-      return
-    }
     loading.value = true
     loadError.value = ''
     try {
       const overview = await fetchReconciliationOverview()
-      const merchant = overview.merchants.find((m) => m.code === merchantCode.value)
-      merchantName.value = merchant?.merchantName ?? ''
+      // 商户 / 资产不在 mock 里时回落到第一个，避免空页面
+      const merchant =
+        overview.merchants.find((m) => m.code === merchantCode.value) ?? overview.merchants[0]
+      if (!merchant) return
+      merchantCode.value = merchant.code
+      merchantName.value = merchant.merchantName
 
-      asset.value = await fetchReconciliationAsset(merchantCode.value, coinId.value, network.value)
-      if (!asset.value) return
+      const row = resolveReconciliationAsset(merchant.assets, coinId.value, network.value)
+      if (!row) return
+      coinId.value = row.coinId
+      network.value = row.network
 
-      if (!selectedDate.value) selectedDate.value = asset.value.lastClosedDate
-      if (!unitId.value) unitId.value = asset.value.units[0]?.id ?? 0
+      const loaded = await fetchReconciliationAsset(merchant.code, row.coinId, row.network)
+      asset.value = loaded
+      // 日期 / 单元不在 mock 里时回落到最近关闭日与第一个单元
+      if (!loaded.days.some((item) => item.date === selectedDate.value)) {
+        selectedDate.value = loaded.lastClosedDate
+      }
+      if (!loaded.units.some((unit) => unit.id === unitId.value)) {
+        unitId.value = loaded.units[0]?.id ?? 0
+      }
       syncQuery()
     } catch (caught) {
       asset.value = null

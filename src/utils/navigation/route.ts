@@ -46,6 +46,21 @@ export const isNavigableMenuItem = (menuItem: AppRouteRecord): boolean => {
 }
 
 /**
+ * 递归查找第一个可导航的叶子菜单
+ * 点击父级菜单时，实际落点就是这个叶子节点。
+ * @param items 子菜单列表
+ * @returns 第一个可导航的叶子菜单，没有则返回 undefined
+ */
+export const findFirstLeafMenu = (items: AppRouteRecord[]): AppRouteRecord | undefined => {
+  for (const child of items) {
+    if (isNavigableMenuItem(child)) {
+      return child.children?.length ? findFirstLeafMenu(child.children) || child : child
+    }
+  }
+  return undefined
+}
+
+/**
  * 标准化路径格式
  * @param path 路径
  * @returns 标准化后的路径

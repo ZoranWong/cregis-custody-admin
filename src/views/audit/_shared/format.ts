@@ -37,15 +37,12 @@ export function coinColor(coinId: string): { bg: string; color: string; symbol: 
   )
 }
 
-/** 最小单位整数 → 主币种展示（千分位、自动去除多余尾零） */
+/** 展示用余额：最多 6 位小数（按实际精度收敛），去除多余尾零 */
 export function formatBaseAmount(
   raw: string | number | null | undefined,
   decimals: number
 ): string {
-  if (raw === null || raw === undefined || raw === '') return '—'
-  const value = new BigNumber(raw).div(new BigNumber(10).pow(decimals))
-  if (value.isNaN()) return '—'
-  return value.toFormat()
+  return formatBaseAmountDisplay(raw, decimals)
 }
 
 /** 展示用余额：ETH 等 18 位精度的币最多显示 6 位小数，去除多余尾部 0 */

@@ -2310,6 +2310,7 @@
     "settledAt": "Settled At",
     "statusLabel": "Status",
     "noTransactions": "No transactions.",
+    "txLensUnavailable": "This is mock data — the feature is under development.",
     "apiPending": "Backend endpoints for daily reconciliation are not available yet; this page runs on local mock data."
   },
   "accounting": {

@@ -1,6 +1,11 @@
 <template>
   <template v-for="(item, index) in filteredMenuItems" :key="getUniqueKey(item, index)">
-    <ElSubMenu v-if="hasChildren(item)" :index="item.path || item.meta.title" :level="level">
+    <ElSubMenu
+      v-if="hasChildren(item)"
+      :index="item.path || item.meta.title"
+      :level="level"
+      @mouseenter="prefetchMenuTarget(item, true)"
+    >
       <template #title>
         <div class="menu-icon flex-cc">
           <ArtSvgIcon
@@ -28,6 +33,7 @@
       v-else
       :index="isExternalLink(item) ? undefined : item.path || item.meta.title"
       :level-item="level + 1"
+      @mouseenter="prefetchMenuTarget(item)"
       @click="goPage(item)"
     >
       <div class="menu-icon flex-cc">
@@ -60,7 +66,7 @@
   import { computed } from 'vue'
   import type { AppRouteRecord } from '@/types/router'
   import { formatMenuTitle } from '@/utils/router'
-  import { handleMenuJump } from '@/utils/navigation'
+  import { handleMenuJump, prefetchMenuTarget } from '@/utils/navigation'
   import { useSettingStore } from '@/store/modules/setting'
 
   interface MenuTheme {

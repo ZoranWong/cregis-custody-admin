@@ -187,7 +187,6 @@
     rejectTransaction,
     fetchTravelRuleCoinRates
   } from '@/api/compliance'
-  import { fetchCoinList } from '@/api/coin'
   import { ElMessage } from 'element-plus'
   import type {
     TransactionLensItemView,
@@ -216,6 +215,7 @@
     type StageKey
   } from '@/features/compliance/txStages'
   import { formatCoinBalance, formatTime } from '@/utils/format'
+  import { useCoinStore } from '@/store/modules/coins'
   import BigNumber from 'bignumber.js'
 
   defineOptions({ name: 'TransactionLensDetail' })
@@ -233,7 +233,9 @@
   const signoffData = ref<SignoffTabView | null>(null)
   const onchainData = ref<OnChainTabView | null>(null)
 
-  const coinDecimals = ref<Record<string, number>>({})
+  /** 币种精度走全局 coin store（系统刷新时加载一次），本页不再单独请求 */
+  const coinStore = useCoinStore()
+  /** 法币汇率：本页自己的数据源，与币种元数据无关 */
   const coinUsdRate = ref<Record<string, number>>({})
 
   // 初始步骤从 URL query 读取，默认为 'compliance'
@@ -244,7 +246,7 @@
   // ─── 金额/法币 ───
   const amountDisplay = computed(() => {
     if (!overview.value) return '--'
-    const decimals = coinDecimals.value[overview.value.coinId]
+    const decimals = coinStore.getDecimalsByCoinId(overview.value.coinId, overview.value.network)
     const amount = decimals
       ? formatCoinBalance(overview.value.amount, decimals)
       : overview.value.amount
@@ -261,9 +263,9 @@
       return `≈ ${overview.value.fiatCurrency} ${formatted}`
     }
     // 回退到 USD 汇率计算
-    const decimals = coinDecimals.value[overview.value.coinId]
+    const decimals = coinStore.getDecimalsByCoinId(overview.value.coinId, overview.value.network)
     const usdRate = coinUsdRate.value[overview.value.coinId]
-    if (decimals == null || usdRate == null) return '--'
+    if (!decimals || usdRate == null) return '--'
     const amount = formatCoinBalance(overview.value.amount, decimals)
     return `≈ $${new BigNumber(amount).times(usdRate).toFormat(2, BigNumber.ROUND_HALF_UP)}`
   })
@@ -353,15 +355,7 @@
   const toneColor = toneColorShared
 
   // ─── 数据加载 ───
-  async function loadCoinMeta() {
-    try {
-      const coins = await fetchCoinList()
-      const decimals: Record<string, number> = {}
-      for (const c of coins) decimals[c.coinId] = c.decimals
-      coinDecimals.value = decimals
-    } catch {
-      coinDecimals.value = {}
-    }
+  async function loadCoinRates() {
     try {
       const rates = await fetchTravelRuleCoinRates()
       const rateMap: Record<string, number> = {}
@@ -442,7 +436,7 @@
   }
 
   onMounted(() => {
-    loadCoinMeta()
+    loadCoinRates()
     loadDetail()
   })
 </script>

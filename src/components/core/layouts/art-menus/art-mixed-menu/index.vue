@@ -25,6 +25,7 @@
               'menu-item-active text-theme-text': item.isActive
             }"
             @click="handleMenuJump(item, true)"
+            @mouseenter="prefetchMenuTarget(item, true)"
           >
             <ArtSvgIcon
               :icon="item.meta.icon"
@@ -57,7 +58,7 @@
   import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
   import { useThrottleFn } from '@vueuse/core'
   import { formatMenuTitle } from '@/utils/router'
-  import { handleMenuJump } from '@/utils/navigation'
+  import { handleMenuJump, prefetchMenuTarget } from '@/utils/navigation'
   import type { AppRouteRecord } from '@/types/router'
 
   defineOptions({ name: 'ArtMixedMenu' })

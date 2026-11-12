@@ -170,6 +170,16 @@ function toBaseUnits(amount: BigNumber.Value, decimals: number): string {
   return new BigNumber(amount).times(new BigNumber(10).pow(decimals)).toFixed(0)
 }
 
+/**
+ * 模拟订单号：与后台交易详情（Compliance → Transaction Lens，`/compliance/tx-lens/:id`）
+ * 的 orderId 同构（O + yyyyMMdd + 21 位），点开交易行能带真实形态的 id 进入详情页。
+ */
+function pseudoOrderId(seed: string, date: string): string {
+  const rng = makeRng(seedOf(seed))
+  const digits = Array.from({ length: 21 }, () => Math.floor(rng() * 10)).join('')
+  return `O${date.replace(/-/g, '')}${digits}`
+}
+
 function pseudoAddress(seed: string, network = 'ethereum'): string {
   const rng = makeRng(seedOf(seed))
   const hex = (length: number) =>
@@ -218,19 +228,23 @@ function buildDayTxs(params: {
   opening: BigNumber
   rng: () => number
 }): { included: ReconciliationTxView[]; backfill: ReconciliationTxView[]; closing: BigNumber } {
-  const { config, merchant, unit, date, dayIndex, rng } = params
+  const { config, merchant, unit, date, rng } = params
   const includedCount = 1 + Math.floor(rng() * 3)
-  const backfillCount = dayIndex % 3 === 0 ? 1 : 0
+  // 每个已对账日都带一笔 Backfill：单元明细的 Backfill Tab 不能是空的，但补录不宜多
+  const backfillCount = 1
   const included: ReconciliationTxView[] = []
   const backfill: ReconciliationTxView[] = []
   let balance = params.opening
 
   const createTx = (isBackfill: boolean, seq: number): ReconciliationTxView => {
     const isIn = rng() > 0.45
-    // 金额取基准余额的 0.1% ~ 1.5%，保证与余额量级匹配
-    const amount = new BigNumber(config.unitBalances[0] ?? 1)
-      .times(0.001 + rng() * 0.014)
-      .decimalPlaces(config.decimals, BigNumber.ROUND_DOWN)
+    // 金额取基准余额的 0.1% ~ 1.5%；下限 1 个最小单位，避免高精度币种被舍入成 0
+    const amount = BigNumber.max(
+      new BigNumber(config.unitBalances[0] ?? 1)
+        .times(0.001 + rng() * 0.014)
+        .decimalPlaces(config.decimals, BigNumber.ROUND_DOWN),
+      new BigNumber(1).div(new BigNumber(10).pow(config.decimals))
+    )
     const amountBase = new BigNumber(toBaseUnits(amount, config.decimals))
     const pre = balance
     balance = isIn ? balance.plus(amountBase) : balance.minus(amountBase)
@@ -252,7 +266,7 @@ function buildDayTxs(params: {
     const minute = Math.floor(rng() * 60)
     return {
       id,
-      orderId: `ORD-${day}-${String(seq + 1).padStart(4, '0')}`,
+      orderId: pseudoOrderId(`${id}-order`, date),
       txId: pseudoAddress(`${id}-tx`, config.network),
       activity: isIn ? 'PAYIN' : 'PAYOUT',
       direction: isIn ? 'IN' : 'OUT',
@@ -342,13 +356,26 @@ function buildDays(config: AssetConfig, merchant: MerchantConfig): Reconciliatio
 }
 
 /**
+ * 未对账天数：最近关闭日之后到 mock「今天」之间的自然日数。
+ * 每个资产至少 1 天，保证列表页「阻塞 / 未对账天数」列有值，
+ * 详情页 Unreconciled Tab 也总有日期可展示。
+ */
+function staleDays(config: AssetConfig): number {
+  const gap = Math.round(
+    (toDate(RECONCILIATION_SEED_DATE).getTime() - toDate(config.lastClosedDate).getTime()) /
+      86_400_000
+  )
+  return Math.max(gap, config.unreconciledDays, 1)
+}
+
+/**
  * 待入账交易：最近关闭日之后逐日生成（日期不超过今天），分布在各单元上。
  * Held 待放行 / Forfeited 罚没 —— 与原型 Pending TX 一致。
  */
 function buildPendingTxs(config: AssetConfig, merchant: MerchantConfig): ReconciliationTxView[] {
   const units = unitsFor(config, merchant)
   const days: string[] = []
-  for (let d = 1; d <= Math.max(1, config.unreconciledDays); d++) {
+  for (let d = 1; d <= staleDays(config); d++) {
     const date = shiftDate(config.lastClosedDate, d)
     if (date < RECONCILIATION_SEED_DATE) days.push(date)
   }
@@ -361,9 +388,13 @@ function buildPendingTxs(config: AssetConfig, merchant: MerchantConfig): Reconci
     for (let i = 0; i < perDay; i++) {
       const unit = units[(dayIndex + i) % units.length]!
       const isIn = i % 3 !== 2
-      const amount = new BigNumber(config.unitBalances[0] ?? 1)
-        .times(0.005 + rng() * 0.02)
-        .decimalPlaces(config.decimals, BigNumber.ROUND_DOWN)
+      // 金额下限 1 个最小单位，避免高精度币种被舍入成 0
+      const amount = BigNumber.max(
+        new BigNumber(config.unitBalances[0] ?? 1)
+          .times(0.005 + rng() * 0.02)
+          .decimalPlaces(config.decimals, BigNumber.ROUND_DOWN),
+        new BigNumber(1).div(new BigNumber(10).pow(config.decimals))
+      )
       const cp = COUNTERPARTIES[(i * 3 + unit.id) % COUNTERPARTIES.length]!
       const id = `${merchant.code}-${config.coinId}-${config.network}-pending-${date}-${i}`
       const ours: CounterpartyView = {
@@ -378,10 +409,11 @@ function buildPendingTxs(config: AssetConfig, merchant: MerchantConfig): Reconci
       }
       const hour = 15 + Math.floor(rng() * 8)
       const minute = Math.floor(rng() * 60)
-      const status: ReconciliationTxStatus = i === 1 && dayIndex === 0 ? 'forfeited' : 'held'
+      // 每天至少一笔 Held、一笔 Forfeited，汇总页两种状态都有数据
+      const status: ReconciliationTxStatus = i === 1 ? 'forfeited' : 'held'
       result.push({
         id,
-        orderId: `ORD-${date.replace(/-/g, '')}-P${String(i + 1).padStart(3, '0')}`,
+        orderId: pseudoOrderId(`${id}-order`, date),
         txId: pseudoAddress(`${id}-tx`, config.network),
         activity: isIn ? 'PAYIN' : 'PAYOUT',
         direction: isIn ? 'IN' : 'OUT',
@@ -414,7 +446,7 @@ function buildPendingTxs(config: AssetConfig, merchant: MerchantConfig): Reconci
  */
 function buildUnreconciled(config: AssetConfig): UnreconciledDayView[] {
   const result: UnreconciledDayView[] = []
-  for (let d = 1; d <= config.unreconciledDays; d++) {
+  for (let d = 1; d <= staleDays(config); d++) {
     const cursor = shiftDate(config.lastClosedDate, d)
     const mismatch = d === 1
     const previousDate = shiftDate(cursor, -1)
@@ -437,34 +469,46 @@ function formatShortDate(date: string): string {
   return `${d.toLocaleString('en-US', { month: 'short' })} ${d.getDate()}`
 }
 
-function findAsset(
-  merchant: MerchantConfig,
-  coinId: string,
-  network: string
-): AssetConfig | undefined {
+/** 未知商户代码（手拼链接 / 系统 coin 列表与 mock 不一致）统一回落到第一个商户 */
+function resolveMerchant(code: string): MerchantConfig {
+  return MERCHANTS.find((m) => m.code === code) ?? MERCHANTS[0]!
+}
+
+/** 先按 coinId + network 精确匹配；匹配不到时同 coinId 兜底；都没有则取商户第一个资产 */
+function findAsset(merchant: MerchantConfig, coinId: string, network: string): AssetConfig {
   const target = network.toLowerCase().replace(/[^a-z]/g, '')
-  return merchant.assets.find(
-    (a) =>
-      a.coinId === coinId.toUpperCase() &&
-      target.startsWith(
-        a.network
-          .toLowerCase()
-          .replace(/[^a-z]/g, '')
-          .slice(0, 4)
-      )
+  const id = coinId.toUpperCase()
+  return (
+    merchant.assets.find(
+      (a) =>
+        a.coinId === id &&
+        target.startsWith(
+          a.network
+            .toLowerCase()
+            .replace(/[^a-z]/g, '')
+            .slice(0, 4)
+        )
+    ) ??
+    merchant.assets.find((a) => a.coinId === id) ??
+    merchant.assets[0]!
   )
 }
 
-function buildAsset(config: AssetConfig, merchant: MerchantConfig): ReconciliationAssetView {
+function buildAsset(
+  config: AssetConfig,
+  merchant: MerchantConfig,
+  requested: { coinId: string; network: string }
+): ReconciliationAssetView {
   const days = buildDays(config, merchant)
   const latest = days[days.length - 1]!
   return {
-    coinId: config.coinId,
-    network: config.network,
+    // 展示用标识沿用请求值：URL / 下拉里选中什么就展示什么，数据按匹配到的 mock 资产生成
+    coinId: requested.coinId || config.coinId,
+    network: requested.network || config.network,
     decimals: config.decimals,
     lastClosedBalance: latest.closingBalance,
     lastClosedDate: config.lastClosedDate,
-    stalenessDays: config.unreconciledDays,
+    stalenessDays: staleDays(config),
     units: unitsFor(config, merchant),
     days,
     pendingTx: buildPendingTxs(config, merchant),
@@ -474,7 +518,7 @@ function buildAsset(config: AssetConfig, merchant: MerchantConfig): Reconciliati
 
 /** 列表页资产行：关闭余额取「最近关闭日」当天单元链终点的合计 */
 function buildAssetRow(config: AssetConfig, merchant: MerchantConfig): ReconciliationAssetRowView {
-  const asset = buildAsset(config, merchant)
+  const asset = buildAsset(config, merchant, config)
   return {
     coinId: asset.coinId,
     network: asset.network,
@@ -483,7 +527,7 @@ function buildAssetRow(config: AssetConfig, merchant: MerchantConfig): Reconcili
     accountCount: asset.units.reduce((sum, unit) => sum + unit.accounts.length, 0),
     lastClosedBalance: asset.lastClosedBalance,
     lastClosedDate: asset.lastClosedDate,
-    unreconciledDays: config.unreconciledDays
+    unreconciledDays: staleDays(config)
   }
 }
 
@@ -511,22 +555,28 @@ export function listReconciliationMerchants(): Promise<
   )
 }
 
+/** 商户下的资产行（详情页资产下拉 + query 参数兜底解析用） */
+export function listReconciliationAssets(
+  merchantCode: string
+): Promise<ReconciliationAssetRowView[]> {
+  const merchant = resolveMerchant(merchantCode)
+  return Promise.resolve(merchant.assets.map((config) => buildAssetRow(config, merchant)))
+}
+
 /** 列表页：全部商户（原型为一次性展开的全部商户列表） */
 export function fetchReconciliationOverview(): Promise<ReconciliationOverviewView> {
   return Promise.resolve({ merchants: MERCHANTS.map(buildMerchantRow) })
 }
 
-/** 详情页：单个资产的完整对账数据 */
+/** 详情页：单个资产的完整对账数据（coinId / network 匹配不到时降级到同币种或首个资产） */
 export function fetchReconciliationAsset(
   merchantCode: string,
   coinId: string,
   network: string
-): Promise<ReconciliationAssetView | null> {
-  const merchant = MERCHANTS.find((m) => m.code === merchantCode)
-  if (!merchant) return Promise.resolve(null)
+): Promise<ReconciliationAssetView> {
+  const merchant = resolveMerchant(merchantCode)
   const config = findAsset(merchant, coinId, network)
-  if (!config) return Promise.resolve(null)
-  return Promise.resolve(buildAsset(config, merchant))
+  return Promise.resolve(buildAsset(config, merchant, { coinId, network }))
 }
 
 /** 待入账交易页：商户下全部资产的待入账交易（对齐原型 "All treasury units"） */
@@ -535,10 +585,7 @@ export function fetchReconciliationPending(merchantCode: string): Promise<{
   date: string
   rows: ReconciliationTxView[]
 }> {
-  const merchant = MERCHANTS.find((m) => m.code === merchantCode)
-  if (!merchant) {
-    return Promise.resolve({ merchantName: '', date: RECONCILIATION_SEED_DATE, rows: [] })
-  }
+  const merchant = resolveMerchant(merchantCode)
   const rows: ReconciliationTxView[] = []
   merchant.assets.forEach((config) => {
     rows.push(...buildPendingTxs(config, merchant))

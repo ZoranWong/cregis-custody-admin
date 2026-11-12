@@ -105,7 +105,7 @@
 
 <script setup lang="ts">
   import { defineComponent, h, type PropType } from 'vue'
-  import { useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { compactHex, formatTime } from '@/utils/format'
   import type {
     CounterpartyView,
@@ -124,7 +124,7 @@
       showBalance?: boolean
       /** 单元明细页展示结算时间 */
       showSettledAt?: boolean
-      /** 交易行可跳转 Compliance → Transaction Lens 详情 */
+      /** 交易行可点击（mock 阶段点击只提示 Transaction Lens 暂不可达） */
       linkable?: boolean
       /** 是否自带 art-card 容器（页面已有卡片时传 false，避免双边框） */
       card?: boolean
@@ -132,7 +132,7 @@
     { showBalance: true, showSettledAt: false, linkable: false, card: true }
   )
 
-  const router = useRouter()
+  const { t } = useI18n()
 
   /** 每笔交易自带精度（汇总页会混排 BTC/USDT 等不同精度资产） */
   function rowDecimals(row: ReconciliationTxView): number {
@@ -141,7 +141,9 @@
 
   function onRowClick(row: ReconciliationTxView): void {
     if (!props.linkable || !row.orderId) return
-    router.push({ name: 'TransactionLensDetail', params: { id: row.orderId } })
+    // 对账数据目前是本地 mock，后台查不到对应订单，直接跳 Transaction Lens 只会报错；
+    // 接入真实交易数据后再恢复 router.push({ name: 'TransactionLensDetail', params: { id: row.orderId } })
+    ElMessage.warning(t('dailyReconciliation.txLensUnavailable'))
   }
 
   /** 交易对手三行展示：姓名 / 城市 / VASP（对齐原型 Originator / Beneficiary 列） */

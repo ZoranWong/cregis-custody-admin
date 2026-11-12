@@ -3,41 +3,47 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { fetchCoinList, type CoinOnChainView } from '@/api/coin'
 
-/** 缓存有效期（10 分钟） */
-const COIN_CACHE_TTL_MS = 10 * 60 * 1000
-
+/**
+ * 全局币种元数据。
+ *
+ * `/coin/list` 只在系统刷新后加载一次（路由后置守卫触发），页面切换直接读内存；
+ * loaded / fetchedAt 为会话内状态不持久化，list 持久化以便刷新后请求失败时仍可展示。
+ */
 export const useCoinStore = defineStore(
   'coins',
   () => {
     const list = ref<CoinOnChainView[]>([])
     const loaded = ref(false)
     const loading = ref(false)
-    /** 上次拉取时间戳，用于判断缓存是否过期 */
+    /** 上次拉取时间戳 */
     const fetchedAt = ref(0)
 
-    async function ensureLoaded(): Promise<void> {
-      if (loaded.value || loading.value) return
+    // 旧版本把 loaded 也持久化了：清掉，保证每次系统刷新后重新加载一次币种
+    loaded.value = false
 
-      // 检查缓存是否过期
-      if (fetchedAt.value && Date.now() - fetchedAt.value > COIN_CACHE_TTL_MS) {
-        // 缓存过期，重置状态重新拉取
-        loaded.value = false
-        list.value = []
-        fetchedAt.value = 0
-      }
+    /** 系统刷新后加载一次：拉取 `/coin/list`，失败时保留持久化的上一次列表 */
+    async function ensureLoaded(): Promise<void> {
+      if (loading.value || loaded.value) return
 
       loading.value = true
       try {
         const data = await fetchCoinList()
         list.value = Array.isArray(data) ? data : []
         fetchedAt.value = Date.now()
-        loaded.value = true
       } catch {
-        list.value = []
-        // Coin list is non-critical; consumers handle missing data gracefully.
+        // 币种列表非关键数据：失败时沿用持久化缓存里的列表
       } finally {
+        loaded.value = true
         loading.value = false
       }
+    }
+
+    /** 清空缓存（登出 / 切换账号时调用，避免串用上一个账号的币种数据） */
+    function reset(): void {
+      list.value = []
+      loaded.value = false
+      loading.value = false
+      fetchedAt.value = 0
     }
 
     /** 未软删除的币种（选择器 / 资产行展示用） */
@@ -121,6 +127,7 @@ export const useCoinStore = defineStore(
       loading,
       fetchedAt,
       ensureLoaded,
+      reset,
       getCoin,
       getDecimals,
       getDecimalsByCoinId,
@@ -134,7 +141,9 @@ export const useCoinStore = defineStore(
   {
     persist: {
       key: 'coins',
-      storage: localStorage
+      storage: localStorage,
+      // 只持久化列表：loaded / fetchedAt 是会话内状态，系统刷新后重新加载一次
+      pick: ['list']
     }
   }
 )

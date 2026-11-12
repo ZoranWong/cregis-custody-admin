@@ -222,7 +222,8 @@ export async function fetchColdTaskPage(params: {
       ecode: params.ecode || undefined,
       state: toBackendState(params.status),
       coinId: params.coinId || undefined,
-      type: params.type === 'transfer' ? 'PAYMENT' : params.type === 'config' ? 'CONFIG' : undefined,
+      type:
+        params.type === 'transfer' ? 'PAYMENT' : params.type === 'config' ? 'CONFIG' : undefined,
       keyword: params.keyword || undefined
     }
   })) as Record<string, unknown>
@@ -300,11 +301,7 @@ export async function flushColdTasks(params?: {
 
   const rawBundle = data.bundle
   const bundle =
-    typeof rawBundle === 'string'
-      ? rawBundle
-      : rawBundle != null
-        ? JSON.stringify(rawBundle)
-        : ''
+    typeof rawBundle === 'string' ? rawBundle : rawBundle != null ? JSON.stringify(rawBundle) : ''
 
   return {
     bundle,
@@ -323,15 +320,15 @@ export async function importColdReceipt(params: {
   const raw = (await apiRequest('/cold/task/receipt', {
     method: 'POST',
     body: {
-      payload: params.receipt,
+      ...(JSON.parse(params.receipt) ?? {}),
       importedBy: params.importedBy || undefined
     }
   })) as Record<string, unknown>
 
   // apiRequest 已解包 envelope.data；兼容 { data: {...} } 二次包裹
-  const data = ((raw && 'duplicate' in raw) || (raw && 'core2_applied' in raw) ? raw : raw?.data) as
-    | Record<string, unknown>
-    | undefined
+  const data = (
+    (raw && 'duplicate' in raw) || (raw && 'core2_applied' in raw) ? raw : raw?.data
+  ) as Record<string, unknown> | undefined
   if (!data) return null
 
   return {

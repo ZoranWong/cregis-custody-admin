@@ -24,11 +24,6 @@
       >
         <template #prefix><ArtSvgIcon icon="ri:search-line" class="text-g-400" /></template>
       </el-input>
-      <ElButton @click="toggleAll">
-        {{
-          allExpanded ? $t('dailyReconciliation.collapseAll') : $t('dailyReconciliation.expandAll')
-        }}
-      </ElButton>
     </div>
 
     <!-- Loading -->
@@ -205,16 +200,10 @@
 
 <script setup lang="ts">
   import { computed, onMounted, reactive, ref, watch } from 'vue'
-  import { useRouter } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
   import type { TableInstance } from 'element-plus'
   import { fetchReconciliationOverview } from '@/features/audit/reconciliation/mock'
-  import {
-    assetRollup,
-    assetsFromCoinList,
-    coinFallbackStyle,
-    coinIconMap,
-    coinKey
-  } from '@/features/audit/reconciliation/coins'
+  import { coinFallbackStyle, coinIconMap, coinKey } from '@/features/audit/reconciliation/coins'
   import type {
     ReconciliationAssetRowView,
     ReconciliationMerchantRowView
@@ -228,12 +217,13 @@
 
   defineOptions({ name: 'DailyReconciliation' })
 
+  const route = useRoute()
   const router = useRouter()
   const coinStore = useCoinStore()
 
   const merchants = ref<ReconciliationMerchantRowView[]>([])
-  /** 与表格展开状态保持同步，仅用于驱动「全部展开 / 收起」按钮文案 */
-  const expanded = ref(new Set<string>())
+  /** 当前展开的商户：主表一次只展开一个（手风琴），展开新的会收起旧的 */
+  const expandedCode = ref('')
   const tableRef = ref<TableInstance>()
   const keyword = ref('')
   const loading = ref(false)
@@ -247,19 +237,15 @@
     return merchants.value.filter((m) => m.merchantName.toLowerCase().includes(q))
   })
 
-  const allExpanded = computed(
-    () =>
-      filteredMerchants.value.length > 0 &&
-      filteredMerchants.value.every((m) => expanded.value.has(m.code))
-  )
-
+  /** 默认展开回跳带过来的商户，没有则展开第一个有阻塞资产的商户 */
   function applyDefaultExpansion(): void {
-    const codes = merchants.value.filter((m) => m.blockedAssets > 0).map((m) => m.code)
-    if (!codes.length) return
-    const target = new Set(codes)
-    filteredMerchants.value.forEach((m) => {
-      if (target.has(m.code)) tableRef.value?.toggleRowExpansion(m, true)
-    })
+    const requested = String(route.query.expand || '')
+    const target =
+      merchants.value.find((m) => m.code === requested) ??
+      merchants.value.find((m) => m.blockedAssets > 0)
+    if (!target) return
+    expandedCode.value = target.code
+    tableRef.value?.toggleRowExpansion(target, true)
   }
 
   // 必须在 ElTable 子组件 onMounted 注册完列之后才能按行展开：
@@ -272,16 +258,9 @@
     loading.value = true
     loadError.value = ''
     try {
-      const [overview] = await Promise.all([
-        fetchReconciliationOverview(),
-        coinStore.ensureLoaded()
-      ])
-      merchants.value = overview.merchants.map((m) => {
-        const assets = assetsFromCoinList(coinStore.list, m.assets)
-        // 商户汇总随资产行重算，避免与子表展示的数量/天数不一致
-        return { ...m, assets, ...assetRollup(assets) }
-      })
-      expanded.value = new Set()
+      const overview = await fetchReconciliationOverview()
+      merchants.value = overview.merchants
+      expandedCode.value = ''
     } catch (caught) {
       merchants.value = []
       loadError.value =
@@ -321,15 +300,15 @@
     expandedRows: ReconciliationMerchantRowView[] | boolean
   ): void {
     const isExpanded = Array.isArray(expandedRows) ? expandedRows.includes(row) : expandedRows
-    const next = new Set(expanded.value)
-    if (isExpanded) next.add(row.code)
-    else next.delete(row.code)
-    expanded.value = next
-  }
-
-  function toggleAll(): void {
-    const target = !allExpanded.value
-    filteredMerchants.value.forEach((m) => tableRef.value?.toggleRowExpansion(m, target))
+    if (!isExpanded) {
+      if (expandedCode.value === row.code) expandedCode.value = ''
+      return
+    }
+    // 互斥：展开当前商户前收起其余商户
+    filteredMerchants.value.forEach((m) => {
+      if (m.code !== row.code) tableRef.value?.toggleRowExpansion(m, false)
+    })
+    expandedCode.value = row.code
   }
 
   function openAsset(merchant: ReconciliationMerchantRowView, asset: ReconciliationAssetRowView) {

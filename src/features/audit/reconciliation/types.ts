@@ -35,6 +35,7 @@ export interface CounterpartyView {
 /** 一笔对账交易 */
 export interface ReconciliationTxView {
   id: string
+  /** 交易订单号（格式 O + yyyyMMdd + 21 位）；mock 生成同构值，用于跳转 Transaction Lens */
   orderId: string
   txId: string
   /** 活动类型：PAYIN / PAYOUT / TRANSFER_IN / TRANSFER_OUT / WITHDRAW / GAS_OUT */

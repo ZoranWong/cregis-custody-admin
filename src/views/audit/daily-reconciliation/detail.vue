@@ -314,6 +314,7 @@
     fetchReconciliationOverview,
     listReconciliationMerchants
   } from '@/features/audit/reconciliation/mock'
+  import { resolveReconciliationAsset } from '@/features/audit/reconciliation/coins'
   import type {
     ReconciliationAssetRowView,
     ReconciliationAssetView,
@@ -397,40 +398,34 @@
   }
 
   async function loadAll(): Promise<void> {
-    if (!merchantCode.value) {
-      // 缺商户时回列表页选择，避免空白详情
-      router.replace({ name: 'DailyReconciliation' })
-      return
-    }
     loading.value = true
     loadError.value = ''
     try {
-      const overview = await fetchReconciliationOverview()
-      const merchant = overview.merchants.find((m) => m.code === merchantCode.value)
-      if (!merchant) {
-        asset.value = null
-        return
-      }
+      const [overview, merchantList] = await Promise.all([
+        fetchReconciliationOverview(),
+        listReconciliationMerchants()
+      ])
+      // 商户不存在（手拼链接）时回落到第一个商户
+      const merchant =
+        overview.merchants.find((m) => m.code === merchantCode.value) ?? overview.merchants[0]
+      if (!merchant) return
+      merchantCode.value = merchant.code
       merchantName.value = merchant.merchantName
+      merchants.value = merchantList
       assetOptions.value = merchant.assets
 
-      // 未指定资产时默认第一个
-      if (!coinId.value || !network.value) {
-        const fallback = merchant.assets[0]
-        if (!fallback) {
-          asset.value = null
-          return
-        }
-        coinId.value = fallback.coinId
-        network.value = fallback.network
-      }
+      // query 里的 coinId / network 不在 mock 资产里时降级到同币种或第一个资产
+      const row = resolveReconciliationAsset(merchant.assets, coinId.value, network.value)
+      if (!row) return
+      coinId.value = row.coinId
+      network.value = row.network
+      syncQuery()
 
-      asset.value = await fetchReconciliationAsset(merchantCode.value, coinId.value, network.value)
-      if (asset.value) {
-        // 默认选中最近关闭日
-        selectedDate.value = asset.value.lastClosedDate
-        pendingUnitId.value = 0
-      }
+      const loaded = await fetchReconciliationAsset(merchant.code, row.coinId, row.network)
+      asset.value = loaded
+      // 默认选中最近关闭日
+      selectedDate.value = loaded.lastClosedDate
+      pendingUnitId.value = 0
     } catch (caught) {
       asset.value = null
       loadError.value =

@@ -24,6 +24,9 @@
         }}</span>
       </div>
 
+      <!-- 后端接口未就绪提示 -->
+      <ArtMockNotice :description="$t('dailyReconciliation.apiPending')" />
+
       <!-- Page header -->
       <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
         <div>

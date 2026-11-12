@@ -214,7 +214,11 @@ export async function apiRequest<T>(
     }
   } else {
     requestBody =
-      options.body == null ? undefined : isFormData ? (options.body as FormData) : JSON.stringify(options.body)
+      options.body == null
+        ? undefined
+        : isFormData
+          ? (options.body as FormData)
+          : JSON.stringify(options.body)
   }
 
   const response = await fetch(requestUrl, {

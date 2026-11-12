@@ -289,7 +289,7 @@
     fetchTransactionLensSummary,
     fetchTravelRuleCoinRates
   } from '@/api/compliance'
-  import { fetchCoinList } from '@/api/coin'
+  import { useCoinStore } from '@/store/modules/coins'
   import type {
     TransactionLensItemView,
     TransactionLensSummaryView
@@ -334,7 +334,8 @@
   const loading = ref(false)
   const transactions = ref<TransactionLensItemView[]>([])
   const summary = ref<TransactionLensSummaryView | null>(null)
-  const coinDecimals = ref<Record<string, number>>({})
+  /** 币种精度走全局 coin store（系统刷新时加载一次），本页只请求法币汇率 */
+  const coinStore = useCoinStore()
   const coinUsdRate = ref<Record<string, number>>({})
 
   const pagination = reactive({
@@ -437,7 +438,7 @@
 
   const displayTransactions = computed(() => {
     return transactions.value.map((tx) => {
-      const decimals = coinDecimals.value[tx.coinId]
+      const decimals = coinStore.getDecimalsByCoinId(tx.coinId, tx.network)
       const amount = decimals ? formatCoinBalance(tx.amount, decimals) : tx.amount
 
       // 优先使用接口直接返回的 fiatAmount + fiatCurrency，回退到 USD 汇率计算
@@ -499,15 +500,8 @@
   }
 
   // ─── 数据加载 ───
-  async function loadCoinMeta() {
-    try {
-      const coins = await fetchCoinList()
-      const decimals: Record<string, number> = {}
-      for (const c of coins) decimals[c.coinId] = c.decimals
-      coinDecimals.value = decimals
-    } catch {
-      coinDecimals.value = {}
-    }
+  /** 法币汇率：本页自己的数据源，币种精度已由全局 coin store 提供 */
+  async function loadCoinRates() {
     try {
       const rates = await fetchTravelRuleCoinRates()
       const rateMap: Record<string, number> = {}
@@ -726,7 +720,7 @@
   }
 
   onMounted(() => {
-    loadCoinMeta()
+    loadCoinRates()
     loadSummary()
     loadList()
   })

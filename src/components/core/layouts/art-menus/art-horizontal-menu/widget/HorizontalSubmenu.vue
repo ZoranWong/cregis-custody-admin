@@ -1,5 +1,10 @@
 <template>
-  <ElSubMenu v-if="hasChildren" :index="item.path || item.meta.title" class="!p-0">
+  <ElSubMenu
+    v-if="hasChildren"
+    :index="item.path || item.meta.title"
+    class="!p-0"
+    @mouseenter="prefetchMenuTarget(item, true)"
+  >
     <template #title>
       <ArtSvgIcon :icon="item.meta.icon" :color="theme?.iconColor" class="mr-1 text-lg" />
       <span class="text-md">{{ formatMenuTitle(item.meta.title) }}</span>
@@ -24,6 +29,7 @@
   <ElMenuItem
     v-else-if="isNavigableRoute"
     :index="item.path || item.meta.title"
+    @mouseenter="prefetchMenuTarget(item)"
     @click="goPage(item)"
   >
     <ArtSvgIcon
@@ -47,7 +53,7 @@
 <script lang="ts" setup>
   import { computed, type PropType } from 'vue'
   import { AppRouteRecord } from '@/types/router'
-  import { handleMenuJump } from '@/utils/navigation'
+  import { handleMenuJump, prefetchMenuTarget } from '@/utils/navigation'
   import { formatMenuTitle } from '@/utils/router'
 
   const props = defineProps({

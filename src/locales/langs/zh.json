@@ -2312,6 +2312,7 @@
     "settledAt": "结算时间",
     "statusLabel": "状态",
     "noTransactions": "暂无交易。",
+    "txLensUnavailable": "这是 mock 数据，功能开发中。",
     "apiPending": "日终对账后端接口尚未提供，本页目前使用本地 mock 数据。"
   },
   "accounting": {

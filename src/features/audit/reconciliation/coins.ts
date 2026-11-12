@@ -1,9 +1,9 @@
 /**
- * Daily Reconciliation — 币种来源。
+ * Daily Reconciliation — 资产行工具。
  *
- * 资产行以「系统 coin 列表」（`/coin/list`，经 useCoinStore 缓存）为准：
- * coinId / network / decimals / 图标都取自系统配置，对账指标按 coinId + network
- * 从对账视图回填。这样列表里不会出现系统里不存在、或已软删除的币种。
+ * 后端日终对账接口就绪前，资产行以 mock 数据为准（不请求 `/coin/list`，
+ * 接口不可用时列表也能完整展示）；系统币种列表只用于补充资产图标。
+ * 接口接入后可改用 assetsFromCoinList 以系统 coin 列表重建资产行。
  */
 import type { CoinOnChainView } from '@/api/coin'
 import type { ReconciliationAssetRowView } from './types'
@@ -46,6 +46,26 @@ export function assetsFromCoinList(
       unreconciledDays: 0
     }
   })
+}
+
+/**
+ * 从资产行里解析详情页要展示的资产。
+ *
+ * URL 里的 coinId / network 可能不是 mock 资产（系统 coin 列表与 mock 币种不一致，
+ * 或手动拼的链接），此时按「精确匹配 → 同 coinId → 第一个资产」降级，避免详情页空白。
+ */
+export function resolveReconciliationAsset(
+  rows: ReconciliationAssetRowView[],
+  coinId: string,
+  network: string
+): ReconciliationAssetRowView | null {
+  if (!rows.length) return null
+  const id = coinId.toUpperCase()
+  return (
+    rows.find((r) => r.coinId.toUpperCase() === id && networkMatches(r.network, network)) ??
+    rows.find((r) => r.coinId.toUpperCase() === id) ??
+    rows[0]!
+  )
 }
 
 /** coinId@network → 图标地址 */

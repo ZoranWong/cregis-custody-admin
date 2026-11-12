@@ -239,7 +239,6 @@
   import { onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
-  import { fetchCoinList } from '@/api/coin'
   import { fetchComplianceAlerts } from '@/api/compliance'
   import { fetchMerchantList } from '@/api/merchant'
   import type { ComplianceAlertItem, TransactionPartyView } from '@/features/compliance/types'
@@ -252,6 +251,7 @@
   import { severityLabel, severityTagType } from '@/features/compliance/dictionaries'
   import { formatCoinBalance, formatTime } from '@/utils/format'
   import { useComplianceFilterStore } from '@/store/modules/complianceFilters'
+  import { useCoinStore } from '@/store/modules/coins'
   import MerchantSelect from '@/components/business/merchant-select/index.vue'
 
   defineOptions({ name: 'ComplianceAlerts' })
@@ -264,7 +264,8 @@
   const alerts = ref<ComplianceAlertItem[]>([])
   const merchants = ref<Array<{ code: string; merchantName: string }>>([])
   const merchantMap = ref<Record<string, string>>({})
-  const coinDecimals = ref<Record<string, number>>({})
+  /** 币种精度走全局 coin store（系统刷新时加载一次），本页不再单独请求 */
+  const coinStore = useCoinStore()
 
   // 筛选条件与分页放全局状态：详情页返回时条件仍在，可自动重新查询
   const filterStore = useComplianceFilterStore()
@@ -274,7 +275,7 @@
 
   /** 金额按币种精度换算；币种精度未知时回退原始值 */
   function displayAmount(alert: ComplianceAlertItem): string {
-    const decimals = coinDecimals.value[alert.currency]
+    const decimals = coinStore.getDecimalsByCoinId(alert.currency)
     if (!decimals) return String(alert.amount)
     return formatCoinBalance(String(alert.amount), decimals)
   }
@@ -331,18 +332,6 @@
     }
   }
 
-  /** 币种精度用于金额换算；缺失的币种原样展示最小单位 */
-  async function loadCoins() {
-    try {
-      const coins = await fetchCoinList()
-      const map: Record<string, number> = {}
-      for (const c of coins) map[c.coinId] = c.decimals
-      coinDecimals.value = map
-    } catch {
-      coinDecimals.value = {}
-    }
-  }
-
   async function fetchData() {
     loading.value = true
     try {
@@ -391,7 +380,6 @@
 
   onMounted(() => {
     loadMerchants()
-    loadCoins()
     fetchData()
   })
 </script>

@@ -36,6 +36,7 @@
           :ref="item.path"
           :id="`scroll-li-${index}`"
           @click="clickTab(item)"
+          @mouseenter="prefetchRoute(item.path)"
           @contextmenu.prevent="(e: MouseEvent) => showMenu(e, item.path)"
         >
           <ArtSvgIcon
@@ -92,6 +93,7 @@
   import { useWorktabStore } from '@/store/modules/worktab'
   import { useUserStore } from '@/store/modules/user'
   import { formatMenuTitle } from '@/utils/router'
+  import { prefetchRoute } from '@/utils/navigation'
   import { useSettingStore } from '@/store/modules/setting'
   import { MenuItemType } from '../../others/art-menu-right/index.vue'
   import { useCommon } from '@/hooks/core/useCommon'

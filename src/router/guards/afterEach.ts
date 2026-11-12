@@ -1,5 +1,6 @@
 import { nextTick } from 'vue'
 import { useSettingStore } from '@/store/modules/setting'
+import { useCoinStore } from '@/store/modules/coins'
 import { Router } from 'vue-router'
 import NProgress from 'nprogress'
 import { useCommon } from '@/hooks/core/useCommon'
@@ -12,6 +13,10 @@ export function setupAfterEachGuard(router: Router) {
 
   router.afterEach(() => {
     scrollToTop()
+
+    // 币种元数据全局只在会话首次加载一次；loaded 后页面切换直接读缓存
+    const coinStore = useCoinStore()
+    if (!coinStore.loaded) void coinStore.ensureLoaded()
 
     // 关闭进度条
     const settingStore = useSettingStore()
